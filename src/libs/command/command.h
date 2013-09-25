@@ -38,6 +38,7 @@ void command_dispose(tad_command* command);
 #define PACKED_ARGS \
 	void* __r_md_argsptr
 
+/*
 #define UNPACK_FIVE_ARGS(arg1, arg2, arg3, arg4, arg5) \
 	arg1 = get_next_argument(__r_md_argsptr); \
 	arg2 = get_next_argument(__r_md_argsptr); \
@@ -58,8 +59,9 @@ void command_dispose(tad_command* command);
 	arg2 = get_next_argument(__r_md_argsptr)
 #define UNPACK_ONE_ARG(arg1) \
 	arg1 = get_next_argument(__r_md_argsptr)
-#define UNPACK_ARG(arg1) \
-	arg1 = get_next_argument(__r_md_argsptr)
+*/
+#define UNPACK_ARG(arg) \
+	arg = get_next_argument(__r_md_argsptr)
 
 
 #endif /* COMMAND_H_ */

@@ -218,14 +218,15 @@ tad_socket* socket_listen(char* port){
 	tad_socket* socket = socket_new();
 
 	struct sockaddr_in socket_info;
+	int socket_id = socket_get_id(socket);
 
 	socket_info.sin_family = AF_INET;
 	socket_info.sin_addr.s_addr = INADDR_ANY; //mi ip
 	socket_info.sin_port = htons(atoi(port));
-	bind(socket_get_id(socket), (struct sockaddr*) &socket_info, sizeof(socket_info));
+	bind(socket_id, (struct sockaddr*) &socket_info, sizeof(socket_info));
 	//bind devuelve != 0 si hubo error
 
-	int error = listen(socket_get_id(socket), 10); //only god knows why 10
+	int error = listen(socket_id, 10); //only god knows why 10
 	
 	if(error != 0){ //listen retorna != 0 si hubo error
 		logger_error(socket_get_logger(socket), "Error al iniciar la escucha. (err id %d)", error);

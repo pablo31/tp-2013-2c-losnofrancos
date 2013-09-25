@@ -9,5 +9,12 @@
 #define PLANIFICADOR_H_
 
 
+struct s_planificador{
+	int nro_nivel;
+
+};
+typedef struct s_planificador tad_planificador;
+
+int planificador_numero_nivel(tad_planificador* planificador);
 
 #endif /* PLANIFICADOR_H_ */

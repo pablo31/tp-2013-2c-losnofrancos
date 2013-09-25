@@ -20,6 +20,7 @@ typedef unsigned char byte;
 typedef unsigned int uint;
 typedef unsigned int uint32;
 typedef unsigned short int uint16;
+typedef char string;
 
 //max between two numbers
 #define max(a, b) (a > b ? a : b)

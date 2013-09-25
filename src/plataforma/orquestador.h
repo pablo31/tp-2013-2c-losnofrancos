@@ -8,6 +8,8 @@
 #ifndef ORQUESTADOR_H_
 #define ORQUESTADOR_H_
 
+#include "../libs/common.h"
+
 #include "plataforma.h"
 
 struct s_orquestador{
@@ -29,6 +31,12 @@ tad_logger* orquestador_logger(tad_orquestador* orquestador);
 tad_orquestador* orquestador_crear(tad_plataforma* plataforma);
 void orquestador_ejecutar(tad_orquestador* orquestador);
 void orquestador_finalizar(tad_orquestador* orquestador);
+
+//Manejo de conexiones entrantes
+void orquestador_conexion_entrante(PACKED_ARGS);
+void orquestador_handshake(PACKED_ARGS);
+void orquestador_manejar_nivel(PACKED_ARGS);
+void orquestador_manejar_personaje(PACKED_ARGS);
 
 
 #endif /* ORQUESTADOR_H_ */
