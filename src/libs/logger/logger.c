@@ -7,7 +7,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <string.h>
 
 #include "../common/string.h"
@@ -90,10 +89,12 @@ private void logger_write(tad_logger* logger,
 }
 
 #define logger_implement_log_level(level_name) \
+	void logger_##level_name##_val(tad_logger* logger, const char* text, va_list inargs){ \
+		logger_write(logger, text, inargs, log_##level_name); } \
 	void logger_##level_name(tad_logger* logger, const char* text, ...){ \
 		va_list inargs; \
 		va_start(inargs, text); \
-		logger_write(logger, text, inargs, log_##level_name); }
+		logger_##level_name##_val(logger, text, inargs); } \
 
 logger_implement_log_level(trace);
 logger_implement_log_level(info);
