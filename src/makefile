@@ -59,6 +59,9 @@ all:
 
 	@echo "   >>> COMPILANDO PRUEBA DE SENALES"
 	gcc -Wall -g -ggdb pruebas/senales.c libsgn.a -o prueba_senales.sh
+
+	@echo "   >>> COMPILANDO PRUEBA DE VARIABLES"
+	gcc -Wall -g -ggdb pruebas/variables.c -o prueba_variables.sh
 	
 	@echo ""
 	@echo "# PROCESOS"

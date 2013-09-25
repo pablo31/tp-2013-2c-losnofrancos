@@ -56,7 +56,7 @@ void multiplexor_bind_socket(tad_multiplexor* m, tad_socket* socket, void* handl
 	fd_set* master = multiplexor_get_master(m);
 
 	FD_SET(socket_id, master);
-	m->max_fd = MAX(m->max_fd, socket_id);
+	m->max_fd = max(m->max_fd, socket_id);
 
 	phone* p = malloc(sizeof(phone));
 	p->socket = socket;
@@ -84,7 +84,7 @@ private void multiplexor_refresh_max_fd(tad_multiplexor* m){
 	int max = 0;
 	foreach(p, m->phone_book, phone*){
 		int socket_id = socket_get_id(p->socket);
-		max = MAX(max, socket_id);
+		max = max(max, socket_id);
 	}
 	m->max_fd = max;
 }
