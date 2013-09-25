@@ -35,7 +35,6 @@ void orquestador_ejecutar(tad_orquestador* orquestador){
 	char* puerto = "27015";
 	tad_socket* socket_escucha = socket_listen(puerto);
 	tad_multiplexor* multiplexor = multiplexor_create();
-
 	//asociamos el socket de escucha al multiplexor
 	multiplexor_bind_socket(multiplexor, socket_escucha, orquestador_conexion_entrante, 1, orquestador);
 
@@ -122,14 +121,13 @@ void orquestador_manejar_nivel(PACKED_ARGS){
 	//nos fijamos si el planificador del nivel ya estaba iniciado
 	if(plataforma_planificador_iniciado(plataforma, nro_nivel)){
 		//si ya estaba iniciado, lo pateamos
-		multiplexor_unbind_socket(socket);
+		multiplexor_unbind_socket(multiplexor, socket);
 		socket_close(socket);
 	}else{
 		//si no estaba iniciado, lo iniciamos
-//		tad_planificador* planificador = plataforma_iniciar_planificador(plataforma, nro_nivel);
+		plataforma_iniciar_planificador(plataforma, nro_nivel, socket);
+		multiplexor_unbind_socket(multiplexor, socket);
 	}
-
-	//TODO iniciar planificador, etc
 }
 
 void orquestador_manejar_personaje(PACKED_ARGS){

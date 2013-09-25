@@ -40,6 +40,10 @@ int main(int argc, char **argv){
 	signal_declare_handler(SIGINT, plataforma_finalizar, 1, plataforma);
 	logger_info(plataforma_get_logger(plataforma), "Signals establecidas");
 
+	plataforma_iniciar_planificador(plataforma, 1, null); //TODO quitar este hardcod
+	plataforma_iniciar_planificador(plataforma, 2, null); //TODO quitar este hardcod
+	plataforma_iniciar_planificador(plataforma, 3, null); //TODO quitar este hardcod
+
 	//Ejecutamos el orquestador en el hilo principal
 	orquestador_ejecutar(plataforma_get_orquestador(plataforma));
 
@@ -85,6 +89,9 @@ tad_logger* plataforma_get_logger(tad_plataforma* plataforma){
 tad_orquestador* plataforma_get_orquestador(tad_plataforma* plataforma){
 	return plataforma->orquestador;
 }
+t_list* plataforma_get_planificadores(tad_plataforma* plataforma){
+	return plataforma->planificadores;
+}
 
 //Nos dice si el planificador de cierto nivel ya se encuentra iniciado
 int plataforma_planificador_iniciado(tad_plataforma* plataforma, int nro_nivel){
@@ -95,6 +102,9 @@ int plataforma_planificador_iniciado(tad_plataforma* plataforma, int nro_nivel){
 }
 
 //Inicia el planificador para un numero de nivel dado
-void plataforma_iniciar_planificador(tad_plataforma* plataforma, int nro_nivel){
-	//TODO
+void plataforma_iniciar_planificador(tad_plataforma* plataforma, int nro_nivel, tad_socket* socket_nivel){
+	//creamos el planificador
+	tad_planificador* planificador = planificador_crear(nro_nivel, socket_nivel);
+	//lo agregamos a la lista de planificadores
+	list_add(plataforma_get_planificadores(plataforma), planificador);
 }
