@@ -22,11 +22,11 @@ typedef struct {
 typedef struct {
 	char* nombre;
 	char simbolo;
-	char** plan_de_niveles;
-	t_dictionary* objetivos;
+	char** plan_de_niveles;  // la idea es usar lista de lista,
+	t_dictionary* objetivos; //diccionario porque son fijos
 	int vidas;
-	t_connection_info* orquestador_info;
-	t_socket_client* socket_orquestador;
+	t_connection_info* orquestador_info;   //pablo en algun lado tenes que
+	t_socket_client* socket_orquestador;   //tener estructuras como estas  =)
 	int puerto;
 	t_log* logger;
 	t_personaje_nivel* nivel_actual;
@@ -50,6 +50,7 @@ void personaje_nivel_destroy(t_personaje_nivel* self);
 t_dictionary* _personaje_load_objetivos(t_config* config,
 		char** plan_de_niveles);
 
+//creo que es toda la funcionalidad de personaje, no se si me olvido de algo
 bool personaje_get_info_nivel(t_personaje* self);
 bool personaje_conectar_a_orquestador(t_personaje* self);
 bool personaje_conectar_a_nivel(t_personaje* self);

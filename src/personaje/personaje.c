@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
 
 
 	//personaje create levanta archivo de configuracion
-	//t_personaje* self = personaje_create(argv[1]);
+	t_personaje* self = personaje_create(argv[1]);
 
 	if (self == NULL ) {
 		return EXIT_FAILURE;
@@ -62,6 +62,7 @@ int main(int argc, char* argv[]) {
 
 
 
+	// esto no llegue...  =(
 	if (!personaje_conectar_a_nivel(self)) {
 		personaje_destroy(self);
 		return EXIT_FAILURE;
@@ -108,3 +109,61 @@ bool verificar_argumentos(int argc, char* argv[]) {
 	return true;
 }
 
+t_personaje* personaje_create(char* config_path) {
+	t_personaje* new = malloc(sizeof(t_personaje));
+	t_config* config = config_create(config_path); //commons... andres para nivel es igual...
+
+	new->nombre = string_duplicate(config_get_string_value(config, "nombre"));
+
+	char* s = string_duplicate(config_get_string_value(config, "simbolo"));
+	new->simbolo = s[0];
+
+	new->plan_de_niveles = config_get_array_value(config, "planDeNiveles");
+	new->objetivos = _personaje_load_objetivos(config, new->plan_de_niveles);
+	new->vidas = config_get_int_value(config, "vidas");
+	new->orquestador_info = connection_create(
+			config_get_string_value(config, "orquestador"));
+
+	void morir(char* mensaje) {
+		config_destroy(config);
+		free(s);
+		personaje_destroy(new);
+		printf("Error en el archivo de configuración: %s\n", mensaje);
+	}
+
+	if (!config_has_property(config, "puerto")) {
+		morir("Falta el puerto");
+		return NULL ;
+	}
+	new->puerto = config_get_int_value(config, "puerto");
+
+	char* log_file = "personaje.log";
+	char* log_level = "INFO";
+	if (config_has_property(config, "logFile")) {
+		log_file = string_duplicate(config_get_string_value(config, "logFile"));
+	}
+	if (config_has_property(config, "logLevel")) {
+		log_level = string_duplicate(
+				config_get_string_value(config, "logLevel"));
+	}
+	new->logger = log_create(log_file, "Personaje", true,
+			log_level_from_string(log_level));
+	config_destroy(config);
+
+	new->socket_orquestador = NULL;
+	new->nivel_actual = NULL;
+	new->posicion = NULL;
+	new->posicion_objetivo = NULL;
+	new->nivel_finalizado = false;
+	new->nivel_actual_index = 0;
+	new->vidas_iniciales = new->vidas;
+	new->objetivos_array = NULL;
+	new->objetivo_actual = NULL;
+	new->objetivo_actual_index = 0;
+	new->is_blocked = false;
+
+	free(s);
+	free(log_file);
+	free(log_level);
+	return new;
+}
