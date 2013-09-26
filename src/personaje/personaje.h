@@ -43,8 +43,8 @@ typedef struct {
 
 
 
-t_personaje* personaje_create(char* config_path);
-void personaje_destroy(t_personaje* self);
+t_personaje* personaje_create(char* config_path);  //ok
+void personaje_destroy(t_personaje* self);         //ok
 t_personaje_nivel* personaje_nivel_create(char* nombre_nivel);
 void personaje_nivel_destroy(t_personaje_nivel* self);
 t_dictionary* _personaje_load_objetivos(t_config* config,

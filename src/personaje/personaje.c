@@ -22,13 +22,16 @@ int main(int argc, char* argv[]) {
 		return EXIT_FAILURE;
 	}
 
-
 	//personaje create levanta archivo de configuracion
 	t_personaje* self = personaje_create(argv[1]);
 
 	if (self == NULL ) {
 		return EXIT_FAILURE;
 	}
+
+
+	log_debug(self->logger, "Personaje %s creado", self->nombre);
+
 
 	//se verifican las señales
 	void sigterm_handler(int signum) {
@@ -73,6 +76,10 @@ int main(int argc, char* argv[]) {
 		return EXIT_FAILURE;
 	}
 
+
+	personaje_destroy(self);
+
+	return EXIT_SUCCESS;
 }
 
 
@@ -166,4 +173,37 @@ t_personaje* personaje_create(char* config_path) {
 	free(log_file);
 	free(log_level);
 	return new;
+}
+
+
+
+void personaje_destroy(t_personaje* self) {
+	free(self->nombre);
+	array_destroy(self->plan_de_niveles);
+	dictionary_destroy_and_destroy_elements(self->objetivos,
+			(void*) array_destroy);
+	connection_destroy(self->orquestador_info);
+	log_destroy(self->logger);
+	if (self->socket_orquestador != NULL ) {
+		if (self->socket_orquestador->serv_socket != NULL ) {
+			sockets_destroy(self->socket_orquestador->serv_socket);
+		}
+		sockets_destroyClient(self->socket_orquestador);
+	}
+	if (self->nivel_actual != NULL ) {
+		personaje_nivel_destroy(self->nivel_actual);
+	}
+	if (self->posicion != NULL ) {
+		posicion_destroy(self->posicion);
+	}
+
+	if (self->posicion_objetivo != NULL ) {
+		posicion_destroy(self->posicion_objetivo);
+	}
+
+	if (self->objetivo_actual != NULL ) {
+		free(self->objetivo_actual);
+	}
+
+	free(self);
 }
