@@ -12,7 +12,7 @@
 #include <libs/common/string.h> // verificar este paht!!!!
 #include "personaje.h"
 
-
+bool verificar_argumentos(int argc, char* argv[]);
 sig_atomic_t reiniciar_nivel = 0;
 sig_atomic_t reiniciar_flan = 0;
 
@@ -74,4 +74,12 @@ void morir(t_personaje* self, char* motivo) {
 	}
 	log_info(self->logger, "Personaje %s: Ahora me quedan %d vidas",
 			self->nombre, self->vidas);
+}
+
+bool verificar_argumentos(int argc, char* argv[]) {
+	if (argc < 2) {
+		printf("Error en la cantidad de argumentos.\n");
+		return false;
+	}
+	return true;
 }
