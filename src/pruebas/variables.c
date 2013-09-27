@@ -11,21 +11,34 @@
 #include <string.h>
 #include "../libs/common.h"
 
+
 struct my_struct{
 	char* a;
 	char* b;
 };
-typedef struct my_struct clase;
+typedef struct my_struct my_class;
+
+
+int foo(){
+	printf("Foo called!\n");
+	return 2;
+}
 
 int main(void){
 
-	obj_alloc(objeto, clase);
-	objeto->a = "Texto A";
-	objeto->b = "Texto B";
+	alloc_instance(my_class, my_obj);
+	my_obj->a = "Struct Text A";
+	my_obj->b = "Struct Text Z";
 
-	var(referencia, objeto); //o bien ref(referencia, objeto)
+	var(reference, my_obj);
+	var(function_result, foo(2));
+	var(hola, "123");
 
-	printf("%s\n%s\n", referencia->a, referencia->b);
+	reference->b = "Struct Text B";
+
+	printf("%s\n%s\n%d\n", reference->a, reference->b, function_result);
+
+	free(my_obj);
 
 	return EXIT_SUCCESS;
 }

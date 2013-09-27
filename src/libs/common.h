@@ -37,11 +37,11 @@ typedef char string;
  ***************************************/
 
 //object alloc
-#define obj_alloc(name, type) \
+#define alloc_instance(type, name) \
 	type* name = malloc(sizeof(type))
-/* ejemplo de uso de obj_alloc ***************************************
+/* ejemplo de uso de alloc_instance **********************************
  * Sea:					typedef mi_estructura mi_tipo
- * Si hacemos:			obj_alloc(instancia, mi_tipo)
+ * Si hacemos:			alloc_instance(instancia, mi_tipo)
  * Seria lo mismo que:	mi_tipo* instancia = malloc(sizeof(mi_tipo))
  ********************************************************************/
 

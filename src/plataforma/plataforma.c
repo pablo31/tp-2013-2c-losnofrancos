@@ -12,6 +12,7 @@
 
 #include "../libs/logger/logger.h"
 #include "../libs/signal/signal.h"
+#include "../libs/thread/thread.h"
 #include "../libs/common.h"
 
 #include "plataforma.h"
@@ -72,7 +73,7 @@ void plataforma_finalizar(PACKED_ARGS){
 
 tad_plataforma* plataforma_crear(){
 	//alojamos la estructura tad_plataforma
-	obj_alloc(ret, tad_plataforma);
+	alloc_instance(tad_plataforma, ret);
 	//creamos el orquestador
 	ret->orquestador = orquestador_crear(ret);
 	//creamos la lista de planificadores
@@ -94,11 +95,11 @@ tad_orquestador* plataforma_orquestador(tad_plataforma* plataforma){
 //}
 
 //Nos dice si el planificador de cierto nivel ya se encuentra iniciado
-int plataforma_planificador_iniciado(tad_plataforma* plataforma, int nro_nivel){
+tad_planificador* plataforma_planificador_iniciado(tad_plataforma* plataforma, int nro_nivel){
 	foreach(planificador, plataforma->planificadores, tad_planificador*)
 		if(planificador_numero_nivel(planificador) == nro_nivel)
-			return 1;
-	return 0;
+			return planificador;
+	return null;
 }
 
 //Inicia el planificador para un numero de nivel dado
@@ -107,4 +108,6 @@ void plataforma_iniciar_planificador(tad_plataforma* plataforma, int nro_nivel, 
 	tad_planificador* planificador = planificador_crear(nro_nivel, socket_nivel);
 	//lo agregamos a la lista de planificadores
 	list_add(plataforma->planificadores, planificador);
+	//ejecutamos el planificador en un nuevo thread
+	thread_free_begin(planificador_ejecutar, 1, planificador);
 }
