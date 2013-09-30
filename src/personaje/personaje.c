@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <libs/common/string.h> // verificar este paht!!!!
 #include "personaje.h"
+#include "mensaje_personaje.c"  //pablo que onda con esta...
 
 bool verificar_argumentos(int argc, char* argv[]);
 sig_atomic_t reiniciar_nivel = 0;
@@ -206,4 +207,81 @@ void personaje_destroy(t_personaje* self) {
 	}
 
 	free(self);
+}
+
+
+bool personaje_conectar_a_orquestador(t_personaje* self) {
+
+	self->socket_orquestador = sockets_conectar_a_servidor(NULL, self->puerto,
+			self->orquestador_info->ip, self->orquestador_info->puerto,
+			self->logger, M_HANDSHAKE_PERSONAJE, PERSONAJE_HANDSHAKE,
+			HANDSHAKE_SUCCESS, "Orquestador");
+
+	if (self->socket_orquestador == NULL ) {
+		return false;
+	}
+
+	t_mensaje* mensaje = mensaje_recibir(self->socket_orquestador);
+
+	if (mensaje == NULL ) {
+		log_error(self->logger,
+				"Personaje %s: El orquestador se ha desconectado.",
+				self->nombre);
+		return false;
+	}
+
+	if (mensaje->type != M_GET_SYMBOL_PERSONAJE_REQUEST) {
+		mensaje_destroy(mensaje);
+		return false;
+	}
+
+	mensaje_destroy(mensaje);
+
+	char* simbolo = string_from_format("%c", self->simbolo);
+
+	mensaje_create_and_send(M_GET_SYMBOL_PERSONAJE_RESPONSE,
+			string_duplicate(simbolo), strlen(simbolo) + 1,
+			self->socket_orquestador);
+	free(simbolo);
+
+	return true;
+}
+
+
+bool personaje_conectar_a_planificador(t_personaje* self) {
+	self->nivel_actual->socket_planificador = sockets_conectar_a_servidor(NULL,
+			self->puerto, self->nivel_actual->planificador->ip,
+			self->nivel_actual->planificador->puerto, self->logger,
+			M_HANDSHAKE_PERSONAJE, PERSONAJE_HANDSHAKE, HANDSHAKE_SUCCESS,
+			"Planificador");
+
+	if (self->nivel_actual->socket_planificador == NULL ) {
+		return false;
+	}
+
+	t_mensaje* mensaje = mensaje_recibir(
+			self->nivel_actual->socket_planificador);
+
+	if (mensaje == NULL ) {
+		log_error(self->logger,
+				"Personaje %s: El planificador del nivel %s se ha desconectado.",
+				self->nombre, self->nivel_actual->nombre);
+		return false;
+	}
+
+	if (mensaje->type != M_GET_SYMBOL_PERSONAJE_REQUEST) {
+		mensaje_destroy(mensaje);
+		return false;
+	}
+
+	mensaje_destroy(mensaje);
+
+	char* simbolo = string_from_format("%c", self->simbolo);
+
+	mensaje_create_and_send(M_GET_SYMBOL_PERSONAJE_RESPONSE,
+			string_duplicate(simbolo), strlen(simbolo) + 1,
+			self->nivel_actual->socket_planificador);
+	free(simbolo);
+
+	return true;
 }
