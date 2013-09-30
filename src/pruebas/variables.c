@@ -26,19 +26,26 @@ int foo(){
 
 int main(void){
 
-	alloc_instance(my_class, my_obj);
+	//alojamos una instancia de my_class
+	alloc(my_obj, my_class);
+
+	//seteamos sus atributos
 	my_obj->a = "Struct Text A";
 	my_obj->b = "Struct Text Z";
 
+	//creamos variables sin tipar, referencias a distintos objetos
 	var(reference, my_obj);
 	var(function_result, foo(2));
 	var(hola, "123");
 
+	//seteamos uno de los atributos de una referencia a my_obj
 	reference->b = "Struct Text B";
 
-	printf("%s\n%s\n%d\n", reference->a, reference->b, function_result);
+	//imprimimos resultados en pantalla
+	printf("%s\n%s\n%d\n%s\n", reference->a, reference->b, function_result, hola);
 
-	free(my_obj);
+	//liberamos los recursos de my_obj
+	dealloc(my_obj);
 
 	return EXIT_SUCCESS;
 }

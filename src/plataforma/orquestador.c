@@ -22,7 +22,7 @@ tad_logger* orquestador_logger(tad_orquestador* orquestador){
 
 tad_orquestador* orquestador_crear(tad_plataforma* plataforma){
 	//alojamos una estructura tad_orquestador
-	alloc_instance(tad_orquestador, ret);
+	alloc(ret, tad_orquestador);
 	//seteamos la referencia a plataforma
 	ret->plataforma = plataforma;
 	//creamos una instancia del logger para el orquestador
@@ -56,9 +56,10 @@ void orquestador_ejecutar(tad_orquestador* orquestador){
 void orquestador_finalizar(tad_orquestador* orquestador){
 	//cerramos todos los sockets y destruimos el multiplexor
 	multiplexor_dispose_and_close_sockets(orquestador->multiplexor);
-
 	//destruimos la instancia del logger
 	logger_dispose_instance(orquestador->logger);
+	//liberamos memoria
+	dealloc(orquestador);
 }
 
 
@@ -74,10 +75,10 @@ void orquestador_conexion_entrante(PACKED_ARGS){
 	var(multiplexor, orquestador->multiplexor);
 
 	//aceptamos la conexion entrante
-	var(socket_conexion, socket_accept_connection(socket_escucha));
+	tad_socket* socket_conexion = socket_accept_connection(socket_escucha);
 	logger_info(orquestador_logger(orquestador), "Cliente conectado");
 	//enviamos un paquete de presentacion
-	socket_send_empty_package(socket, PRESENTACION_ORQUESTADOR);
+	socket_send_empty_package(socket_conexion, PRESENTACION_ORQUESTADOR);
 	//asociamos el socket a una nueva funcion manejadora de clientes
 	multiplexor_bind_socket(multiplexor, socket_conexion, orquestador_handshake, 2, orquestador, socket_conexion);
 }

@@ -27,7 +27,8 @@ typedef char string;
 
 //foreach loop
 #define foreach(item, list, type) \
-	t_link_element* __r_le; type item = list->head->data; \
+	t_link_element* __r_le; \
+	type item = list->head->data; \
 	for(__r_le = list->head; __r_le != null; __r_le = __r_le->next, item = __r_le?__r_le->data:null)
 /* ejemplo de uso de foreach ************
  * t_list* mi_lista;
@@ -37,12 +38,19 @@ typedef char string;
  ***************************************/
 
 //object alloc
-#define alloc_instance(type, name) \
+#define alloc(name, type) \
 	type* name = malloc(sizeof(type))
 /* ejemplo de uso de alloc_instance **********************************
  * Sea:					typedef mi_estructura mi_tipo
  * Si hacemos:			alloc_instance(instancia, mi_tipo)
  * Seria lo mismo que:	mi_tipo* instancia = malloc(sizeof(mi_tipo))
+ ********************************************************************/
+#define dealloc(obj) \
+	free(obj)
+/* ejemplo de uso de dealloc ****************************************
+ * Sea:					mi_tipo* obj
+ * Si hacemos:			dealloc(obj)
+ * Seria lo mismo que:	free(obj)
  ********************************************************************/
 
 //short-def var ref

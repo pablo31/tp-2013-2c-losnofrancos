@@ -8,6 +8,9 @@
 #ifndef ORQUESTADOR_H_
 #define ORQUESTADOR_H_
 
+#include "../libs/multiplexor/multiplexor.h"
+#include "../libs/socket/socket.h"
+#include "../libs/logger/logger.h"
 #include "../libs/common.h"
 
 #include "plataforma.h"
@@ -37,6 +40,7 @@ void orquestador_conexion_entrante(PACKED_ARGS);
 void orquestador_handshake(PACKED_ARGS);
 void orquestador_manejar_nivel(PACKED_ARGS);
 void orquestador_manejar_personaje(PACKED_ARGS);
+void orquestador_personaje_solicita_nivel(tad_orquestador* orquestador, tad_socket* socket, char* nombre, char simbolo, int nro_nivel);
 
 
 #endif /* ORQUESTADOR_H_ */

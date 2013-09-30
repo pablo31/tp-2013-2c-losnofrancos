@@ -35,7 +35,7 @@ int main(int argc, char **argv){
 
 	tad_plataforma* plataforma = plataforma_crear();
 
-	logger_info(plataforma_get_logger(plataforma), "Proceso Plataforma iniciado");
+	logger_info(plataforma_logger(plataforma), "Proceso Plataforma iniciado");
 
 	//Establecemos la señal para poder finalizar plataforma
 	signal_declare_handler(SIGINT, plataforma_finalizar, 1, plataforma);
@@ -52,28 +52,9 @@ int main(int argc, char **argv){
 	return EXIT_FAILURE;
 }
 
-void plataforma_finalizar(PACKED_ARGS){
-	UNPACK_ARG(tad_plataforma* plataforma);
-
-	//finalizo el orquestador
-	orquestador_finalizar(plataforma_orquestador(plataforma));
-	//finalizo los planificadores
-	//TODO finalizar planificadores
-
-	//finalizo el logger de plataforma
-	logger_dispose_instance(plataforma_logger(plataforma));
-	//libero los recursos del singleton logger
-	logger_dispose();
-	//libero los recursos de las senales
-	signal_dispose_all();
-
-	//finalizo el programa
-	exit(EXIT_SUCCESS);
-}
-
 tad_plataforma* plataforma_crear(){
 	//alojamos la estructura tad_plataforma
-	alloc_instance(tad_plataforma, ret);
+	alloc(ret, tad_plataforma);
 	//creamos el orquestador
 	ret->orquestador = orquestador_crear(ret);
 	//creamos la lista de planificadores
@@ -82,6 +63,26 @@ tad_plataforma* plataforma_crear(){
 	ret->logger = logger_new_instance("Plataforma");
 
 	return ret;
+}
+
+void plataforma_finalizar(PACKED_ARGS){
+	UNPACK_ARG(tad_plataforma* plataforma);
+
+	//liberamos los recursos de los planificadores
+	foreach(planificador, plataforma->planificadores, tad_planificador*){
+		planificador_finalizar(planificador);
+	}
+	//liberamos los recursos del orquestador
+	orquestador_finalizar(plataforma->orquestador);
+	//liberamos los recursos propios de plataforma
+	logger_dispose_instance(plataforma->logger);
+	dealloc(plataforma);
+	//libero los recursos del singleton logger
+	logger_dispose();
+	//libero los recursos de las senales
+	signal_dispose_all();
+
+	exit(EXIT_SUCCESS);
 }
 
 tad_logger* plataforma_logger(tad_plataforma* plataforma){

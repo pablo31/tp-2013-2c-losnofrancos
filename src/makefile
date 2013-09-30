@@ -23,7 +23,7 @@ all:
 
 	@echo "   >>> COMPILANDO LIBRERIA SOCKET"
 	gcc -Wall -g -ggdb -c libs/socket/socket.c libs/socket/socket_utils.c
-	ar rcs liblog.a socket.o socket_utils.o logger.o string.o log.o error.o temporal.o  txt.o process.o
+	ar rcs libsck.a socket.o socket_utils.o logger.o string.o log.o error.o temporal.o  txt.o process.o
 
 	@echo "   >>> COMPILANDO LIBRERIA THREAD Y MUTEX"
 	gcc -Wall -g -ggdb -c libs/thread/thread.c libs/thread/mutex.c libs/command/command.c libs/command/arguments.c -lpthread
@@ -42,10 +42,10 @@ all:
 	@echo ""
 
 	@echo "   >>> COMPILANDO PRUEBA CLIENTE"
-	gcc -Wall -g -ggdb pruebas/cliente.c libcommon.a liblog.a libsgn.a -o prueba_cliente.sh
+	gcc -Wall -g -ggdb pruebas/cliente.c libcommon.a libsck.a liblog.a libsgn.a -o prueba_cliente.sh
 	
 	@echo "   >>> COMPILANDO PRUEBA SERVIDOR (MULTIPLEXOR)"
-	gcc -Wall -g -ggdb pruebas/server.c libcommon.a liblog.a libsgn.a libmpx.a -o prueba_servidor.sh
+	gcc -Wall -g -ggdb pruebas/server.c libcommon.a libsck.a liblog.a libsgn.a libmpx.a -o prueba_servidor.sh
 
 	@echo "   >>> COMPILANDO PRUEBA DE LISTAS"
 	gcc -Wall -g -ggdb pruebas/listas.c libcommon.a -o prueba_listas.sh
@@ -71,7 +71,7 @@ all:
 	#TODO
 	
 	@echo "   >>> COMPILANDO PROCESO PLATAFORMA"
-	#TODO
+	#gcc -Wall -g -ggdb plataforma/plataforma.c plataforma/orquestador.c plataforma/planificador.c libcommon.a libsck.a liblog.a libth.a libmpx.a libsgn.a -o plataforma.sh
 
 	@echo ""
 	@echo "   <<< Limpiando archivos output"
