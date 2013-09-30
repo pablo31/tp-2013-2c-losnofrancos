@@ -17,18 +17,6 @@
 
 //esto se tiene que sacar a una clase extrarna, pablo no se si en algun lado tenes a
 //alguna estrutura como esta...
-typedef struct t_mensaje {
-	uint8_t type;
-	uint16_t length;
-	void* payload;
-}__attribute__ ((packed)) t_mensaje;
-
-typedef struct t_connection_info {
-	char* ip;
-	//uint32_t puerto;
-	int puerto;
-}__attribute__ ((packed)) t_connection_info;
-
 
 typedef enum {
 	SOCKETSTATE_CONNECTED, SOCKETSTATE_DISCONNECTED
@@ -47,6 +35,17 @@ typedef struct {
 	t_socket* serv_socket;
 	e_socket_state state;
 } t_socket_client;
+
+
+typedef struct {
+	char data[DEFAULT_BUFFER_SIZE];
+	int size;
+} t_socket_buffer;
+
+typedef struct {
+	char data[DEFAULT_BUFFER_SIZE];
+	int size;
+} t_socket_buffer;  //ver si poner esto en mensaje_personaje.c o no..
 
 ///---------------------pablo tenemos que ver donde ponemos esto... XD
 
