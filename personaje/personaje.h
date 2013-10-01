@@ -4,11 +4,15 @@
  *  Created on: Sep 25, 2013
  *      Author: pablo
  */
-#include "personaje_structs.h"
-
 
 #ifndef PERSONAJE_H_
 #define PERSONAJE_H_
+
+
+
+#include "../libs/logger/logger.h"
+
+#include "personaje_structs.h"
 
 
 typedef struct {
@@ -22,19 +26,21 @@ typedef struct {
 typedef struct {
 	char* nombre;
 	char simbolo;
+	tad_logger* logger;
+	t_list* niveles;
+	int vidas_iniciales;
+	int vidas;
+
 	char** plan_de_niveles;  // la idea es usar lista de lista,
 	t_dictionary* objetivos; //diccionario porque son fijos
-	int vidas;
 	t_connection_info* orquestador_info;   //pablo en algun lado tenes que
 	t_socket_client* socket_orquestador;   //tener estructuras como estas  =)
 	int puerto;
-	t_log* logger;
 	t_personaje_nivel* nivel_actual;
 	t_posicion* posicion;
 	t_posicion* posicion_objetivo;
 	bool nivel_finalizado;
 	int nivel_actual_index;
-	int vidas_iniciales;
 	char** objetivos_array;
 	char* objetivo_actual;
 	int objetivo_actual_index;
