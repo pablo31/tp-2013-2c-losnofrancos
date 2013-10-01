@@ -13,6 +13,9 @@
 #include "../libs/logger/logger.h"
 #include "../libs/common.h"
 
+/****************************
+ * STRUCTS & TADS ***********
+ ****************************/
 struct s_orquestador;
 typedef struct s_orquestador tad_orquestador;
 
@@ -28,6 +31,9 @@ struct s_orquestador{
 };
 
 
+/****************************
+ * METHODS ******************
+ ****************************/
 //Getters
 char* orquestador_puerto(tad_orquestador* orquestador);
 tad_logger* orquestador_logger(tad_orquestador* orquestador);

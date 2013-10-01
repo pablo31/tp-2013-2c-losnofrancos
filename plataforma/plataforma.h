@@ -10,6 +10,9 @@
 
 #include "../libs/socket/socket.h"
 
+/****************************
+ * STRUCTS & TADS ***********
+ ****************************/
 struct s_plataforma;
 typedef struct s_plataforma tad_plataforma;
 
@@ -23,6 +26,9 @@ struct s_plataforma{
 };
 
 
+/****************************
+ * METHODS ******************
+ ****************************/
 void plataforma_finalizar(PACKED_ARGS);
 
 tad_plataforma* plataforma_crear();

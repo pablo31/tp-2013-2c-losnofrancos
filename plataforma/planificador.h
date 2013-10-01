@@ -11,6 +11,9 @@
 #include "../libs/socket/socket.h"
 #include "../libs/logger/logger.h"
 
+/****************************
+ * STRUCTS & TADS ***********
+ ****************************/
 struct s_personaje{
 	char* nombre;
 	char simbolo;
@@ -33,6 +36,9 @@ struct s_planificador{
 typedef struct s_planificador tad_planificador;
 
 
+/****************************
+ * METHODS ******************
+ ****************************/
 //Inicializacion
 tad_planificador* planificador_crear(int nro_nivel, tad_socket* socket_nivel);
 //Getters

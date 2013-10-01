@@ -31,7 +31,7 @@ int main(int argc, char **argv){
 	//char* configuracion = argv[1];
 	//TODO
 
-	logger_initialize_for_info("fruta.log", nombre_ejecutable);
+	logger_initialize_for_info("plataforma.log", nombre_ejecutable);
 
 	tad_plataforma* plataforma = plataforma_crear();
 
