@@ -29,13 +29,13 @@ private fd_set* multiplexor_get_master(tad_multiplexor* m){
 //Libera los recursos de un registro de llamada
 private void multiplexor_dispose_phone(phone* p){
 	command_dispose(p->command);
-	free(p);
+	dealloc(p);
 }
 
 
 //Crea un multiplexor
 tad_multiplexor* multiplexor_create(){
-	tad_multiplexor* ret = malloc(sizeof(tad_multiplexor));
+	alloc(ret, tad_multiplexor);
 
 	fd_set* master = multiplexor_get_master(ret);
 	FD_ZERO(master);
@@ -58,7 +58,7 @@ void multiplexor_bind_socket(tad_multiplexor* m, tad_socket* socket, void* handl
 	FD_SET(socket_id, master);
 	m->max_fd = max(m->max_fd, socket_id);
 
-	phone* p = malloc(sizeof(phone));
+	alloc(p, phone);
 	p->socket = socket;
 	p->command = command;
 	list_add(m->phone_book, p);
@@ -135,7 +135,7 @@ void multiplexor_dispose(tad_multiplexor* m){
 	}
 
 	list_destroy(m->phone_book);
-	free(m);
+	dealloc(m);
 }
 
 //Libera los recursos del multiplexor y cierra todos sus sockets asociados

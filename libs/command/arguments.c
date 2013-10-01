@@ -8,14 +8,14 @@
 #include <stdlib.h>
 
 #include "../common/collections/list.h"
+#include "../libs/common.h"
 
 #include "arguments.h"
 
 
 //Crea una nueva lista de argumentos
 tad_arguments* arguments_new(){
-	tad_arguments* ret;
-	ret = malloc(sizeof(tad_arguments));
+	alloc(ret, tad_arguments);
 	ret->list = list_create();
 	ret->last_index = 0;
 	ret->self_destroy = 0;
@@ -58,5 +58,5 @@ void* arguments_get(tad_arguments* arguments){
 //Libera recursos
 void arguments_dispose(tad_arguments* arguments){
 	list_destroy(arguments->list);
-	free(arguments);
+	dealloc(arguments);
 }

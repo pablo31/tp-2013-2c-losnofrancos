@@ -47,7 +47,7 @@ void logger_dispose(){
  **********************************************/
 
 tad_logger* logger_new_instance(const char* header, ...){
-	tad_logger* ret = malloc(sizeof(tad_logger));
+	alloc(ret, tad_logger);
 
 	va_list args;
 	va_start(args, header);
@@ -66,7 +66,7 @@ tad_logger* logger_new_instance(const char* header, ...){
 
 void logger_dispose_instance(tad_logger* logger){
 	free(logger->header);
-	free(logger);
+	dealloc(logger);
 }
 
 

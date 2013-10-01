@@ -57,7 +57,7 @@ void signal_declare_handler(int signal_id, void* function, int numargs, ...){
 
 	signal_command* sc = list_find(command_list, (void*)ssc);
 	if(sc == null){
-		signal_command* sc = malloc(sizeof(signal_command));
+		alloc(sc, signal_command);
 		sc->signal_id = signal_id;
 		sc->command = command;
 		list_add(command_list, sc);
@@ -72,6 +72,7 @@ void signal_declare_handler(int signal_id, void* function, int numargs, ...){
 void signal_dispose_all(){
 	foreach(sc, command_list, signal_command*){
 		command_dispose(sc->command);
+		//TODO free(sc)???
 	}
 
 	list_destroy(command_list);

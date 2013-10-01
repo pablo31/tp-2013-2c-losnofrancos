@@ -37,7 +37,7 @@
  ****************************************/
 
 private tad_header* header_new(byte data_type, int data_length){
-	tad_header* ret = malloc(sizeof(tad_header));
+	alloc(ret, tad_header);
 	ret->data_type = data_type;
 	ret->data_length = data_length;
 
@@ -45,7 +45,7 @@ private tad_header* header_new(byte data_type, int data_length){
 }
 
 private void header_dispose(tad_header* header){
-	free(header);
+	dealloc(header);
 }
 
 /****************************************
@@ -53,7 +53,8 @@ private void header_dispose(tad_header* header){
  ****************************************/
 
 private tad_package* package_allocate(){
-	return malloc(sizeof(tad_package));
+	alloc(ret, tad_package);
+	return ret;
 }
 
 //Crea un paquete
@@ -95,14 +96,14 @@ private tad_header* package_get_header(tad_package* package){
 void package_dispose(tad_package* package){
 	header_dispose(package_get_header(package));
 	//TODO deberia liberar el campo data?
-	free(package);
+	dealloc(package);
 }
 
 //Destruye el paquete salvando los datos, y los retorna
 void* package_dispose_return_data(tad_package* package){
 	header_dispose(package_get_header(package));
 	void* datos = package_get_data(package);
-	free(package);
+	dealloc(package);
 	return datos;
 }
 
@@ -119,7 +120,8 @@ void* package_dispose_return_data(tad_package* package){
 private void socket_initialize(tad_socket* socket, int socket_id){
 	socket->socket_id = socket_id;
 	socket->logger = logger_new_instance("Socket %d", socket_id);
-	socket->error_manager = malloc(sizeof(tad_error_manager));
+	alloc(em, tad_error_manager);
+	socket->error_manager = em;
 	socket_release_process_status(socket);
 	socket_reset_error(socket);
 }
@@ -183,7 +185,7 @@ private tad_socket* socket_new(){
 	setsockopt(socket_id, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
 
 	//creo el objeto socket
-	tad_socket* ret = malloc(sizeof(tad_socket));
+	alloc(ret, tad_socket);
 	socket_initialize(ret, socket_id);
 
 	logger_debug(socket_get_logger(ret), "Inicializado");
@@ -251,7 +253,7 @@ tad_socket* socket_accept_connection(tad_socket* socket){
 		return null;
 	}
 
-	tad_socket* new_socket = malloc(sizeof(tad_socket));
+	alloc(new_socket, tad_socket);
 	socket_initialize(new_socket, new_socket_id);
 
 	logger_debug(socket_get_logger(new_socket), "Conexion entrante a socket %d aceptada", socket_get_id(socket));
@@ -264,7 +266,7 @@ void socket_close(tad_socket* socket){
 	logger_debug(socket_get_logger(socket), "Cerrando");
 	close(socket_get_id(socket));
 	logger_dispose_instance(socket_get_logger(socket));
-	free(socket);
+	dealloc(socket);
 }
 
 //Informa que se cerro la conexion inesperadamente y setea el error

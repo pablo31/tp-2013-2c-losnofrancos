@@ -8,12 +8,15 @@
 #include <stdlib.h>
 #include <pthread.h>
 
+#include "../libs/common.h"
+
 #include "mutex.h"
 
 //Crea un semaforo listo para usar
 tad_mutex* mutex_create(){
-	tad_mutex* ret = malloc(sizeof(tad_mutex));
-	ret->pmutex = malloc(sizeof(pthread_mutex_t));
+	alloc(ret, tad_mutex);
+	alloc(pmutex, pthread_mutex_t);
+	ret->pmutex = pmutex;
 	pthread_mutex_init(ret->pmutex, NULL);
 	return ret;
 }
@@ -33,6 +36,6 @@ void mutex_open(tad_mutex* mutex){
 //Libera los recursos del semaforo
 void mutex_dispose(tad_mutex* mutex){
 	pthread_mutex_destroy(mutex->pmutex);
-	free(mutex->pmutex);
-	free(mutex);
+	dealloc(mutex->pmutex);
+	dealloc(mutex);
 }

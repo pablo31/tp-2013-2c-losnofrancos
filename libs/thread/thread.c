@@ -84,13 +84,14 @@ void thread_join(tad_thread* thread){
 
 //Crea un tad_thread
 private tad_thread* thread_new(){
-	return malloc(sizeof(tad_thread));
+	alloc(ret, tad_thread);
+	return ret;
 }
 
 //Libera los recursos de un thread
 private void thread_dispose(tad_thread* thread){
 	pthread_detach(thread->thread);
-	free(thread);
+	dealloc(thread);
 }
 
 

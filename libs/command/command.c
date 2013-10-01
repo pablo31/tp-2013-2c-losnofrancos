@@ -40,7 +40,7 @@ tad_command* command_create_val(void* function, int numargs, va_list inargs){
 	tad_arguments* arguments = command_create_arguments_from_val(numargs, inargs);
 
 	//Creamos el objeto command
-	tad_command* ret = malloc(sizeof(tad_command));
+	alloc(ret, tad_command);
 	ret->arguments = arguments;
 	ret->function = function;
 
@@ -73,7 +73,7 @@ void command_execute_and_dispose(tad_command* command){
 	if(arguments != null) arguments_self_destroy(arguments);
 
 	//Liberamos los recursos del puntero al command
-	free(command);
+	dealloc(command);
 
 	//Ejecutamos la funcion
 	command_execute_function(function, arguments);
@@ -88,5 +88,5 @@ void* get_next_argument(void* args_pointer){
 //Libera recursos
 void command_dispose(tad_command* command){
 	arguments_dispose(command->arguments);
-	free(command);
+	dealloc(command);
 }
