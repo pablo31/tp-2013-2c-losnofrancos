@@ -8,7 +8,7 @@
 #include <stdlib.h>
 
 #include "../common/collections/list.h"
-#include "../libs/common.h"
+#include "../common.h"
 
 #include "arguments.h"
 

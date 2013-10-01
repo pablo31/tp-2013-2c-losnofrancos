@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-#include "../libs/common.h"
+#include "../common.h"
 
 #include "mutex.h"
 
