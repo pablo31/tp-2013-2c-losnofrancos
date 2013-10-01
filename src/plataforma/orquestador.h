@@ -13,6 +13,9 @@
 #include "../libs/logger/logger.h"
 #include "../libs/common.h"
 
+struct s_orquestador;
+typedef struct s_orquestador tad_orquestador;
+
 #include "plataforma.h"
 
 struct s_orquestador{
@@ -23,7 +26,6 @@ struct s_orquestador{
 	tad_plataforma* plataforma;
 	tad_logger* logger;
 };
-typedef struct s_orquestador tad_orquestador;
 
 
 //Getters
@@ -40,7 +42,7 @@ void orquestador_conexion_entrante(PACKED_ARGS);
 void orquestador_handshake(PACKED_ARGS);
 void orquestador_manejar_nivel(PACKED_ARGS);
 void orquestador_manejar_personaje(PACKED_ARGS);
-void orquestador_personaje_solicita_nivel(tad_orquestador* orquestador, tad_socket* socket, char* nombre, char simbolo, int nro_nivel);
+void orquestador_personaje_solicita_nivel(tad_orquestador* orquestador, tad_socket* socket, char* nombre, char simbolo);
 
 
 #endif /* ORQUESTADOR_H_ */

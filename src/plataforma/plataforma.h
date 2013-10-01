@@ -10,6 +10,9 @@
 
 #include "../libs/socket/socket.h"
 
+struct s_plataforma;
+typedef struct s_plataforma tad_plataforma;
+
 #include "orquestador.h"
 #include "planificador.h"
 
@@ -18,7 +21,6 @@ struct s_plataforma{
 	tad_orquestador* orquestador;
 	t_list* planificadores;
 };
-typedef struct s_plataforma tad_plataforma;
 
 
 void plataforma_finalizar(PACKED_ARGS);

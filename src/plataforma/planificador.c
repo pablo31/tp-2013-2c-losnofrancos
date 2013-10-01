@@ -36,7 +36,7 @@ tad_logger* planificador_logger(tad_planificador* planificador){
 }
 
 void planificador_ejecutar(PACKED_ARGS){
-	UNPACK_ARG(tad_planificador* planificador);
+	//UNPACK_ARG(tad_planificador* planificador);
 
 	//TODO logica del planificador..
 }

@@ -27,8 +27,8 @@
  * -tad package methods
  * -tad socket getters & setters
  * -tad socket creation, connection & disposal
- * -tad socket send methods
- * -tad socket receive methods
+ * -tad socket send
+ * -tad socket receive
  */
 
 

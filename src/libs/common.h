@@ -40,14 +40,14 @@ typedef char string;
 //object alloc
 #define alloc(name, type) \
 	type* name = malloc(sizeof(type))
-/* ejemplo de uso de alloc_instance **********************************
+/* ejemplo de uso de alloc *******************************************
  * Sea:					typedef mi_estructura mi_tipo
- * Si hacemos:			alloc_instance(instancia, mi_tipo)
+ * Si hacemos:			alloc(instancia, mi_tipo)
  * Seria lo mismo que:	mi_tipo* instancia = malloc(sizeof(mi_tipo))
  ********************************************************************/
 #define dealloc(obj) \
 	free(obj)
-/* ejemplo de uso de dealloc ****************************************
+/* ejemplo de uso de dealloc *****************************************
  * Sea:					mi_tipo* obj
  * Si hacemos:			dealloc(obj)
  * Seria lo mismo que:	free(obj)

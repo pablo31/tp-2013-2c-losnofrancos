@@ -71,7 +71,7 @@ all:
 	#TODO
 	
 	@echo "   >>> COMPILANDO PROCESO PLATAFORMA"
-	#gcc -Wall -g -ggdb plataforma/plataforma.c plataforma/orquestador.c plataforma/planificador.c libcommon.a libsck.a liblog.a libth.a libmpx.a libsgn.a -o plataforma.sh
+	gcc -Wall -g -ggdb plataforma/plataforma.c plataforma/orquestador.c plataforma/planificador.c libcommon.a libsck.a liblog.a libth.a libmpx.a libsgn.a -o plataforma.sh -lpthread
 
 	@echo ""
 	@echo "   <<< Limpiando archivos output"

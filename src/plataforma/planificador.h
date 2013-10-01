@@ -41,6 +41,8 @@ tad_logger* planificador_logger(tad_planificador* planificador);
 //Ejecucion
 void planificador_ejecutar(PACKED_ARGS);
 void planificador_finalizar(tad_planificador* planificador);
+//Logica
+void planificador_agregar_personaje(tad_planificador* planificador, char* nombre, char simbolo, tad_socket* socket);
 
 
 #endif /* PLANIFICADOR_H_ */
