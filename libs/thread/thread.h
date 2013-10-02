@@ -25,4 +25,10 @@ void thread_free_begin(void* function, int numargs, ...);
 void thread_join(tad_thread* thread);
 
 
+/*#define thread_begin_calling(call, thread) \
+	void __r_md_th##thread(void){ \
+		call; \
+	} \
+	thread = thread_begin(__r_md_th##thread, 0);*/
+
 #endif /* THREAD_H_ */

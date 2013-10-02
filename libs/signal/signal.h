@@ -12,8 +12,16 @@
 
 #include "../command/command.h"
 
+//handler declaration
 void signal_declare_handler(int signal_id, void* function, int numargs, ...);
+//disposal
 void signal_dispose_all();
 
+//handler dynamic declaration
+#define signal_dynamic_handler(signal_id, call) \
+	void __r_md_shf##signal_id(void){ \
+		call; \
+	} \
+	signal_declare_handler(signal_id, __r_md_shf##signal_id, 0);
 
 #endif /* SIGNAL_H_ */
