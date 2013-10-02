@@ -30,6 +30,7 @@ typedef struct {
 	t_list* niveles;
 	int vidas_iniciales;
 	int vidas;
+	char* ippuerto_orquestador;
 
 	char** plan_de_niveles;  // la idea es usar lista de lista,
 	t_dictionary* objetivos; //diccionario porque son fijos

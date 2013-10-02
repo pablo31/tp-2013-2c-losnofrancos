@@ -28,40 +28,23 @@ private bool verificar_argumentos(int argc, char* argv[]) {
 	return true;
 }
 
-private t_personaje* personaje_crear(char* config_path){
-	alloc(ret, t_personaje);
-	ret->logger = logger_new_instance("");
-	//TODO inicializar los otros atributos internos
-	return ret;
-}
+//inicializacion
+private t_personaje* personaje_crear(char* config_path);
+//getters & setters
+private tad_logger* get_logger(t_personaje* self);
+private char* get_nombre(t_personaje* self);
+private t_list* get_niveles(t_personaje* self);
+private int get_vidas_iniciales(t_personaje* self);
+private int get_vidas(t_personaje* self);
+private void set_vidas(t_personaje* self, int value);
+//logica y ejecucion
+void morir(t_personaje* self);
+private void comer_honguito_verde(t_personaje* self);
+private void jugar_nivel(t_personaje* self, int nro_nivel);
 
-private tad_logger* get_logger(t_personaje* self){
-	return self->logger;
-}
 
-private char* get_nombre(t_personaje* self){
-	return self->nombre;
-}
 
-private t_list* get_niveles(t_personaje* self){
-	return self->niveles;
-}
 
-private int get_vidas_iniciales(t_personaje* self){
-	return self->vidas_iniciales;
-}
-
-private int get_vidas(t_personaje* self){
-	return self->vidas;
-}
-
-private void set_vidas(t_personaje* self, int value){
-	self->vidas = value;
-}
-
-private void jugar_nivel(t_personaje* self, int nro_nivel){
-	//TODO
-}
 
 
 
@@ -85,15 +68,8 @@ int main(int argc, char* argv[]) {
 	logger_debug(get_logger(self), "Personaje %s creado", get_nombre(self));
 
 	//declaramos las funciones manejadoras de senales
-	void sigterm_handler() {
-		morir(self, "Muerte por señal");
-	}
-	void sigusr1_handler() {
-		comer_honguito_verde(self);
-	}
-
-	signal_declare_handler(SIGTERM, sigterm_handler, 0);
-	signal_declare_handler(SIGUSR1, sigusr1_handler, 0);
+	signal_dynamic_handler(SIGTERM, morir(self, "Muerte por señal"));
+	signal_dynamic_handler(SIGUSR1, comer_honguito_verde(self));
 	logger_debug(get_logger(self), "Senales establecidas");
 
 
@@ -130,7 +106,7 @@ int main(int argc, char* argv[]) {
 }
 
 
-void morir(t_personaje* self) {
+private void morir(t_personaje* self){
 	var(vidas, get_vidas(self));
 	var(vidas_iniciales, get_vidas_iniciales(self));
 
@@ -148,13 +124,58 @@ void morir(t_personaje* self) {
 	set_vidas(self, vidas);
 }
 
-void comer_honguito_verde(t_personaje* self) {
+private void comer_honguito_verde(t_personaje* self){
 	logger_info(get_logger(self), "Llego un honguito de esos que pegan ;)");
 	var(vidas, get_vidas(self));
 	vidas++;
 	logger_info(get_logger(self), "El personaje gano una vida, posee en total %d", vidas);
 	set_vidas(self, vidas);
 }
+
+
+
+private t_personaje* personaje_crear(char* config_path){
+	alloc(ret, t_personaje);
+	ret->logger = logger_new_instance("");
+	//TODO inicializar los otros atributos internos
+	return ret;
+}
+
+private tad_logger* get_logger(t_personaje* self){
+	return self->logger;
+}
+
+private char* get_nombre(t_personaje* self){
+	return self->nombre;
+}
+
+private t_list* get_niveles(t_personaje* self){
+	return self->niveles;
+}
+
+private int get_vidas_iniciales(t_personaje* self){
+	return self->vidas_iniciales;
+}
+
+private int get_vidas(t_personaje* self){
+	return self->vidas;
+}
+
+private void set_vidas(t_personaje* self, int value){
+	self->vidas = value;
+}
+
+
+
+
+
+
+private void jugar_nivel(t_personaje* self, int nro_nivel){
+
+	//TODO
+}
+
+
 
 
 //t_personaje* personaje_create(char* config_path) {
