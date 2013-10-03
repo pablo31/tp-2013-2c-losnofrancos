@@ -18,7 +18,6 @@
 #include "../libs/common.h"
 
 #include "personaje.h"
-#include "mensaje_personaje.c"
 
 
 
@@ -41,9 +40,9 @@ private int get_vidas_iniciales(t_personaje* self);
 private int get_vidas(t_personaje* self);
 private void set_vidas(t_personaje* self, int value);
 //logica y ejecucion
-void morir(t_personaje* self);
+private void morir(t_personaje* self);
 private void comer_honguito_verde(t_personaje* self);
-private void jugar_nivel(t_personaje* self, int nro_nivel);
+private void jugar_nivel(PACKED_ARGS);
 
 
 
@@ -71,28 +70,26 @@ int main(int argc, char* argv[]) {
 	logger_debug(get_logger(self), "Personaje %s creado", get_nombre(self));
 
 	//declaramos las funciones manejadoras de senales
-	signal_dynamic_handler(SIGTERM, morir(self, "Muerte por señal"));
+	signal_dynamic_handler(SIGTERM, morir(self));
 	signal_dynamic_handler(SIGUSR1, comer_honguito_verde(self));
 	logger_debug(get_logger(self), "Senales establecidas");
 
 
 
 	var(niveles, get_niveles(self));
+	logger_debug(get_logger(self), "var niveles");
 	var(cantidad_de_niveles, list_size(niveles));
+	logger_debug(get_logger(self), "var size");
 	tad_thread* thread[cantidad_de_niveles];
+	logger_debug(get_logger(self), "declaracion threads");
 
 	int i;
 
 	//iniciamos un nuevo hilo por cada nivel que tenemosq ue jugar
 	for(i = 0; i < cantidad_de_niveles; i++){
-		int nro_nivel = *list_get(niveles, i);
+		t_nivel* nivel = list_get(niveles, i);
 
-		void thread_handler(){
-			logger_debug(get_logger(self), "Hilo para jugar el nivel %d iniciado", nro_nivel);
-			jugar_nivel(self, nro_nivel);
-		}
-
-		thread[i] = thread_begin(thread_handler, 0);
+		thread[i] = thread_begin(jugar_nivel, 2, self, nivel);
 	}
 
 	//esperamos a que todos los hilos terminen
@@ -159,6 +156,7 @@ private t_personaje* personaje_crear(char* config_path){
 		nivel->nro_nivel = i + 1;
 		list_add(niveles, nivel);
 	}
+	ret->niveles = niveles;
 
 	return ret;
 }
@@ -212,8 +210,14 @@ private void set_vidas(t_personaje* self, int value){
 
 
 
-private void jugar_nivel(t_personaje* self, int nro_nivel){
+private void jugar_nivel(PACKED_ARGS){
+	UNPACK_ARG(t_personaje* self);
+	UNPACK_ARG(t_nivel* nivel);
+
+	var(nro_nivel, nivel->nro_nivel);
+
 	tad_logger* logger = logger_new_instance("Thread nivel %d", nro_nivel);
+	logger_debug(logger, "Hilo para jugar el nivel %d iniciado", nro_nivel);
 
 	var(ippuerto_orquestador, self->ippuerto_orquestador); //TODO hacer un getter
 	var(ip, string_get_ip(ippuerto_orquestador));

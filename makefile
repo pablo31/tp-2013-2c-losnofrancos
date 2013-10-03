@@ -68,7 +68,7 @@ all:
 	@echo ""
 	
 	@echo "   >>> COMPILANDO PROCESO PERSONAJE"
-	#TODO
+	gcc -Wall -g -ggdb personaje/personaje.c libcommon.a libsck.a liblog.a libth.a libsgn.a -o personaje.sh -lpthread
 	
 	@echo "   >>> COMPILANDO PROCESO PLATAFORMA"
 	gcc -Wall -g -ggdb plataforma/plataforma.c plataforma/orquestador.c plataforma/planificador.c libcommon.a libsck.a liblog.a libth.a libmpx.a libsgn.a -o plataforma.sh -lpthread

@@ -9,10 +9,9 @@
 #define PERSONAJE_H_
 
 
+#include "../libs/common/collections/list.h"
 
 #include "../libs/logger/logger.h"
-
-#include "personaje_structs.h"
 
 
 typedef struct {
