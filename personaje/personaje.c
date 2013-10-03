@@ -67,6 +67,11 @@ int main(int argc, char* argv[]) {
 
 	//levantamos el archivo de configuracion
 	t_personaje* self = personaje_crear(argv[1]);
+
+	if (self == NULL ) {  //esto va  XD
+			return EXIT_FAILURE;
+	}
+
 	logger_debug(get_logger(self), "Personaje %s creado", get_nombre(self));
 
 	//declaramos las funciones manejadoras de senales
@@ -143,6 +148,11 @@ private t_personaje* personaje_crear(char* config_path){
 
 	//TODO inicializar los otros atributos internos y quitar este hardcod
 
+	//ret->nombre = string_duplicate(config_get_string_value(config_path, "nombre"));
+	//ret->vidas = config_get_int_value(config_path, "vidas");
+
+	// pablo hay algo raro cuando quiero usar la commos me tira violacion de segmente
+	// chan chan chan..... estoy al horno con comunicaciones....
 	ret->nombre = "Mario";
 	ret->simbolo = '@';
 	ret->vidas_iniciales = 10;
