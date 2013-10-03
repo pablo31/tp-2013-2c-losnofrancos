@@ -13,6 +13,8 @@
 
 #include "../libs/signal/signal.h"
 #include "../libs/thread/thread.h"
+#include "../libs/socket/socket_utils.h"
+#include "../libs/protocol/protocol.h"
 #include "../libs/common.h"
 
 #include "personaje.h"
@@ -28,8 +30,9 @@ private bool verificar_argumentos(int argc, char* argv[]) {
 	return true;
 }
 
-//inicializacion
+//inicializacion y destruccion
 private t_personaje* personaje_crear(char* config_path);
+private void personaje_destruir(t_personaje* self);
 //getters & setters
 private tad_logger* get_logger(t_personaje* self);
 private char* get_nombre(t_personaje* self);
@@ -102,6 +105,9 @@ int main(int argc, char* argv[]) {
 
 	//TODO conectarse con oruqestador y decirle que cumplimos los objetivos!
 
+	personaje_destruir(self);
+	logger_dispose();
+	signal_dispose_all();
 	return EXIT_SUCCESS;
 }
 
@@ -137,8 +143,40 @@ private void comer_honguito_verde(t_personaje* self){
 private t_personaje* personaje_crear(char* config_path){
 	alloc(ret, t_personaje);
 	ret->logger = logger_new_instance("");
-	//TODO inicializar los otros atributos internos
+
+	//TODO inicializar los otros atributos internos y quitar este hardcod
+
+	ret->nombre = "Mario";
+	ret->simbolo = '@';
+	ret->vidas_iniciales = 10;
+	ret->vidas = 10;
+	ret->ippuerto_orquestador = "127.0.0.1:27015";
+
+	t_list* niveles = list_create();
+	int i;
+	for(i = 0; i < 4; i++){
+		alloc(nivel, t_nivel);
+		nivel->nro_nivel = i + 1;
+		list_add(niveles, nivel);
+	}
+
 	return ret;
+}
+
+private void personaje_destruir(t_personaje* self){
+	var(niveles, self->niveles);
+	var(size, list_size(niveles));
+	int i;
+	for(i = size; i > 0; i--){
+		t_nivel* nivel = list_get(niveles, i);
+		list_remove(niveles, i);
+		dealloc(nivel);
+	}
+	list_destroy(niveles);
+
+	logger_dispose_instance(get_logger(self));
+
+	//TODO liberar ippuerto_orquestador y nombre???
 }
 
 private tad_logger* get_logger(t_personaje* self){
@@ -147,6 +185,10 @@ private tad_logger* get_logger(t_personaje* self){
 
 private char* get_nombre(t_personaje* self){
 	return self->nombre;
+}
+
+private char get_simbolo(t_personaje* self){
+	return self->simbolo;
 }
 
 private t_list* get_niveles(t_personaje* self){
@@ -171,8 +213,56 @@ private void set_vidas(t_personaje* self, int value){
 
 
 private void jugar_nivel(t_personaje* self, int nro_nivel){
+	tad_logger* logger = logger_new_instance("Thread nivel %d", nro_nivel);
+
+	var(ippuerto_orquestador, self->ippuerto_orquestador); //TODO hacer un getter
+	var(ip, string_get_ip(ippuerto_orquestador));
+	var(puerto, string_get_port(ippuerto_orquestador));
+
+	tad_socket* socket = socket_connect(ip, puerto);
+
+	DECLARE_ERROR_MANAGER{
+		switch(socket_get_error(socket)){
+		case CONNECTION_CLOSED:
+			logger_error(logger, "El orquestador se desconecto inesperadamente");
+			break;
+		case UNEXPECTED_PACKAGE:
+			logger_error(logger, "El orquestador envio un paquete incorrecto");
+			break;
+		default:
+			logger_error(logger, "Error en el envio o recepcion de datos del orquestador");
+			break;
+		}
+		socket_close(socket);
+		logger_dispose_instance(logger);
+		return;
+	}FOR_SOCKET(socket);
+
+	byte presentacion = socket_receive_empty_package(socket);
+	if(presentacion != PRESENTACION_ORQUESTADOR) socket_set_error(socket, UNEXPECTED_PACKAGE);
+	logger_info(logger, "El servidor es un orquestador");
+
+	sleep(2);
+
+	socket_send_empty_package(socket, PRESENTACION_PERSONAJE);
+
+	logger_info(logger, "Enviando datos del personaje");
+	var(nombre, get_nombre(self));
+	var(simbolo, get_simbolo(self));
+	socket_send_string(socket, PERSONAJE_NOMBRE, nombre);
+	socket_send_char(socket, PERSONAJE_SIMBOLO, simbolo);
+
+	sleep(2);
+
+	logger_info(logger, "Enviando solicitud de conexion al nivel");
+	socket_send_int(socket, PERSONAJE_SOLICITUD_NIVEL, nro_nivel);
+
 
 	//TODO
+	sleep(2);
+
+	socket_close(socket);
+	logger_dispose_instance(logger);
 }
 
 
