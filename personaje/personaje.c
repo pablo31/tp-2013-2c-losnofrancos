@@ -257,12 +257,12 @@ private void jugar_nivel(PACKED_ARGS){
 	socket_send_empty_package(socket, PRESENTACION_PERSONAJE);
 
 	logger_info(logger, "Enviando datos del personaje");
-	var(nombre, get_nombre(self));
-	var(simbolo, get_simbolo(self));
-	socket_send_string(socket, PERSONAJE_NOMBRE, nombre);
-	socket_send_char(socket, PERSONAJE_SIMBOLO, simbolo);
+//	var(nombre, get_nombre(self));
+//	var(simbolo, get_simbolo(self));
+//	socket_send_string(socket, PERSONAJE_NOMBRE, nombre);
+//	socket_send_char(socket, PERSONAJE_SIMBOLO, simbolo);
 
-	sleep(2);
+//	sleep(2);
 
 	logger_info(logger, "Enviando solicitud de conexion al nivel");
 	socket_send_int(socket, PERSONAJE_SOLICITUD_NIVEL, nro_nivel);

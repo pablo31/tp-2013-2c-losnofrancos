@@ -161,29 +161,33 @@ void orquestador_manejar_personaje(PACKED_ARGS){
 	multiplexor_unbind_socket(orquestador->multiplexor, socket);
 
 	//recibimos nombre y simbolo del personaje
-	char* nombre = socket_receive_expected_string(socket, PERSONAJE_NOMBRE);
-	char simbolo = socket_receive_expected_char(socket, PERSONAJE_SIMBOLO);
+//	char* nombre = socket_receive_expected_string(socket, PERSONAJE_NOMBRE);
+//	char simbolo = socket_receive_expected_char(socket, PERSONAJE_SIMBOLO);
+	char* nombre = "Hola";
+	char simbolo = '#';
 	logger_info(orquestador_logger(orquestador), "El cliente es el Personaje %s, con simbolo %c", nombre, simbolo);
 
 	//recibimos su peticion de nivel o informe de objetivos completos
 	tad_package* paquete = socket_receive_one_of_this_packages(socket, 2, PERSONAJE_SOLICITUD_NIVEL, PERSONAJE_OBJETIVOS_COMPLETADOS);
 	byte tipo = package_get_data_type(paquete);
-	package_dispose(paquete);
+
+	int nro_nivel;
 
 	switch(tipo){
 	case PERSONAJE_SOLICITUD_NIVEL:
-		orquestador_personaje_solicita_nivel(orquestador, socket, nombre, simbolo);
+		nro_nivel = *(int*)package_get_data(paquete);
+		package_dispose(paquete);
+		orquestador_personaje_solicita_nivel(orquestador, socket, nombre, simbolo, nro_nivel);
 		break;
 	case PERSONAJE_OBJETIVOS_COMPLETADOS:
 		logger_info(orquestador_logger(orquestador), "El personaje %s informo que cumplio todos sus objetivos", nombre);
+		package_dispose(paquete);
 		//TODO
 		break;
 	}
 }
 
-void orquestador_personaje_solicita_nivel(tad_orquestador* orquestador, tad_socket* socket, char* nombre, char simbolo){
-	//obtenemos el nro de nivel
-	int nro_nivel = socket_receive_expected_int(socket, PERSONAJE_SOLICITUD_NIVEL);
+void orquestador_personaje_solicita_nivel(tad_orquestador* orquestador, tad_socket* socket, char* nombre, char simbolo, int nro_nivel){
 	logger_info(orquestador_logger(orquestador), "El personaje %s solicito el nivel %d", nombre, nro_nivel);
 
 	//nombres mas cortos

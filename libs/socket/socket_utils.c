@@ -168,7 +168,10 @@ char* socket_receive_expected_string(tad_socket* socket, byte data_type){
 //char
 
 void socket_send_char(tad_socket* socket, byte data_type, char value){
-	socket_send(socket, data_type, sizeof(char), &value);
+	char* ptr = malloc(sizeof(char));
+	*ptr = value;
+	socket_send(socket, data_type, sizeof(char), ptr);
+	free(ptr);
 }
 
 char socket_receive_expected_char(tad_socket* socket, byte data_type){
