@@ -63,10 +63,8 @@ void planificador_quitar_personaje(tad_planificador* self, tad_personaje* person
 		tad_personaje* selected = list_get(personajes, i);
 		if(selected == personaje){
 			list_remove(personajes, i);
-			char* nombre = selected->nombre;
-			logger_info(planificador_logger(self), "El personaje %s fue pateado", nombre);
 			socket_close(selected->socket);
-//			free(nombre);
+			logger_info(planificador_logger(self), "El personaje %s fue pateado", selected->nombre);
 			dealloc(selected);
 			return;
 		}
