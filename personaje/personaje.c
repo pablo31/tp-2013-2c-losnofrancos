@@ -10,7 +10,7 @@
 #include <unistd.h>
 
 #include "../libs/common/string.h"
-
+#include "../libs/common/config.h"
 #include "../libs/signal/signal.h"
 #include "../libs/thread/thread.h"
 #include "../libs/socket/socket_utils.h"
@@ -142,13 +142,13 @@ private t_personaje* personaje_crear(char* config_path){
 
 	//TODO inicializar los otros atributos internos y quitar este hardcod
 
-	//ret->nombre = string_duplicate(config_get_string_value(config_path, "nombre"));
-	//ret->vidas = config_get_int_value(config_path, "vidas");
+	ret->nombre = string_duplicate(config_get_string_value(config_path, "nombre"));
+	ret->vidas = config_get_int_value(config_path, "vidas");
 
 	// pablo hay algo raro cuando quiero usar la commos me tira violacion de segmente
 	// chan chan chan..... estoy al horno con comunicaciones....
-	ret->nombre = "Mario";
-	ret->simbolo = '@';
+	//ret->nombre = "Mario";
+	//ret->simbolo = '@';
 	ret->vidas_iniciales = 10;
 	ret->vidas = 10;
 	ret->ippuerto_orquestador = "127.0.0.1:27015";
