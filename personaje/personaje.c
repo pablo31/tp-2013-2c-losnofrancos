@@ -141,9 +141,9 @@ private t_personaje* personaje_crear(char* config_path){
 	ret->logger = logger_new_instance("");
 
 	//TODO inicializar los otros atributos internos y quitar este hardcod
-
-	ret->nombre = string_duplicate(config_get_string_value(config_path, "nombre"));
-	ret->vidas = config_get_int_value(config_path, "vidas");
+	t_config* config = config_create(config_path);
+	ret->nombre = string_duplicate(config_get_string_value(config, "nombre"));
+	ret->vidas = config_get_int_value(config, "vidas");
 
 	// pablo hay algo raro cuando quiero usar la commos me tira violacion de segmente
 	// chan chan chan..... estoy al horno con comunicaciones....
