@@ -27,47 +27,64 @@ tad_planificador* planificador_crear(int nro_nivel, tad_socket* socket_nivel){
 	return ret;
 }
 
-int planificador_numero_nivel(tad_planificador* planificador){
-	return planificador->nivel->nro;
+int planificador_numero_nivel(tad_planificador* self){
+	return self->nivel->nro;
 }
 
-tad_logger* planificador_logger(tad_planificador* planificador){
-	return planificador->logger;
+tad_logger* planificador_logger(tad_planificador* self){
+	return self->logger;
 }
 
 void planificador_ejecutar(PACKED_ARGS){
-	//UNPACK_ARG(tad_planificador* planificador);
+	//UNPACK_ARG(tad_planificador* self);
 
 	//TODO logica del planificador..
 }
 
-void planificador_agregar_personaje(tad_planificador* planificador, char* nombre, char simbolo, tad_socket* socket){
+void planificador_agregar_personaje(tad_planificador* self, char* nombre, char simbolo, tad_socket* socket){
 	//alojamos una instancia de tad_personaje
 	alloc(personaje, tad_personaje);
 	personaje->nombre = nombre;
 	personaje->simbolo = simbolo;
 	personaje->socket = socket;
 	//lo agregamos a la lista de personajes del planificador
-	list_add(planificador->personajes, personaje);
+	list_add(self->personajes, personaje);
 	//informamos al usuario
-	logger_info(planificador_logger(planificador), "El personaje %s entro al nivel", nombre);
+	logger_info(planificador_logger(self), "El personaje %s entro al nivel", nombre);
+
+	planificador_quitar_personaje(self, personaje); //TODO quitar esto cuando la logica este andando
 }
 
-void planificador_finalizar(tad_planificador* planificador){
-	logger_info(planificador_logger(planificador), "Finalizando");
-	//nombres mas cortos
-	var(personajes, planificador->personajes);
-	//liberamos los recursos de los datos de los personajes
-	foreach(personaje, personajes, tad_personaje*){
-		socket_close(personaje->socket);
-		free(personaje->nombre);
-		dealloc(personaje);
+void planificador_quitar_personaje(tad_planificador* self, tad_personaje* personaje){
+	var(personajes, self->personajes);
+
+	int i;
+	for(i = 0; i < list_size(personajes); i++){
+		tad_personaje* selected = list_get(personajes, i);
+		if(selected == personaje){
+			list_remove(personajes, i);
+			char* nombre = selected->nombre;
+			logger_info(planificador_logger(self), "El personaje %s fue pateado", nombre);
+			socket_close(selected->socket);
+//			free(nombre);
+			dealloc(selected);
+			return;
+		}
 	}
+}
+
+void planificador_finalizar(tad_planificador* self){
+	logger_info(planificador_logger(self), "Finalizando");
+	//nombres mas cortos
+	var(personajes, self->personajes);
+	//liberamos los recursos de los datos de los personajes
+	foreach(personaje, personajes, tad_personaje*)
+		planificador_quitar_personaje(self, personaje);
 	list_destroy(personajes);
 	//liberamos los recursos de los datos del nivel
-	socket_close(planificador->nivel->socket);
-	dealloc(planificador->nivel);
-	//liberamos los recursos propios del planificador
-	logger_dispose_instance(planificador->logger);
-	dealloc(planificador);
+	//socket_close(self->nivel->socket); //TODO habilitar esto cuando los niveles se conecten
+	dealloc(self->nivel);
+	//liberamos los recursos propios del self
+	logger_dispose_instance(self->logger);
+	dealloc(self);
 }

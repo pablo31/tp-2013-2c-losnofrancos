@@ -42,13 +42,14 @@ typedef struct s_planificador tad_planificador;
 //Inicializacion
 tad_planificador* planificador_crear(int nro_nivel, tad_socket* socket_nivel);
 //Getters
-int planificador_numero_nivel(tad_planificador* planificador);
-tad_logger* planificador_logger(tad_planificador* planificador);
+int planificador_numero_nivel(tad_planificador* self);
+tad_logger* planificador_logger(tad_planificador* self);
 //Ejecucion
 void planificador_ejecutar(PACKED_ARGS);
-void planificador_finalizar(tad_planificador* planificador);
+void planificador_finalizar(tad_planificador* self);
 //Logica
-void planificador_agregar_personaje(tad_planificador* planificador, char* nombre, char simbolo, tad_socket* socket);
+void planificador_agregar_personaje(tad_planificador* self, char* nombre, char simbolo, tad_socket* socket);
+void planificador_quitar_personaje(tad_planificador* self, tad_personaje* personaje);
 
 
 #endif /* PLANIFICADOR_H_ */
