@@ -161,10 +161,8 @@ void orquestador_manejar_personaje(PACKED_ARGS){
 	multiplexor_unbind_socket(orquestador->multiplexor, socket);
 
 	//recibimos nombre y simbolo del personaje
-//	char* nombre = socket_receive_expected_string(socket, PERSONAJE_NOMBRE);
-//	char simbolo = socket_receive_expected_char(socket, PERSONAJE_SIMBOLO);
-	char* nombre = "Hola";
-	char simbolo = '#';
+	char* nombre = socket_receive_expected_string(socket, PERSONAJE_NOMBRE);
+	char simbolo = socket_receive_expected_char(socket, PERSONAJE_SIMBOLO);
 	logger_info(orquestador_logger(orquestador), "El cliente es el Personaje %s, con simbolo %c", nombre, simbolo);
 
 	//recibimos su peticion de nivel o informe de objetivos completos

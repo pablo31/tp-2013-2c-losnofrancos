@@ -21,7 +21,7 @@ tad_planificador* planificador_crear(int nro_nivel, tad_socket* socket_nivel){
 	nivel->socket = socket_nivel;
 	ret->nivel = nivel;
 	//inicializamos la lista de personajes
-	list_create(ret->personajes);
+	ret->personajes = list_create();
 
 	logger_info(planificador_logger(ret), "Planificador del Nivel %d inicializado", nro_nivel);
 	return ret;

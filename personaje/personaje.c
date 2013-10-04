@@ -63,10 +63,10 @@ int main(int argc, char* argv[]) {
 	char* log_file = argv[2];
 
 	//inicializamos el singleton logger
-	logger_initialize_for_debug(config_file, exe_name);
+	logger_initialize_for_debug(log_file, exe_name);
 
 	//levantamos el archivo de configuracion
-	t_personaje* self = personaje_crear(argv[1]);
+	t_personaje* self = personaje_crear(config_file);
 	if(self == null) return EXIT_FAILURE; //TODO liberar logger
 
 	logger_debug(get_logger(self), "Personaje %s creado", get_nombre(self));
@@ -257,12 +257,12 @@ private void jugar_nivel(PACKED_ARGS){
 	socket_send_empty_package(socket, PRESENTACION_PERSONAJE);
 
 	logger_info(logger, "Enviando datos del personaje");
-//	var(nombre, get_nombre(self));
-//	var(simbolo, get_simbolo(self));
-//	socket_send_string(socket, PERSONAJE_NOMBRE, nombre);
-//	socket_send_char(socket, PERSONAJE_SIMBOLO, simbolo);
+	var(nombre, get_nombre(self));
+	var(simbolo, get_simbolo(self));
+	socket_send_string(socket, PERSONAJE_NOMBRE, nombre);
+	socket_send_char(socket, PERSONAJE_SIMBOLO, simbolo);
 
-//	sleep(2);
+	sleep(2);
 
 	logger_info(logger, "Enviando solicitud de conexion al nivel");
 	socket_send_int(socket, PERSONAJE_SOLICITUD_NIVEL, nro_nivel);
