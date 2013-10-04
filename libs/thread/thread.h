@@ -17,18 +17,13 @@ struct s_thread{
 };
 typedef struct s_thread tad_thread;
 
-//Creation
-tad_thread* thread_begin(void* function, int numargs, ...);
-void thread_free_begin(void* function, int numargs, ...);
 
-//Disposal
+//Inicia un thread guardando una referencia a el (para luego hacer join)
+tad_thread* thread_begin(void* function, int numargs, ...);
+//Inicia un thread sin guardar referencia a el
+void thread_free_begin(void* function, int numargs, ...);
+//Pausea la ejecucion del programa hasta que el thread finalize
 void thread_join(tad_thread* thread);
 
-
-/*#define thread_begin_calling(call, thread) \
-	void __r_md_th##thread(void){ \
-		call; \
-	} \
-	thread = thread_begin(__r_md_th##thread, 0);*/
 
 #endif /* THREAD_H_ */

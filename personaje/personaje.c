@@ -155,7 +155,7 @@ private t_personaje* personaje_crear(char* config_path){
 
 	t_list* niveles = list_create();
 	int i;
-	for(i = 0; i < 4; i++){
+	for(i = 0; i < 3; i++){
 		alloc(nivel, t_nivel);
 		nivel->nro_nivel = i + 1;
 		list_add(niveles, nivel);
@@ -179,6 +179,8 @@ private void personaje_destruir(t_personaje* self){
 	logger_dispose_instance(get_logger(self));
 
 	//TODO liberar ippuerto_orquestador y nombre???
+
+	dealloc(self);
 }
 
 private tad_logger* get_logger(t_personaje* self){
