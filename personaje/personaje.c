@@ -67,10 +67,7 @@ int main(int argc, char* argv[]) {
 
 	//levantamos el archivo de configuracion
 	t_personaje* self = personaje_crear(argv[1]);
-
-	if (self == NULL ) {  //esto va  XD
-			return EXIT_FAILURE;
-	}
+	if(self == null) return EXIT_FAILURE; //TODO liberar logger
 
 	logger_debug(get_logger(self), "Personaje %s creado", get_nombre(self));
 
@@ -82,11 +79,8 @@ int main(int argc, char* argv[]) {
 
 
 	var(niveles, get_niveles(self));
-	logger_debug(get_logger(self), "var niveles");
 	var(cantidad_de_niveles, list_size(niveles));
-	logger_debug(get_logger(self), "var size");
 	tad_thread* thread[cantidad_de_niveles];
-	logger_debug(get_logger(self), "declaracion threads");
 
 	int i;
 
