@@ -35,8 +35,8 @@ struct s_orquestador{
  * METHODS ******************
  ****************************/
 //Getters
-char* orquestador_puerto(tad_orquestador* orquestador);
-tad_logger* orquestador_logger(tad_orquestador* orquestador);
+//char* orquestador_puerto(tad_orquestador* orquestador);
+//tad_logger* get_logger(tad_orquestador* orquestador);
 
 //Inicializacion, ejecucion y destruccion
 tad_orquestador* orquestador_crear(tad_plataforma* plataforma);

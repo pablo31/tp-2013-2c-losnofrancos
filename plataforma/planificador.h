@@ -39,17 +39,19 @@ typedef struct s_planificador tad_planificador;
 /****************************
  * METHODS ******************
  ****************************/
-//Inicializacion
+
+//Crea una instancia de planificador
 tad_planificador* planificador_crear(int nro_nivel, tad_socket* socket_nivel);
-//Getters
-int planificador_numero_nivel(tad_planificador* self);
-tad_logger* planificador_logger(tad_planificador* self);
-//Ejecucion
+//Ejecuta el planificador (debe ser en un hilo exclusivo)
 void planificador_ejecutar(PACKED_ARGS);
+//Libera los recursos del planificador
 void planificador_finalizar(tad_planificador* self);
-//Logica
+
+//Agrega un personaje a la lista de juegadores del nivel
 void planificador_agregar_personaje(tad_planificador* self, char* nombre, char simbolo, tad_socket* socket);
-void planificador_quitar_personaje(tad_planificador* self, tad_personaje* personaje);
+
+//Devuelve el numero de nivel del planificador
+int planificador_numero_nivel(tad_planificador* self);
 
 
 #endif /* PLANIFICADOR_H_ */

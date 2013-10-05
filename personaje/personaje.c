@@ -29,20 +29,55 @@ private bool verificar_argumentos(int argc, char* argv[]) {
 	return true;
 }
 
+
+
+
+/***********************************************
+ * GETTERS & SETTERS ***************************
+ ***********************************************/
+
+private tad_logger* get_logger(t_personaje* self){
+	return self->logger;
+}
+
+private char* get_nombre(t_personaje* self){
+	return self->nombre;
+}
+
+private char get_simbolo(t_personaje* self){
+	return self->simbolo;
+}
+
+private t_list* get_niveles(t_personaje* self){
+	return self->niveles;
+}
+
+private int get_vidas_iniciales(t_personaje* self){
+	return self->vidas_iniciales;
+}
+
+private int get_vidas(t_personaje* self){
+	return self->vidas;
+}
+
+private void set_vidas(t_personaje* self, int value){
+	self->vidas = value;
+}
+
+private char* get_ippuerto_orquestador(t_personaje* self){
+	return self->ippuerto_orquestador;
+}
+
+
 //inicializacion y destruccion
 private t_personaje* personaje_crear(char* config_path);
 private void personaje_destruir(t_personaje* self);
-//getters & setters
-private tad_logger* get_logger(t_personaje* self);
-private char* get_nombre(t_personaje* self);
-private t_list* get_niveles(t_personaje* self);
-private int get_vidas_iniciales(t_personaje* self);
-private int get_vidas(t_personaje* self);
-private void set_vidas(t_personaje* self, int value);
 //logica y ejecucion
 private void morir(t_personaje* self);
 private void comer_honguito_verde(t_personaje* self);
-private void jugar_nivel(PACKED_ARGS);
+
+private void conectarse_al_planificador(PACKED_ARGS);
+private void jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, tad_logger* logger);
 
 
 
@@ -63,7 +98,7 @@ int main(int argc, char* argv[]) {
 	char* log_file = argv[2];
 
 	//inicializamos el singleton logger
-	logger_initialize_for_debug(log_file, exe_name);
+	logger_initialize_for_info(log_file, exe_name);
 
 	//levantamos el archivo de configuracion
 	t_personaje* self = personaje_crear(config_file);
@@ -78,8 +113,8 @@ int main(int argc, char* argv[]) {
 
 
 
-	t_list* niveles = get_niveles(self);
-	int cantidad_de_niveles = list_size(niveles);
+	var(niveles, get_niveles(self));
+	var(cantidad_de_niveles, list_size(niveles));
 	tad_thread* thread[cantidad_de_niveles];
 
 	int i;
@@ -87,8 +122,7 @@ int main(int argc, char* argv[]) {
 	//iniciamos un nuevo hilo por cada nivel que tenemosq ue jugar
 	for(i = 0; i < cantidad_de_niveles; i++){
 		t_nivel* nivel = list_get(niveles, i);
-
-		thread[i] = thread_begin(jugar_nivel, 2, self, nivel);
+		thread[i] = thread_begin(conectarse_al_planificador, 2, self, nivel);
 	}
 
 	//esperamos a que todos los hilos terminen
@@ -137,22 +171,24 @@ private void comer_honguito_verde(t_personaje* self){
 
 
 private t_personaje* personaje_crear(char* config_path){
+	//creamos una instancia de personaje
 	alloc(ret, t_personaje);
+	//obtenemos una instancia del logger
 	ret->logger = logger_new_instance("");
 
-	//TODO inicializar los otros atributos internos y quitar este hardcod
+	//Creamos una instancia del lector de archivos de config
 	t_config* config = config_create(config_path);
+
 	ret->nombre = string_duplicate(config_get_string_value(config, "nombre"));
-	ret->vidas = config_get_int_value(config, "vidas");
+	ret->simbolo = *config_get_string_value(config, "simbolo");
 
-	// pablo hay algo raro cuando quiero usar la commos me tira violacion de segmente
-	// chan chan chan..... estoy al horno con comunicaciones....
-	//ret->nombre = "Mario";
-	//ret->simbolo = '@';
-	ret->vidas_iniciales = 10;
-	ret->vidas = 10;
-	ret->ippuerto_orquestador = "127.0.0.1:27015";
+	int vidas = config_get_int_value(config, "vidas");
+	ret->vidas_iniciales = vidas;
+	ret->vidas = vidas;
 
+	ret->ippuerto_orquestador = string_duplicate(config_get_string_value(config, "orquestador"));
+
+	//TODO levantar los niveles y objetivos del archivo de config
 	t_list* niveles = list_create();
 	int i;
 	for(i = 0; i < 3; i++){
@@ -161,6 +197,9 @@ private t_personaje* personaje_crear(char* config_path){
 		list_add(niveles, nivel);
 	}
 	ret->niveles = niveles;
+
+	//liberamos recursos
+	config_destroy(config);
 
 	return ret;
 }
@@ -178,45 +217,17 @@ private void personaje_destruir(t_personaje* self){
 
 	logger_dispose_instance(get_logger(self));
 
-	//TODO liberar ippuerto_orquestador y nombre???
+	free(self->nombre);
+	free(self->ippuerto_orquestador);
 
 	dealloc(self);
 }
 
-private tad_logger* get_logger(t_personaje* self){
-	return self->logger;
-}
-
-private char* get_nombre(t_personaje* self){
-	return self->nombre;
-}
-
-private char get_simbolo(t_personaje* self){
-	return self->simbolo;
-}
-
-private t_list* get_niveles(t_personaje* self){
-	return self->niveles;
-}
-
-private int get_vidas_iniciales(t_personaje* self){
-	return self->vidas_iniciales;
-}
-
-private int get_vidas(t_personaje* self){
-	return self->vidas;
-}
-
-private void set_vidas(t_personaje* self, int value){
-	self->vidas = value;
-}
 
 
 
 
-
-
-private void jugar_nivel(PACKED_ARGS){
+private void conectarse_al_planificador(PACKED_ARGS){
 	UNPACK_ARG(t_personaje* self);
 	UNPACK_ARG(t_nivel* nivel);
 
@@ -225,7 +236,7 @@ private void jugar_nivel(PACKED_ARGS){
 	tad_logger* logger = logger_new_instance("Thread nivel %d", nro_nivel);
 	logger_debug(logger, "Hilo para jugar el nivel %d iniciado", nro_nivel);
 
-	var(ippuerto_orquestador, self->ippuerto_orquestador); //TODO hacer un getter
+	var(ippuerto_orquestador, get_ippuerto_orquestador(self));
 	var(ip, string_get_ip(ippuerto_orquestador));
 	var(puerto, string_get_port(ippuerto_orquestador));
 
@@ -256,26 +267,27 @@ private void jugar_nivel(PACKED_ARGS){
 
 	socket_send_empty_package(socket, PRESENTACION_PERSONAJE);
 
-	logger_info(logger, "Enviando datos del personaje");
-	var(nombre, get_nombre(self));
-	var(simbolo, get_simbolo(self));
-	socket_send_string(socket, PERSONAJE_NOMBRE, nombre);
-	socket_send_char(socket, PERSONAJE_SIMBOLO, simbolo);
-
 	sleep(2);
+
+	logger_info(logger, "Enviando datos del personaje");
+	socket_send_string(socket, PERSONAJE_NOMBRE, get_nombre(self));
+	socket_send_char(socket, PERSONAJE_SIMBOLO, get_simbolo(self));
 
 	logger_info(logger, "Enviando solicitud de conexion al nivel");
 	socket_send_int(socket, PERSONAJE_SOLICITUD_NIVEL, nro_nivel);
 
-
-	//TODO logica de juego con el planificador
 	sleep(2);
+
+	jugar_nivel(self, nivel, socket, logger);
+}
+
+private void jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, tad_logger* logger){
+
+	while(1) sleep(2); //TODO logica de juego con el planificador
 
 	socket_close(socket);
 	logger_dispose_instance(logger);
 }
-
-
 
 
 //t_personaje* personaje_create(char* config_path) {

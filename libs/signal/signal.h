@@ -12,9 +12,9 @@
 
 #include "../command/command.h"
 
-//handler declaration
+//Asocia una senal a una funcion manejadora
 void signal_declare_handler(int signal_id, void* function, int numargs, ...);
-//disposal
+//Libera todos los recursos y funciones asociadas a las senales
 void signal_dispose_all();
 
 //handler dynamic declaration
@@ -23,5 +23,6 @@ void signal_dispose_all();
 		call; \
 	} \
 	signal_declare_handler(signal_id, __r_md_shf##signal_id, 0);
+
 
 #endif /* SIGNAL_H_ */
