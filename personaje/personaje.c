@@ -104,12 +104,12 @@ int main(int argc, char* argv[]) {
 	t_personaje* self = personaje_crear(config_file);
 	if(self == null) return EXIT_FAILURE; //TODO liberar logger
 
-	logger_debug(get_logger(self), "Personaje %s creado", get_nombre(self));
+	logger_info(get_logger(self), "Personaje %s creado", get_nombre(self));
 
 	//declaramos las funciones manejadoras de senales
 	signal_dynamic_handler(SIGTERM, morir(self));
 	signal_dynamic_handler(SIGUSR1, comer_honguito_verde(self));
-	logger_debug(get_logger(self), "Senales establecidas");
+	logger_info(get_logger(self), "Senales establecidas");
 
 
 
@@ -234,7 +234,7 @@ private void conectarse_al_planificador(PACKED_ARGS){
 	var(nro_nivel, nivel->nro_nivel);
 
 	tad_logger* logger = logger_new_instance("Thread nivel %d", nro_nivel);
-	logger_debug(logger, "Hilo para jugar el nivel %d iniciado", nro_nivel);
+	logger_info(logger, "Hilo para jugar el nivel %d iniciado", nro_nivel);
 
 	var(ippuerto_orquestador, get_ippuerto_orquestador(self));
 	var(ip, string_get_ip(ippuerto_orquestador));

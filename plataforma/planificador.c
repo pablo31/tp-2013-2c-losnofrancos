@@ -67,7 +67,9 @@ void planificador_agregar_personaje(tad_planificador* self, char* nombre, char s
 
 private void planificador_liberar_personaje(tad_planificador* self, tad_personaje* personaje){
 	socket_close(personaje->socket);
-	free(personaje->nombre);
+	var(nombre, personaje->nombre);
+	logger_info(get_logger(self), "El personaje %s fue pateado", nombre);
+	free(nombre);
 	dealloc(personaje);
 }
 

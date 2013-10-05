@@ -59,6 +59,7 @@ void orquestador_finalizar(tad_orquestador* self){
 	//cerramos todos los sockets y destruimos el multiplexor
 	multiplexor_dispose_and_close_sockets(self->multiplexor);
 	//destruimos la instancia del logger
+	logger_info(get_logger(self), "Finalizando");
 	logger_dispose_instance(self->logger);
 	//liberamos memoria
 	dealloc(self);
