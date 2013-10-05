@@ -78,8 +78,8 @@ int main(int argc, char* argv[]) {
 
 
 
-	var(niveles, get_niveles(self));
-	var(cantidad_de_niveles, list_size(niveles));
+	t_list* niveles = get_niveles(self);
+	int cantidad_de_niveles = list_size(niveles);
 	tad_thread* thread[cantidad_de_niveles];
 
 	int i;
@@ -268,7 +268,7 @@ private void jugar_nivel(PACKED_ARGS){
 	socket_send_int(socket, PERSONAJE_SOLICITUD_NIVEL, nro_nivel);
 
 
-	//TODO
+	//TODO logica de juego con el planificador
 	sleep(2);
 
 	socket_close(socket);

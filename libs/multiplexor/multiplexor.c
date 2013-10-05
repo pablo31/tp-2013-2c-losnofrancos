@@ -123,7 +123,7 @@ void multiplexor_wait_for_io(tad_multiplexor* m){
 		int socket_id = socket_get_id(p->socket);
 
 		//ejecutamos el manejador
-		if(FD_ISSET(socket_id, &read_set))
+		if(FD_ISSET(socket_id, &read_set)) //es muy kamikaze
 			command_execute(p->command);
 	}
 }
@@ -140,9 +140,8 @@ void multiplexor_dispose(tad_multiplexor* m){
 
 //Libera los recursos del multiplexor y cierra todos sus sockets asociados
 void multiplexor_dispose_and_close_sockets(tad_multiplexor* m){
-	foreach(p, m->phone_book, phone*){
+	foreach(p, m->phone_book, phone*)
 		socket_close(p->socket);
-	}
 
 	multiplexor_dispose(m);
 }

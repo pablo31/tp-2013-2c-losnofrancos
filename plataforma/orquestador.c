@@ -128,42 +128,42 @@ void orquestador_handshake(PACKED_ARGS){
 }
 
 void orquestador_manejar_nivel(PACKED_ARGS){
-	UNPACK_ARG(tad_orquestador* orquestador);
+	UNPACK_ARG(tad_orquestador* self);
 	UNPACK_ARG(tad_socket* socket);
 
 	//nombres mas cortos
-	var(multiplexor, orquestador->multiplexor);
-	var(plataforma, orquestador->plataforma);
+	var(multiplexor, self->multiplexor);
+	var(plataforma, self->plataforma);
 
 	//recibimos el numero del nivel que se conecto
 	int nro_nivel = socket_receive_expected_int(socket, NIVEL_NUMERO);
-	logger_info(orquestador_logger(orquestador), "El cliente es el Nivel %d", nro_nivel);
+	logger_info(orquestador_logger(self), "El cliente es el Nivel %d", nro_nivel);
 
 	//nos fijamos si el planificador del nivel ya estaba iniciado
 	if(plataforma_planificador_iniciado(plataforma, nro_nivel)){
 		//si ya estaba iniciado, lo pateamos
-		logger_error(orquestador_logger(orquestador), "El Planificador del Nivel %d ya estaba iniciado", nro_nivel);
+		logger_error(orquestador_logger(self), "El Planificador del Nivel %d ya estaba iniciado", nro_nivel);
 		multiplexor_unbind_socket(multiplexor, socket);
 		socket_close(socket);
 	}else{
 		//si no estaba iniciado, lo iniciamos
-		logger_info(orquestador_logger(orquestador), "El Planificador del Nivel %d sera inicializado");
+		logger_info(orquestador_logger(self), "El Planificador del Nivel %d sera inicializado");
 		plataforma_iniciar_planificador(plataforma, nro_nivel, socket);
 		multiplexor_unbind_socket(multiplexor, socket);
 	}
 }
 
 void orquestador_manejar_personaje(PACKED_ARGS){
-	UNPACK_ARG(tad_orquestador* orquestador);
+	UNPACK_ARG(tad_orquestador* self);
 	UNPACK_ARG(tad_socket* socket);
 
 	//desbindeamos el socket del multiplexor ya que esta es la ultima comunicacion
-	multiplexor_unbind_socket(orquestador->multiplexor, socket);
+	multiplexor_unbind_socket(self->multiplexor, socket);
 
 	//recibimos nombre y simbolo del personaje
-	char* nombre = socket_receive_expected_string(socket, PERSONAJE_NOMBRE);
+	char* nombre = socket_receive_expected_string(socket, PERSONAJE_NOMBRE); //TODO armar estructura unica
 	char simbolo = socket_receive_expected_char(socket, PERSONAJE_SIMBOLO);
-	logger_info(orquestador_logger(orquestador), "El cliente es el Personaje %s, con simbolo %c", nombre, simbolo);
+	logger_info(orquestador_logger(self), "El cliente es el Personaje %s, con simbolo %c", nombre, simbolo);
 
 	//recibimos su peticion de nivel o informe de objetivos completos
 	tad_package* paquete = socket_receive_one_of_this_packages(socket, 2, PERSONAJE_SOLICITUD_NIVEL, PERSONAJE_OBJETIVOS_COMPLETADOS);
@@ -175,10 +175,10 @@ void orquestador_manejar_personaje(PACKED_ARGS){
 	case PERSONAJE_SOLICITUD_NIVEL:
 		nro_nivel = *(int*)package_get_data(paquete);
 		package_dispose(paquete);
-		orquestador_personaje_solicita_nivel(orquestador, socket, nombre, simbolo, nro_nivel);
+		orquestador_personaje_solicita_nivel(self, socket, nombre, simbolo, nro_nivel);
 		break;
 	case PERSONAJE_OBJETIVOS_COMPLETADOS:
-		logger_info(orquestador_logger(orquestador), "El personaje %s informo que cumplio todos sus objetivos", nombre);
+		logger_info(orquestador_logger(self), "El personaje %s informo que cumplio todos sus objetivos", nombre);
 		package_dispose(paquete);
 		//TODO
 		break;

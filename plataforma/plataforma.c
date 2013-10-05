@@ -29,7 +29,7 @@ int main(int argc, char **argv){
 	}
 
 	//char* configuracion = argv[1];
-	//TODO
+	//TODO levantar archivo de config
 
 	logger_initialize_for_info("plataforma.log", nombre_ejecutable);
 
