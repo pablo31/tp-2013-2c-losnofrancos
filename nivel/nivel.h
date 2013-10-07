@@ -4,7 +4,7 @@
 
 #include "../libs/common/collections/list.h"
 #include "../libs/common/config.h"
-//#include "../libs/logger/logger.h"
+#include "../libs/logger/logger.h"
 
 #ifndef NIVEL
 #define NIVEL
@@ -32,11 +32,9 @@ typedef struct nivel {
 	uint     sleep_enemigos;
 	char*	 algoritmo;
 	uint 	 retardo;
+	tad_logger* logger;
 	t_list* cajas;
 } nivel;
-
-//extern tp_logger* logger;
-extern t_config* configuracion;
 
 #endif
  

@@ -74,13 +74,13 @@ all:
 	gcc -Wall -g -ggdb plataforma/plataforma.c plataforma/orquestador.c plataforma/planificador.c libcommon.a libsck.a liblog.a libth.a libmpx.a libsgn.a -o plataforma.sh -lpthread
 
 	@echo "   >>> COMPILANDO PROCESO NIVEL"
-	gcc -Wall -ggdb nivel/nivel_ui.c nivel/nivel_configuracion.c nivel/nivel.c -lncurses libcommon.a -o nivel.sh
+	gcc -Wall -ggdb nivel/nivel_ui.c nivel/nivel_configuracion.c nivel/nivel.c -lncurses libcommon.a liblog.a -o nivel.sh
 	
-	@echo ""
-	@echo "   <<< Limpiando archivos output"
-	rm *.o
-	@echo "   <<< Eliminando librerias"
-	rm *.a
+#	@echo ""
+#	@echo "   <<< Limpiando archivos output"
+#	rm *.o
+#	@echo "   <<< Eliminando librerias"
+#	rm *.a
 
 # make clean	
 # Esta opcion nos borra las librerias generadas y los ejecutables. Nos sirve para cuando nos quedo a medio masticar una compilacion

@@ -1,19 +1,19 @@
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <curses.h>
+#include <time.h>
+#include "nivel.h"
 #include "nivel_ui.h"
 #include "../libs/logger/logger.h"
 #include "../libs/common/config.h"
+#include "../libs/common.h"
 
 static WINDOW * secwin;
 static WINDOW * mainwin;
 static int rows, cols;
 static int inicializado = 0;
 
-////tp_logger* logger; //extern declarado en nivel.h
-t_config* configuracion;//extern declarado en nivel.h
-
-void nivel_gui_get_term_size(int * rows, int * cols) {
+static void nivel_gui_get_term_size(int * rows, int * cols) {
     struct winsize ws;
 
     if ( ioctl(0, TIOCGWINSZ, &ws) < 0 ) {
@@ -23,21 +23,19 @@ void nivel_gui_get_term_size(int * rows, int * cols) {
     *rows = ws.ws_row;
     *cols = ws.ws_col;
 }
-int nivel_gui_int_validar_inicializado(void){
+static int nivel_gui_int_validar_inicializado(void){
 	return inicializado;
 }
-void nivel_gui_print_perror(const char* message){
+static void nivel_gui_print_perror(const char* message){
 	fprintf(stderr, "%s\n", message);
 }
 
 int nivel_gui_inicializar() {	
 	
 	if (nivel_gui_int_validar_inicializado()){
-		//tp_logger_error(logger, "nivel_gui_inicializar: Library ya inicializada!");
 		return EXIT_FAILURE;
 	}
 
-	//tp_logger_debug(logger, "Iniciando los recursos de Curses.");
 	mainwin = initscr();
 	keypad(stdscr, TRUE);
 	noecho();
@@ -48,13 +46,11 @@ int nivel_gui_inicializar() {
 	box(stdscr, 0, 0);
 	refresh();
 
-	//tp_logger_debug(logger, "Estableciendo tamaño de la terminal.");
 	nivel_gui_get_term_size(&rows, &cols);
 	secwin = newwin(rows - 2, cols, 0, 0);
 	box(secwin, 0, 0);
 	wrefresh(secwin);
 
-	//tp_logger_debug(logger, "Estableciendo flag iniciado en 1.");
 	inicializado = 1;
 
 	return EXIT_SUCCESS;
@@ -138,7 +134,7 @@ int nivel_gui_get_area_nivel(int * rows, int * cols) {
 	return EXIT_SUCCESS;
 }
 
-void nivel_gui_crear_item(ITEM_NIVEL** ListaItems, char id, int x , int y, char tipo, int cant_rec) {
+static void nivel_gui_crear_item(ITEM_NIVEL** ListaItems, char id, int x , int y, char tipo, int cant_rec) {
         ITEM_NIVEL * temp;
         temp = malloc(sizeof(ITEM_NIVEL));
 
@@ -157,6 +153,19 @@ void nivel_gui_crear_personaje(ITEM_NIVEL** ListaItems, char id, int x , int y) 
 
 void nivel_gui_crear_caja(ITEM_NIVEL** ListaItems, char id, int x , int y, int cant) {
         nivel_gui_crear_item(ListaItems, id, x, y, RECURSO_ITEM_TYPE, cant);
+}
+
+void nivel_gui_crear_enemigo(ITEM_NIVEL** ListaItems, enemigo* enemigo) {
+		/*
+		int* filas = null;
+		int* columnas = null;
+
+		nivel_gui_get_term_size(filas,columnas);
+		srand (time(NULL));
+		enemigo->pos_x = 1 + (rand() % *filas);
+		enemigo->pos_y = 1 + (rand() % *columnas);
+		*/
+        nivel_gui_crear_item(ListaItems, enemigo->simbolo, enemigo->pos_x, enemigo->pos_y, ENEMIGO_ITEM_TYPE, 1);
 }
 
 void nivel_borrar_item(ITEM_NIVEL** ListaItems, char id) {
@@ -206,4 +215,40 @@ void nivel_restar_recurso(ITEM_NIVEL* ListaItems, char id) {
                         temp->quantity = quantity;
                 }
         }
+}
+
+void cargar_recursos_nivel(nivel* nivel){	
+	ITEM_NIVEL* ListaItems = NULL;
+
+	int rows, cols;
+	//int q, p;
+
+	//int x = 1;
+	//int y = 1;
+
+    nivel_gui_get_area_nivel(&rows, &cols);
+
+	//q = rows;
+	//p = cols;
+
+	//tp_logger_info(logger, "Cargando recursos del nivel en la libreria de Curses.");
+	int cantidad_niveles = list_size(nivel->cajas); 
+	int i;
+	for (i=0; i < cantidad_niveles ; i++){
+		caja* caja = list_get(nivel->cajas,i); 		
+
+		nivel_gui_crear_caja(&ListaItems, caja->simbolo, caja->pos_x ,caja->pos_y , caja->instancias);
+	}
+
+	int cantidad_enemigos = list_size(nivel->enemigos);
+
+	for (i=0; i < cantidad_enemigos; i++){
+		enemigo* enemigo = list_get(nivel->enemigos,i);
+
+		nivel_gui_crear_enemigo(&ListaItems, enemigo);
+	}
+
+	
+	//tp_logger_info(logger, "Iniciando el dibujado del nivel.");
+	nivel_gui_dibujar(ListaItems);
 }

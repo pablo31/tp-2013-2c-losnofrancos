@@ -6,39 +6,33 @@
 #include "../libs/logger/logger.h"
 #include "../libs/socket/socket.h"
 #include "../libs/socket/socket_utils.h"
+#include "../libs/common.h"
 
 #include "nivel_ui.h"
 #include "nivel_configuracion.h"
 #include "nivel.h"
 
-//tp_logger* logger; //extern declarado en nivel.h
-t_config* configuracion;//extern declarado en nivel.h
+static bool verificar_argumentos(int argc, char* argv[]) {
+	if (argc < 2) {
+		printf("Error: Debe ingresar los nombres de los archivos log y configuracion.\n");
+		return false;
+	}
+	return true;
+}
 
 int main(int argc, char **argv){
 	
-	if (argc < 2){//Valido que tenga los argumentos necesarios
-		printf("\tDebe especificar el archivo de configuración y el archivo de log.\n");
-		printf("\tej: nivel.sh nivel1.conf nivel1.log \n");
-		return EXIT_FAILURE;		
-	}	
+	if (!verificar_argumentos(argc, argv)) return EXIT_FAILURE;
+
+	char* exe_name = argv[0];
+	char* config_file = argv[1];
+	char* log_file = argv[2];
 	
-	//char* nombre_ejecutable = argv[0];
-	char* archivo_configuracion = argv[1];
-	//char* archivo_log = argv[2];
-	
-	//Creo log y config
-	//tp_logger_inicializar(archivo_log, nombre_ejecutable);
-	//logger = //tp_logger_instancia("");
+	//inicializamos el singleton logger
+	logger_initialize_for_info(log_file, exe_name);
 	
 	//Inicializo el nivel
-	nivel* nvl = crear_nivel();
-
-	//Cargo su configuracion
-	configuracion = config_create(archivo_configuracion);
-	if (!cargar_configuracion_nivel(nvl)){
-		//tp_logger_error(logger, "Error al cargar la configuración de %s, valide el archivo de configuracion y vuelva a ejecutar", nombre_ejecutable);
-		return EXIT_FAILURE;
-	}
+	nivel* nvl = crear_nivel(config_file);
 
 	//Me conecto con el orquestador
 	//tp_socket* socket = tp_socket_conectar(tp_ip(nvl->orquestador), tp_puerto(nvl->orquestador));
@@ -62,15 +56,11 @@ int main(int argc, char **argv){
 		//TODO multiplexor - logica de nivel
 	}
 
-	//Informamos el fin del proceso
 	//tp_logger_info(logger, "Fin de proceso Nivel");
 
 	//Liberamos recursos
 	nivel_gui_terminar(); 
 	destruir_nivel(nvl);
-	config_destroy(configuracion);
-	//tp_logger_liberar(logger);
-	//tp_logger_finalizar();
 
 	return EXIT_SUCCESS;
 }

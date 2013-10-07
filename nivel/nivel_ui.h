@@ -3,6 +3,7 @@
 
 #define PERSONAJE_ITEM_TYPE 0
 #define RECURSO_ITEM_TYPE 1
+#define ENEMIGO_ITEM_TYPE 2
 
 struct item {
 	char id;
