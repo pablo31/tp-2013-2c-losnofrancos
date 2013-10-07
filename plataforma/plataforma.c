@@ -57,7 +57,7 @@ int main(int argc, char **argv){
 
 	plataforma_iniciar_planificador(self, 1, null); //TODO quitar este hardcod
 	plataforma_iniciar_planificador(self, 2, null); //TODO quitar este hardcod
-	plataforma_iniciar_planificador(self, 3, null); //TODO quitar este hardcod
+//	plataforma_iniciar_planificador(self, 3, null); //TODO quitar este hardcod
 
 	//Ejecutamos el orquestador en el hilo principal
 	orquestador_ejecutar(get_orquestador(self));
