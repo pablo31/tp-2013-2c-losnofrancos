@@ -15,7 +15,7 @@
 
 
 typedef struct {
-	int nro_nivel;
+	char* nombre;
 	//TODO agregar objetivos
 } t_nivel;
 

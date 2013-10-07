@@ -37,6 +37,8 @@
 	void socket_send_string(tad_socket* socket, byte data_type, char* string);
 	//Recibe un paquete que contiene un string, siempre que sea del tipo especificado
 	char* socket_receive_expected_string(tad_socket* socket, byte data_type);
+	//Devuelve el string que conforma los datos de un paquete
+	char* package_get_string(tad_package* package);
 
 	//Envia un paquete que contiene un char
 	void socket_send_char(tad_socket* socket, byte data_type, char value);

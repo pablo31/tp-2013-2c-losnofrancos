@@ -14,16 +14,16 @@
  * GETTERS *****************************
  ***************************************/
 
-private int get_numero_nivel(tad_planificador* self){
-	return self->nivel->nro;
+private char* get_nombre_nivel(tad_planificador* self){
+	return self->nivel->nombre;
 }
 
 private tad_logger* get_logger(tad_planificador* self){
 	return self->logger;
 }
 
-int planificador_numero_nivel(tad_planificador* self){
-	return get_numero_nivel(self);
+char* planificador_nombre_nivel(tad_planificador* self){
+	return get_nombre_nivel(self);
 }
 
 
@@ -32,20 +32,20 @@ int planificador_numero_nivel(tad_planificador* self){
  * CREACION ****************************
  ***************************************/
 
-tad_planificador* planificador_crear(int nro_nivel, tad_socket* socket_nivel){
+tad_planificador* planificador_crear(char* nombre_nivel, tad_socket* socket_nivel){
 	//alojamos una estructura tad_planificador
 	alloc(ret, tad_planificador);
 	//obtenemos una instancia del logger
-	ret->logger = logger_new_instance("Planificador %d", nro_nivel);
+	ret->logger = logger_new_instance("Planificador %s", nombre_nivel);
 	//guardamos los datos del nivel
 	alloc(nivel, tad_nivel);
-	nivel->nro = nro_nivel;
+	nivel->nombre = nombre_nivel;
 	nivel->socket = socket_nivel;
 	ret->nivel = nivel;
 	//inicializamos la lista de personajes
 	ret->personajes = list_create();
 
-	logger_info(get_logger(ret), "Planificador del Nivel %d inicializado", nro_nivel);
+	logger_info(get_logger(ret), "Planificador del Nivel %s inicializado", nombre_nivel);
 	return ret;
 }
 

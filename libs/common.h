@@ -13,6 +13,7 @@
 
 //misc macros
 #define null (void*)0
+#define string_equals(a, b) strcmp(a, b) == 0
 
 //common typedefs
 typedef unsigned char uchar;

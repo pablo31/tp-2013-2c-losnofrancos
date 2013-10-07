@@ -8,16 +8,22 @@
 #include "../libs/socket/socket_utils.h"
 #include "../libs/common.h"
 
+#include "../libs/protocol/protocol.h"
+
 #include "nivel_ui.h"
 #include "nivel_configuracion.h"
 #include "nivel.h"
 
-static bool verificar_argumentos(int argc, char* argv[]) {
+private bool verificar_argumentos(int argc, char* argv[]) {
 	if (argc < 2) {
 		printf("Error: Debe ingresar los nombres de los archivos log y configuracion.\n");
 		return false;
 	}
 	return true;
+}
+
+private tad_logger* get_logger(nivel* nvl){
+	return nvl->logger;
 }
 
 int main(int argc, char **argv){
@@ -33,30 +39,48 @@ int main(int argc, char **argv){
 	
 	//Inicializo el nivel
 	nivel* nvl = crear_nivel(config_file);
+	var(logger, get_logger(nvl));
 
 	//Me conecto con el orquestador
-	//tp_socket* socket = tp_socket_conectar(tp_ip(nvl->orquestador), tp_puerto(nvl->orquestador));
-	//tp_logger_info(logger, "Conectado con orquestador");
+	var(ippuerto, nvl->plataforma);
+	var(ip, string_get_ip(ippuerto));
+	var(puerto, string_get_port(ippuerto));
+	logger_info(logger, "Conectando a %s", ippuerto);
 
-	//Nos presentamos, informamos nuestro numero de nivel
-	//tp_socket_enviar_paquete_vacio(socket, PRESENTACION_NIVEL);
-	//tp_socket_enviar(socket, NIVEL_NUMERO, strlen(nvl->nombre), nvl->nombre);
-	//TODO
-	//tp_socket_cerrar(socket); //TODO esta linea va al final, al hacer ctrl+c
+	tad_socket* socket = socket_connect(ip, puerto);
+	logger_info(logger, "Conectado con Plataforma");
+
+	//Declaramos un bloque de manejo de errores por si el socket pierde la conexion
+	DECLARE_ERROR_MANAGER{
+		//TODO switch que uestre un mensaje distinto dependiendo del error que se produjo
+		logger_error(logger, "Se cierra la conexion con Plataforma de manera inesperada");
+		socket_close(socket);
+		nivel_gui_terminar();
+		destruir_nivel(nvl);
+		return EXIT_FAILURE;
+	}FOR_SOCKET(socket);
+
+	//Esperamos la presentacion del orquestador
+	socket_receive_expected_empty_package(socket, PRESENTACION_ORQUESTADOR);
+	logger_info(logger, "El servidor es un Orquestador");
+
+	//Nos presentamos
+	socket_send_empty_package(socket, PRESENTACION_NIVEL);
+	socket_send_string(socket, NIVEL_NUMERO, nvl->nombre);
 
 	//Inicializo la UI
-	//tp_logger_info(logger, "Iniciando interfaz grafica");
+	logger_info(logger, "Inicializando interfaz grafica");
 	if (nivel_gui_inicializar() != EXIT_SUCCESS)
 		return EXIT_FAILURE;
 
 	//Cargo los recursos en la pantalla
 	cargar_recursos_nivel(nvl);
 
-	while(true){
+	while(1){
 		//TODO multiplexor - logica de nivel
 	}
 
-	//tp_logger_info(logger, "Fin de proceso Nivel");
+	logger_info(logger, "Fin del proceso Nivel");
 
 	//Liberamos recursos
 	nivel_gui_terminar(); 

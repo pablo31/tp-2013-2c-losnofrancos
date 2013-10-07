@@ -165,6 +165,10 @@ char* socket_receive_expected_string(tad_socket* socket, byte data_type){
 	return (char*)socket_receive_expected_data(socket, data_type);
 }
 
+char* package_get_string(tad_package* package){
+	return (char*)package_get_data(package);
+}
+
 //char
 
 void socket_send_char(tad_socket* socket, byte data_type, char value){

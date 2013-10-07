@@ -32,8 +32,8 @@ struct s_plataforma{
 tad_plataforma* plataforma_crear();
 void plataforma_finalizar(tad_plataforma* plataforma);
 
-tad_planificador* plataforma_planificador_iniciado(tad_plataforma* plataforma, int nro_nivel);
-void plataforma_iniciar_planificador(tad_plataforma* plataforma, int nro_nivel, tad_socket* socket_nivel);
+tad_planificador* plataforma_planificador_iniciado(tad_plataforma* plataforma, char* nombre_nivel);
+void plataforma_iniciar_planificador(tad_plataforma* plataforma, char* nombre_nivel, tad_socket* socket_nivel);
 
 
 #endif /* PLATAFORMA_H_ */

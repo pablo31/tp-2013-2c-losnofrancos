@@ -193,7 +193,7 @@ private t_personaje* personaje_crear(char* config_path){
 	int i;
 	for(i = 0; i < 3; i++){
 		alloc(nivel, t_nivel);
-		nivel->nro_nivel = i + 1;
+		nivel->nombre = string_from_format("nivel%d", i + 1);
 		list_add(niveles, nivel);
 	}
 	ret->niveles = niveles;
@@ -231,10 +231,10 @@ private void conectarse_al_planificador(PACKED_ARGS){
 	UNPACK_ARG(t_personaje* self);
 	UNPACK_ARG(t_nivel* nivel);
 
-	var(nro_nivel, nivel->nro_nivel);
+	var(nombre_nivel, nivel->nombre);
 
-	tad_logger* logger = logger_new_instance("Thread nivel %d", nro_nivel);
-	logger_info(logger, "Hilo para jugar el nivel %d iniciado", nro_nivel);
+	tad_logger* logger = logger_new_instance("Thread nivel %s", nombre_nivel);
+	logger_info(logger, "Hilo para jugar el nivel %s iniciado", nombre_nivel);
 
 	var(ippuerto_orquestador, get_ippuerto_orquestador(self));
 	var(ip, string_get_ip(ippuerto_orquestador));
@@ -259,8 +259,7 @@ private void conectarse_al_planificador(PACKED_ARGS){
 		return;
 	}FOR_SOCKET(socket);
 
-	byte presentacion = socket_receive_empty_package(socket);
-	if(presentacion != PRESENTACION_ORQUESTADOR) socket_set_error(socket, UNEXPECTED_PACKAGE);
+	socket_receive_expected_empty_package(socket, PRESENTACION_ORQUESTADOR);
 	logger_info(logger, "El servidor es un orquestador");
 
 	sleep(2);
@@ -274,7 +273,7 @@ private void conectarse_al_planificador(PACKED_ARGS){
 	socket_send_char(socket, PERSONAJE_SIMBOLO, get_simbolo(self));
 
 	logger_info(logger, "Enviando solicitud de conexion al nivel");
-	socket_send_int(socket, PERSONAJE_SOLICITUD_NIVEL, nro_nivel);
+	socket_send_string(socket, PERSONAJE_SOLICITUD_NIVEL, nombre_nivel);
 
 	sleep(2);
 

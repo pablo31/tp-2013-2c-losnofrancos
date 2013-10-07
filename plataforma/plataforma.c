@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../libs/common/collections/list.h"
 
@@ -55,9 +56,9 @@ int main(int argc, char **argv){
 	signal_dynamic_handler(SIGINT, plataforma_finalizar(self));
 	logger_info(get_logger(self), "Signals establecidas");
 
-	plataforma_iniciar_planificador(self, 1, null); //TODO quitar este hardcod
-	plataforma_iniciar_planificador(self, 2, null); //TODO quitar este hardcod
-//	plataforma_iniciar_planificador(self, 3, null); //TODO quitar este hardcod
+	plataforma_iniciar_planificador(self, "nivel1", null); //TODO quitar este hardcod
+	plataforma_iniciar_planificador(self, "nivel2", null); //TODO quitar este hardcod
+//	plataforma_iniciar_planificador(self, "nivel3", null); //TODO quitar este hardcod
 
 	//Ejecutamos el orquestador en el hilo principal
 	orquestador_ejecutar(get_orquestador(self));
@@ -99,17 +100,17 @@ void plataforma_finalizar(tad_plataforma* self){
 }
 
 //Nos dice si el planificador de cierto nivel ya se encuentra iniciado
-tad_planificador* plataforma_planificador_iniciado(tad_plataforma* self, int nro_nivel){
+tad_planificador* plataforma_planificador_iniciado(tad_plataforma* self, char* nombre_nivel){
 	foreach(planificador, self->planificadores, tad_planificador*)
-		if(planificador_numero_nivel(planificador) == nro_nivel)
+		if(string_equals(planificador_nombre_nivel(planificador), nombre_nivel))
 			return planificador;
 	return null;
 }
 
 //Inicia el planificador para un numero de nivel dado
-void plataforma_iniciar_planificador(tad_plataforma* self, int nro_nivel, tad_socket* socket_nivel){
+void plataforma_iniciar_planificador(tad_plataforma* self, char* nombre_nivel, tad_socket* socket_nivel){
 	//creamos el planificador
-	tad_planificador* planificador = planificador_crear(nro_nivel, socket_nivel);
+	tad_planificador* planificador = planificador_crear(nombre_nivel, socket_nivel);
 	//lo agregamos a la lista de planificadores
 	list_add(self->planificadores, planificador);
 	//ejecutamos el planificador en un nuevo thread

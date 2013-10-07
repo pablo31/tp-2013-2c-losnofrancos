@@ -138,19 +138,19 @@ void orquestador_manejar_nivel(PACKED_ARGS){
 	var(plataforma, self->plataforma);
 
 	//recibimos el numero del nivel que se conecto
-	int nro_nivel = socket_receive_expected_int(socket, NIVEL_NUMERO);
-	logger_info(get_logger(self), "El cliente es el Nivel %d", nro_nivel);
+	char* nombre = socket_receive_expected_string(socket, NIVEL_NUMERO);
+	logger_info(get_logger(self), "El cliente es el Nivel %s", nombre);
 
 	//nos fijamos si el planificador del nivel ya estaba iniciado
-	if(plataforma_planificador_iniciado(plataforma, nro_nivel)){
+	if(plataforma_planificador_iniciado(plataforma, nombre)){
 		//si ya estaba iniciado, lo pateamos
-		logger_error(get_logger(self), "El Planificador del Nivel %d ya estaba iniciado", nro_nivel);
+		logger_error(get_logger(self), "El Planificador del Nivel %s ya estaba iniciado", nombre);
 		multiplexor_unbind_socket(multiplexor, socket);
 		socket_close(socket);
 	}else{
 		//si no estaba iniciado, lo iniciamos
-		logger_info(get_logger(self), "El Planificador del Nivel %d sera inicializado");
-		plataforma_iniciar_planificador(plataforma, nro_nivel, socket);
+		logger_info(get_logger(self), "El Planificador del Nivel %s sera inicializado", nombre);
+		plataforma_iniciar_planificador(plataforma, nombre, socket);
 		multiplexor_unbind_socket(multiplexor, socket);
 	}
 }
@@ -171,12 +171,12 @@ void orquestador_manejar_personaje(PACKED_ARGS){
 	tad_package* paquete = socket_receive_one_of_this_packages(socket, 2, PERSONAJE_SOLICITUD_NIVEL, PERSONAJE_OBJETIVOS_COMPLETADOS);
 	var(tipo, package_get_data_type(paquete));
 
-	int nro_nivel;
+	char* nombre_nivel;
 
 	switch(tipo){
 	case PERSONAJE_SOLICITUD_NIVEL:
-		nro_nivel = package_get_int(paquete);
-		orquestador_personaje_solicita_nivel(self, socket, nombre, simbolo, nro_nivel);
+		nombre_nivel = package_get_string(paquete);
+		orquestador_personaje_solicita_nivel(self, socket, nombre, simbolo, nombre_nivel);
 		break;
 	case PERSONAJE_OBJETIVOS_COMPLETADOS:
 		logger_info(get_logger(self), "El personaje %s informo que cumplio todos sus objetivos", nombre);
@@ -187,11 +187,11 @@ void orquestador_manejar_personaje(PACKED_ARGS){
 	package_dispose(paquete);
 }
 
-void orquestador_personaje_solicita_nivel(tad_orquestador* orquestador, tad_socket* socket, char* nombre, char simbolo, int nro_nivel){
-	logger_info(get_logger(orquestador), "El personaje %s solicito el nivel %d", nombre, nro_nivel);
+void orquestador_personaje_solicita_nivel(tad_orquestador* orquestador, tad_socket* socket, char* nombre, char simbolo, char* nombre_nivel){
+	logger_info(get_logger(orquestador), "El personaje %s solicito el nivel %s", nombre, nombre_nivel);
 
 	//nos fijamos si el planificador del nivel que pidio se encuentra iniciado
-	var(planificador, plataforma_planificador_iniciado(orquestador->plataforma, nro_nivel));
+	var(planificador, plataforma_planificador_iniciado(orquestador->plataforma, nombre_nivel));
 	if(planificador){
 		//derivamos el personaje al planificador
 		planificador_agregar_personaje(planificador, nombre, simbolo, socket);
