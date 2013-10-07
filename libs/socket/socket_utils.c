@@ -194,3 +194,10 @@ int socket_receive_expected_int(tad_socket* socket, byte data_type){
 	return ret;
 }
 
+int package_get_int(tad_package* package){
+	int* ptr = package_get_data(package);
+	int ret = *ptr;
+	package_dispose(package);
+	free(ptr);
+	return ret;
+}
