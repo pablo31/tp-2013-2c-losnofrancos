@@ -93,21 +93,13 @@ private void multiplexor_refresh_max_fd(tad_multiplexor* m){
 void multiplexor_unbind_socket(tad_multiplexor* m, tad_socket* socket){
 	t_list* phone_book = m->phone_book;
 
-	int i; //TODO este for anda¿?¿?¿
-	for(i = 0; i < list_size(phone_book); i++){
-		phone* p = list_get(phone_book, i);
-		if(p->socket == socket){
-			int socket_id = socket_get_id(socket);
-			FD_CLR(socket_id, multiplexor_get_master(m));
+	int socket_id = socket_get_id(socket);
+	FD_CLR(socket_id, multiplexor_get_master(m));
+	if(socket_id == m->max_fd) multiplexor_refresh_max_fd(m);
 
-			list_remove(phone_book, i);
-			multiplexor_dispose_phone(p);
-
-			if(socket_id == m->max_fd) multiplexor_refresh_max_fd(m);
-
-			break;
-		}
-	}
+	bool searched(void* p){ return ((phone*)p)->socket == socket; }
+	phone* p = list_remove_by_condition(phone_book, searched);
+	multiplexor_dispose_phone(p);
 }
 
 //Escucha por paquetes entrantes en los sockets asociados, bloqueando la ejecucion

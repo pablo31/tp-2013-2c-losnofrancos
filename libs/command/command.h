@@ -21,16 +21,19 @@ struct s_command{
 typedef struct s_command tad_command;
 
 
-//Creation
+//Crea un command especificandole una funcion, la cantidad de argumentos, y los argumentos
 tad_command* command_create(void* function, int numargs, ...);
+//Crea un command desde una va_list
 tad_command* command_create_val(void* function, int numargs, va_list inargs);
 
-//Execution
+//Ejecuta el objeto command
 void command_execute(tad_command* command);
+//Ejecuta el objeto command y libera los recursos incluso antes de llamar a su funcion
 void command_execute_and_dispose(tad_command* command);
-void* get_next_argument(void* args_pointer);
+//Devuelve el puntero al siguiente argumento del paquete de argumentos
+void* get_next_argument(void* args_pointer); //try not to use this
 
-//Disposal
+//Libera los recursos del command
 void command_dispose(tad_command* command);
 
 

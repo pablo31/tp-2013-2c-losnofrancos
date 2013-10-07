@@ -160,7 +160,7 @@ void orquestador_manejar_personaje(PACKED_ARGS){
 	UNPACK_ARG(tad_socket* socket);
 
 	//desbindeamos el socket del multiplexor ya que esta es la ultima comunicacion
-	multiplexor_unbind_socket(self->multiplexor, socket);
+	multiplexor_unbind_socket(self->multiplexor, socket); //TODO aca pincha. problema al remover el socket de la lista de asociados al multiplexor....
 
 	//recibimos nombre y simbolo del personaje
 	char* nombre = socket_receive_expected_string(socket, PERSONAJE_NOMBRE); //TODO armar estructura unica
@@ -169,32 +169,29 @@ void orquestador_manejar_personaje(PACKED_ARGS){
 
 	//recibimos su peticion de nivel o informe de objetivos completos
 	tad_package* paquete = socket_receive_one_of_this_packages(socket, 2, PERSONAJE_SOLICITUD_NIVEL, PERSONAJE_OBJETIVOS_COMPLETADOS);
-	byte tipo = package_get_data_type(paquete);
+	var(tipo, package_get_data_type(paquete));
 
 	int nro_nivel;
 
 	switch(tipo){
 	case PERSONAJE_SOLICITUD_NIVEL:
-		nro_nivel = *(int*)package_get_data(paquete);
-		package_dispose(paquete);
+		nro_nivel = package_get_int(paquete);
 		orquestador_personaje_solicita_nivel(self, socket, nombre, simbolo, nro_nivel);
 		break;
 	case PERSONAJE_OBJETIVOS_COMPLETADOS:
 		logger_info(get_logger(self), "El personaje %s informo que cumplio todos sus objetivos", nombre);
-		package_dispose(paquete);
 		//TODO
 		break;
 	}
+
+	package_dispose(paquete);
 }
 
 void orquestador_personaje_solicita_nivel(tad_orquestador* orquestador, tad_socket* socket, char* nombre, char simbolo, int nro_nivel){
 	logger_info(get_logger(orquestador), "El personaje %s solicito el nivel %d", nombre, nro_nivel);
 
-	//nombres mas cortos
-	var(plataforma, orquestador->plataforma);
-
 	//nos fijamos si el planificador del nivel que pidio se encuentra iniciado
-	var(planificador, plataforma_planificador_iniciado(plataforma, nro_nivel));
+	var(planificador, plataforma_planificador_iniciado(orquestador->plataforma, nro_nivel));
 	if(planificador){
 		//derivamos el personaje al planificador
 		planificador_agregar_personaje(planificador, nombre, simbolo, socket);

@@ -19,17 +19,18 @@ struct s_arguments{
 typedef struct s_arguments tad_arguments;
 
 
-//Creation
+//Crea un nuevo paquete de argumentos
 tad_arguments* arguments_new();
 
-//Setters
+//Setea al paquete de argumentos como auto destructiva o liberadora de recursos en el primer uso
 void arguments_self_destroy(tad_arguments* arguments);
 
-//Operation
+//Agrega un argumento al paquete de argumentos
 void arguments_add(tad_arguments* arguments, void* new_argument);
+//Obtiene el siguiente argumento de un paquete de argumentos
 void* arguments_get(tad_arguments* arguments);
 
-//Disposal
+//Libera los recursos del paquete de argumentos (si no es auto destructivo)
 void arguments_dispose(tad_arguments* arguments);
 
 

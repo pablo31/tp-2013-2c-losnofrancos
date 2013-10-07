@@ -17,14 +17,13 @@ struct s_mutex{
 typedef struct s_mutex tad_mutex;
 
 
-//Creation
+//Crea un semaforo
 tad_mutex* mutex_create();
-
-//Operation
+//Cierra el semaforo
 void mutex_close(tad_mutex* mutex);
+//Abre el semaforo
 void mutex_open(tad_mutex* mutex);
-
-//Disposal
+//Libera los recursos del semaforo
 void mutex_dispose(tad_mutex* mutex);
 
 

@@ -72,47 +72,55 @@ enum SOCKET_ERR {
 /****************************************
  * PACKAGE METHODS **********************
  ****************************************/
-	//Creation
+	//Crea un paquete
 	tad_package* package_create(byte data_type, int data_length, void* data);
-	//Getters
+	//Devuelve el byte tipo de dato del paquete
 	byte package_get_data_type(tad_package* package);
+	//Devuelve la longitud de los datos del paquete
 	int package_get_data_length(tad_package* package);
+	//Devuelve un puntero a los datos del paquete
 	void* package_get_data(tad_package* package);
-	//Disposal
+	//Libera los recursos del paquete (excepto sus datos)
 	void package_dispose(tad_package* package);
+	//Libera los recursos del paquete (excepto sus datos) y devuelve un puntero a sus datos
 	void* package_dispose_return_data(tad_package* package);
-//	void package_dispose_copy_data(tad_package* package, void* mem_pos);
 
 
 /****************************************
  * SOCKET METHODS ***********************
 ****************************************/
-	//Getters
+	//Devuelve el FD del socket
 	int socket_get_id(tad_socket* socket); //try not to use this
 
-	//Connection open
+	//Crea y conecta un socket cliente a un servidor
 	tad_socket* socket_connect(char* ip, char* port);
+	//Crea y pone en escucha un socket servidor
 	tad_socket* socket_listen(char* port);
+	//Crea un socket y acepta (en el) la conexion entrante a un socket escucha servidor
 	tad_socket* socket_accept_connection(tad_socket* socket);
-	//Connection close
+	//Cierra la conexion y libera los recursos del socket
 	void socket_close(tad_socket* socket);
 
-	//Package transfer
+	//Envia un paquete
 	void socket_send_package(tad_socket* socket, tad_package* data);
+	//Recibe un paquete
 	tad_package* socket_receive_package(tad_socket* socket);
 
 
 /****************************************
  * SOCKET ERROR MANAGEMENT **************
 ****************************************/
-	//Error getter & setters
+	//Devuelve el codigo de error del socket
 	int socket_get_error(tad_socket* socket); //retorna 0 si no hay error
+	//Setea el codigo de error del socket, y salta al manejo de errores si esta habilitado
 	void socket_set_error(tad_socket* socket, int error);
-	void socket_reset_error(tad_socket* socket); //resetea el codigo de error
+	//Vuelve a 0 el codigo de error del socket
+	void socket_reset_error(tad_socket* socket);
 
-	//Program flux management
-	void socket_bind_process_status(tad_socket* socket, process_status* ps);
-	void socket_release_process_status(tad_socket* socket);
+	//Asocia un bloque de manejo de errores al socket
+	void socket_bind_process_status(tad_socket* socket, process_status* ps); //try not to use this
+	//Libera el bloque de manejo de errores del socket
+	void socket_release_process_status(tad_socket* socket); //try not to use this
 
 	//Error management block definition (see ../error/error_management.h)
 	#define FOR_SOCKET(__r_md_socket) \
