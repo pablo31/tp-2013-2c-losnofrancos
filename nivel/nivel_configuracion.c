@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
+#include <unistd.h>
 #include "nivel.h"
 #include "nivel_ui.h"
 #include "../libs/common/config.h"
@@ -34,15 +35,16 @@ static caja* crear_caja(char* nombre,char simbolo, uint instancias, uint pos_x, 
 }
 
 static void crear_enemigos(nivel* nivel, uint cantidad){
-
 	int i;
+	int seed = time(NULL);
+
 	for (i = 0; i < cantidad; ++i){
 
 		enemigo* enemigo = malloc(sizeof(enemigo));
 		enemigo->simbolo = '*';
 
-		srand (time(NULL));//le sumo 1 porque no puede ser 0 0 nunca.
-		enemigo->pos_x = 1 + (rand() % 15);
+		srand (++seed);//le agrego una a la semilla para que no genere siempre lo mismo en cada iteracion
+		enemigo->pos_x = 1 + (rand() % 15);//le sumo 1 porque no puede ser 0 0 nunca.
 		enemigo->pos_y = 1 + (rand() % 15);
 
 		list_add(nivel->enemigos, enemigo);	
