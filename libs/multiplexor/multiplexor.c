@@ -95,11 +95,12 @@ void multiplexor_unbind_socket(tad_multiplexor* m, tad_socket* socket){
 
 	int socket_id = socket_get_id(socket);
 	FD_CLR(socket_id, multiplexor_get_master(m));
-	if(socket_id == m->max_fd) multiplexor_refresh_max_fd(m);
 
 	bool searched(void* p){ return ((phone*)p)->socket == socket; }
 	phone* p = list_remove_by_condition(phone_book, searched);
 	multiplexor_dispose_phone(p);
+
+	if(socket_id == m->max_fd) multiplexor_refresh_max_fd(m);
 }
 
 //Escucha por paquetes entrantes en los sockets asociados, bloqueando la ejecucion

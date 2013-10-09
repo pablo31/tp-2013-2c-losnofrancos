@@ -53,7 +53,7 @@ static void crear_enemigos(nivel* nivel, uint cantidad){
 static void cargar_configuracion_nivel(nivel* nvl, t_config* config){	
 	logger_info(nvl->logger, "Cargando configuracion del nivel");
 
-	nvl->nombre = config_get_string_value(config, "Nombre");
+	nvl->nombre = string_duplicate(config_get_string_value(config, "Nombre"));
 	logger_info(nvl->logger, "Nombre:%s", nvl->nombre);
 
 	nvl->tiempo_deadlock = config_get_int_value(config,"TiempoChequeoDeadlock");
@@ -68,13 +68,13 @@ static void cargar_configuracion_nivel(nivel* nvl, t_config* config){
 	nvl->sleep_enemigos = config_get_int_value(config,"Sleep_Enemigos");
 	logger_info(nvl->logger, "Sleep Enemigos:%i", nvl->sleep_enemigos);
 
-	nvl->algoritmo = config_get_string_value(config,"algoritmo");
+	nvl->algoritmo = string_duplicate(config_get_string_value(config,"algoritmo"));
 	logger_info(nvl->logger, "Algoritmo:%s", nvl->algoritmo);
 
 	nvl->retardo = config_get_int_value(config,"retardo");
 	logger_info(nvl->logger, "Retardo:%i", nvl->retardo);
 
-	nvl->plataforma = config_get_string_value(config,"Plataforma");
+	nvl->plataforma = string_duplicate(config_get_string_value(config,"Plataforma"));
 	logger_info(nvl->logger, "Plataforma:%s", nvl->plataforma);
 	
 	uint  numero_caja = 1;

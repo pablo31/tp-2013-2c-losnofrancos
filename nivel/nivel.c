@@ -52,7 +52,7 @@ int main(int argc, char **argv){
 
 	//Declaramos un bloque de manejo de errores por si el socket pierde la conexion
 	DECLARE_ERROR_MANAGER{
-		//TODO switch que uestre un mensaje distinto dependiendo del error que se produjo
+		//TODO switch que muestre un mensaje distinto dependiendo del error que se produjo
 		logger_error(logger, "Se cierra la conexion con Plataforma de manera inesperada");
 		socket_close(socket);
 		nivel_gui_terminar();

@@ -21,7 +21,7 @@
 
 struct s_multiplexor{
 	fd_set master_set; //fds texture
-	int max_fd; //highest fd from fds texture
+	int max_fd; //highest fd number from fds texture
 	t_list* phone_book; //socket-handler dictionary
 };
 typedef struct s_multiplexor tad_multiplexor;
