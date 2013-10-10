@@ -55,4 +55,4 @@ typedef struct {
 typedef struct t_posicion {
 	uint32_t x;
 	uint32_t y;
-}__attribute__ ((packed)) t_posicion;
+}__attribute__ ((packed)) t_posicion2;

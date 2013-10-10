@@ -1,7 +1,6 @@
 //#include "mensaje_personaje.h"  // ver si conviene o no crearla
 #include <stdio.h>
-#include <libs/common/string.h>
-
+#include "../libs/common/string.h"
 
 //Contenidos de Mensajes
 #define PERSONAJE_HANDSHAKE "Aquí un personaje"

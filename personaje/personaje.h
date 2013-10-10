@@ -14,8 +14,22 @@
 #include "../libs/logger/logger.h"
 
 
+//esto lo tiene andres, pero armo el mio, despues se hace un refactor..
 typedef struct {
 	char* nombre;
+	char  simbolo;
+	int   instancias;
+	t_posicion* posicion;
+} t_caja_Nivel;
+
+typedef struct {
+	int x;
+	int y;
+} t_posicion;
+
+typedef struct {
+	char* nombre;
+	t_list* cajasPorNivel;
 	//TODO agregar objetivos
 } t_nivel;
 
@@ -27,6 +41,14 @@ typedef struct {
 	int vidas_iniciales;
 	int vidas;
 	char* ippuerto_orquestador;
+	//estoy es un prototipo
+	t_list* objetivosList;
+	char* objetivo_actual;
+	int objetivo_actual_index;
+	bool nivel_finalizado;
+	t_posicion* posicion;
+	t_posicion* posicion_objetivo;
+	// no tocar... jorge
 
 //	char** plan_de_niveles;  // la idea es usar lista de lista,
 //	t_dictionary* objetivos; //diccionario porque son fijos

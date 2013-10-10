@@ -172,21 +172,21 @@ private void comer_honguito_verde(t_personaje* self){
 
 private t_personaje* personaje_crear(char* config_path){
 	//creamos una instancia de personaje
-	alloc(ret, t_personaje);
+	alloc(self, t_personaje);
 	//obtenemos una instancia del logger
-	ret->logger = logger_new_instance("");
+	self->logger = logger_new_instance("");
 
 	//Creamos una instancia del lector de archivos de config
 	t_config* config = config_create(config_path);
 
-	ret->nombre = string_duplicate(config_get_string_value(config, "nombre"));
-	ret->simbolo = *config_get_string_value(config, "simbolo");
+	self->nombre = string_duplicate(config_get_string_value(config, "nombre"));
+	self->simbolo = *config_get_string_value(config, "simbolo");
 
 	int vidas = config_get_int_value(config, "vidas");
-	ret->vidas_iniciales = vidas;
-	ret->vidas = vidas;
+	self->vidas_iniciales = vidas;
+	self->vidas = vidas;
 
-	ret->ippuerto_orquestador = string_duplicate(config_get_string_value(config, "orquestador"));
+	self->ippuerto_orquestador = string_duplicate(config_get_string_value(config, "orquestador"));
 
 	//TODO levantar los niveles y objetivos del archivo de config
 	t_list* niveles = list_create();
@@ -196,12 +196,12 @@ private t_personaje* personaje_crear(char* config_path){
 		nivel->nombre = string_from_format("nivel%d", i + 1);
 		list_add(niveles, nivel);
 	}
-	ret->niveles = niveles;
+	self->niveles = niveles;
 
 	//liberamos recursos
 	config_destroy(config);
 
-	return ret;
+	return self;
 }
 
 private void personaje_destruir(t_personaje* self){
@@ -280,12 +280,98 @@ private void conectarse_al_planificador(PACKED_ARGS){
 	jugar_nivel(self, nivel, socket, logger);
 }
 
+
+
+//TODO depues se va analizar que pasa si no se queda bloqueado
+// TODO despues ver si se muere o no
 private void jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, tad_logger* logger){
 
-	while(1) sleep(2); //TODO logica de juego con el planificador
+	logger_info(logger, "El personaje  %s", self->nombre);
+	logger_info(logger, "Jugando al Nivel  %s", nivel->nombre);
 
+	self->objetivo_actual_index = 0;
+	self->objetivo_actual = NULL;
+
+	t_list* recursoPorNivel = list_create();
+	var(size, list_size(nivel->cajasPorNivel));
+
+	int i;
+	size = 1; // jejej xD
+
+	for(i = 0; i == size ; i++){
+		alloc(cajaDeNivel, t_caja_Nivel);
+		//esto despues se mejora, la idea es probar que se descuente un recurso
+		cajaDeNivel->nombre="F";
+		cajaDeNivel->instancias= 4;
+		cajaDeNivel->posicion->x = 8;
+		cajaDeNivel->posicion->y = 8;
+		cajaDeNivel->simbolo = "$";
+		list_add(recursoPorNivel, cajaDeNivel);
+	}
+
+	//estrategia por cada objetivo, buscar en la lista de cajas
+	//donde esta el recurso y disminuirlo en nivel
+	while(!self->nivel_finalizado){
+
+		self->objetivo_actual = primerElementoDeLista(self->objetivosList);
+
+		logger_info(logger, "Objetivo proximo es  %s :", self->objetivo_actual);
+
+		self->posicion_objetivo = pedir_posicion_objetivo(self,self->objetivo_actual,logger);
+
+
+	}
+
+
+	sleep(2);
 	socket_close(socket);
 	logger_dispose_instance(logger);
+}
+
+
+t_posicion* pedir_posicion_objetivo(t_personaje* self, char* objetivo,tad_logger* logger) {
+
+	log_info(logger,"Personaje:  %s",self->nombre);
+	log_info(logger,"Solicitando proximo recurso:  %s",self->objetivo_actual);
+
+
+	tad_package* paquete = package_create('s', strlen(input) + 1, input);
+	socket_send_package(socket, paquete);
+	printf("<< Texto enviado.\n");
+
+	//mensaje_create_and_send(M_GET_POSICION_RECURSO_REQUEST,	string_duplicate(objetivo), strlen(objetivo) + 1,
+	//		self->nivel_actual->socket_nivel);
+
+
+	//t_mensaje* mensaje = mensaje_recibir(self->nivel_actual->socket_nivel);
+
+	//Recibimos el paquete que estaba en espera
+		tad_package* paquete = socket_receive_package(socket);
+
+		char* texto = package_get_data(paquete);
+		printf("Paquete recibido: tipo '%c', longitud %d, texto '%s'.\n",
+				package_get_data_type(paquete),
+				package_get_data_length(paquete),
+				texto);
+
+		//Liberamos sus recursos
+		package_dispose(paquete);
+		free(texto);
+		//::::::::::::::  JORGE :::::::::::::::::::
+
+	if (mensaje == NULL ) {
+		log_error(self->logger, "Personaje %s: El nivel %s se ha desconectado.",
+				self->nombre, self->nivel_actual->nombre);
+		return NULL ;
+	}
+
+	t_posicion* posicion_objetivo = posicion_duplicate(mensaje->payload);
+	mensaje_destroy(mensaje);
+
+	log_info(self->logger, "Nivel %s -> Personaje: %s esta en (%d,%d)",
+			self->nivel_actual->nombre, objetivo, posicion_objetivo->x,
+			posicion_objetivo->y);
+	return posicion_objetivo;
 }
 
 
