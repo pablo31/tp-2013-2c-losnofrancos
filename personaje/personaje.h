@@ -49,6 +49,7 @@ typedef struct {
 	bool nivel_finalizado;
 	t_posicion* posicion;
 	t_posicion* posicion_objetivo;
+	bool is_blocked; // por el momento no tiene utilidad
 	// no tocar... jorge
 
 //	char** plan_de_niveles;  // la idea es usar lista de lista,

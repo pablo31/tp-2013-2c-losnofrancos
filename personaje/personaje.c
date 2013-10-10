@@ -309,9 +309,16 @@ private void jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, 
 		list_add(recursoPorNivel, cajaDeNivel);
 	}
 
+	if (self->posicion_objetivo == NULL ) {
+		self->posicion_objetivo = pedir_posicion_objetivo(self,	self->objetivo_actual);
+	}
+
+	self->is_blocked = true; //TODO despues cambiar esto Jorge
+
 	//estrategia por cada objetivo, buscar en la lista de cajas
 	//donde esta el recurso y disminuirlo en nivel
-	while(!self->nivel_finalizado){
+	while (!posicion_equals(self->posicion, self->posicion_objetivo)
+					|| self->is_blocked) {
 
 		self->objetivo_actual = primerElementoDeLista(self->objetivosList);
 		logger_info(logger, "Objetivo proximo es  %s :", self->objetivo_actual);
