@@ -16,7 +16,7 @@
 #include "../libs/socket/socket_utils.h"
 #include "../libs/protocol/protocol.h"
 #include "../libs/common.h"
-
+#include "personaje_posicion.h"
 #include "personaje.h"
 
 
@@ -283,7 +283,7 @@ private void conectarse_al_planificador(PACKED_ARGS){
 
 
 //TODO depues se va analizar que pasa si no se queda bloqueado
-// TODO despues ver si se muere o no
+//TODO despues ver si se muere o no
 private void jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, tad_logger* logger){
 
 	logger_info(logger, "El personaje  %s", self->nombre);
@@ -314,10 +314,9 @@ private void jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, 
 	while(!self->nivel_finalizado){
 
 		self->objetivo_actual = primerElementoDeLista(self->objetivosList);
-
 		logger_info(logger, "Objetivo proximo es  %s :", self->objetivo_actual);
 
-		self->posicion_objetivo = pedir_posicion_objetivo(self,self->objetivo_actual,logger);
+		self->posicion_objetivo = pedir_posicion_objetivo(self,self->objetivo_actual,logger,socket);
 
 
 	}
@@ -329,49 +328,30 @@ private void jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, 
 }
 
 
-t_posicion* pedir_posicion_objetivo(t_personaje* self, char* objetivo,tad_logger* logger) {
+t_posicion* pedir_posicion_objetivo(t_personaje* self, char* objetivo,tad_logger* logger,  tad_socket* socket) {
 
 	log_info(logger,"Personaje:  %s",self->nombre);
 	log_info(logger,"Solicitando proximo recurso:  %s",self->objetivo_actual);
 
-
+	char input = self->objetivo_actual;
 	tad_package* paquete = package_create('s', strlen(input) + 1, input);
 	socket_send_package(socket, paquete);
-	printf("<< Texto enviado.\n");
 
-	//mensaje_create_and_send(M_GET_POSICION_RECURSO_REQUEST,	string_duplicate(objetivo), strlen(objetivo) + 1,
-	//		self->nivel_actual->socket_nivel);
-
-
-	//t_mensaje* mensaje = mensaje_recibir(self->nivel_actual->socket_nivel);
+	log_info(logger," Paquete enviado del Personaje:  %s",self->nombre);
 
 	//Recibimos el paquete que estaba en espera
-		tad_package* paquete = socket_receive_package(socket);
+	tad_package* paquete = socket_receive_package(socket);
 
-		char* texto = package_get_data(paquete);
-		printf("Paquete recibido: tipo '%c', longitud %d, texto '%s'.\n",
-				package_get_data_type(paquete),
-				package_get_data_length(paquete),
-				texto);
+	char* texto = package_get_data(paquete);
+	printf("Paquete recibido: tipo '%c', longitud %d, texto '%s'.\n",
+			package_get_data_type(paquete),
+			package_get_data_length(paquete),
+		texto);
 
-		//Liberamos sus recursos
-		package_dispose(paquete);
-		free(texto);
-		//::::::::::::::  JORGE :::::::::::::::::::
-
-	if (mensaje == NULL ) {
-		log_error(self->logger, "Personaje %s: El nivel %s se ha desconectado.",
-				self->nombre, self->nivel_actual->nombre);
-		return NULL ;
-	}
-
-	t_posicion* posicion_objetivo = posicion_duplicate(mensaje->payload);
-	mensaje_destroy(mensaje);
-
-	log_info(self->logger, "Nivel %s -> Personaje: %s esta en (%d,%d)",
-			self->nivel_actual->nombre, objetivo, posicion_objetivo->x,
-			posicion_objetivo->y);
-	return posicion_objetivo;
+	//Liberamos sus recursos
+	package_dispose(paquete);
+	free(texto);
+	//::::::::::::::  JORGE :::::::::::::::::::
 }
 
 

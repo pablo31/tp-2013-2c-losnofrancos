@@ -10,11 +10,16 @@
 
 
 #include "../libs/common/collections/list.h"
-
 #include "../libs/logger/logger.h"
 
 
 //esto lo tiene andres, pero armo el mio, despues se hace un refactor..
+
+typedef struct {
+	int x;
+	int y;
+} t_posicion;
+
 typedef struct {
 	char* nombre;
 	char  simbolo;
@@ -22,10 +27,6 @@ typedef struct {
 	t_posicion* posicion;
 } t_caja_Nivel;
 
-typedef struct {
-	int x;
-	int y;
-} t_posicion;
 
 typedef struct {
 	char* nombre;
