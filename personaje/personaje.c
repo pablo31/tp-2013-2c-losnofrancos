@@ -348,10 +348,14 @@ t_posicion* pedir_posicion_objetivo(t_personaje* self, char* objetivo,tad_logger
 			package_get_data_length(paquete),
 		texto);
 
-	//Liberamos sus recursos
+	//esta es la magiaaaaa WOOOo... xD
+	//supuestamente el  package_get_data_type(paquete) me devuelve un par (x,y)
+	t_posicion* posicion_objetivo = posicion_duplicate(package_get_data_type(paquete));
+
+	//se libera sus recursos
 	package_dispose(paquete);
 	free(texto);
-	//::::::::::::::  JORGE :::::::::::::::::::
+	return posicion_objetivo;
 }
 
 

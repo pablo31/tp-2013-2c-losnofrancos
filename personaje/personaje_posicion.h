@@ -12,6 +12,11 @@ typedef struct t_posicion {
 	uint32_t y;
 }__attribute__ ((packed)) t_posicion;
 
+
+//funciones que uso para mover un personaje
+//el personaje sabe si esta parado en la posicion o no...
+//esto lo uso para llegar al recurso...
+
 t_posicion* posicion_create(int x, int y);
 void posicion_destroy(t_posicion* self);
 t_posicion* posicion_duplicate(t_posicion* posicion);
