@@ -59,11 +59,22 @@ typedef char string;
 //short-def var ref
 #define var(name, obj) \
 	typeof(obj) name = obj
-#define ref(name, obj) \
-	var(name, obj)
 /* ejemplo de uso de var ********************
  * Sea:				tad_tipo* objeto
  * Si hacemos:		var(referencia, objeto)
- * O si hacemos:	ref(referencia, objeto)
  * Entonces:		referencia == objeto
  *******************************************/
+
+//csharp style args out
+#define set *
+#define out &
+#define as_out *
+//#define as_out(arg) *arg
+/* ejemplo de uso de out ********************
+ * Podemos definir funciones del tipo:
+ * void f(int as_out i){
+ * 		set i = 2;
+ * }
+ * Y podemos invocarlas haciendo:
+ * int i; f(out i);
+ */

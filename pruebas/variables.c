@@ -19,9 +19,8 @@ struct my_struct{
 typedef struct my_struct my_class;
 
 
-int foo(){
-	printf("Foo called!\n");
-	return 2;
+void foo(int as_out i){
+	set i = 2;
 }
 
 int main(void){
@@ -35,14 +34,17 @@ int main(void){
 
 	//creamos variables sin tipar, referencias a distintos objetos
 	var(reference, my_obj);
-	var(function_result, foo(2));
 	var(hola, "123");
 
 	//seteamos uno de los atributos de una referencia a my_obj
 	reference->b = "Struct Text B";
 
+	//obtenemos un valor out de una funcion
+	int i;
+	foo(out i);
+
 	//imprimimos resultados en pantalla
-	printf("%s\n%s\n%d\n%s\n", reference->a, reference->b, function_result, hola);
+	printf("%s\n%s\n%s\n%d\n", reference->a, reference->b, hola, i);
 
 	//liberamos los recursos de my_obj
 	dealloc(my_obj);
