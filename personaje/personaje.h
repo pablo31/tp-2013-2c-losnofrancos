@@ -50,7 +50,9 @@ typedef struct {
 	t_posicion* posicion_objetivo;
 	bool nivel_finalizado;
 	bool completoTodosLosNiveles;
-	bool is_blocked; // por el momento no tiene utilidad
+	bool is_blocked;
+	tad_socket* socket_orquestador; // coneccion para conectar y desconectar
+	// por el momento no tiene utilidad
 	//no tocar... jorge
 
 } t_personaje;
