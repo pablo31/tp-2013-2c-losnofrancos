@@ -198,8 +198,6 @@ private void desconectarse_al_planificador(tad_socket* socket,tad_logger* logger
 
 }
 
-//TODO depues se va analizar que pasa si no se queda bloqueado
-//TODO despues ver si se muere o no
 private void jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, tad_logger* logger){
 
 	logger_info(logger, "El personaje  %s", self->nombre);
@@ -209,6 +207,7 @@ private void jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, 
 	self->objetivo_actual = NULL;
 
 	//TODO espera las señales
+	//esperando señales y a trabajar duro
 }
 
 
