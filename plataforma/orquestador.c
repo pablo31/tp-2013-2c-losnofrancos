@@ -86,30 +86,33 @@ void orquestador_conexion_entrante(PACKED_ARGS){
 	multiplexor_bind_socket(multiplexor, socket_conexion, orquestador_handshake, 2, orquestador, socket_conexion);
 }
 
+
+void orquestador_cliente_desconectado(tad_orquestador* orquestador, tad_socket* socket){
+	switch(socket_get_error(socket)){
+	case CONNECTION_CLOSED:
+		logger_error(get_logger(orquestador), "El cliente se desconecto inesperadamente");
+		break;
+	case UNEXPECTED_PACKAGE:
+		logger_error(get_logger(orquestador), "El cliente envio un paquete incorrecto");
+		break;
+	default:
+		logger_error(get_logger(orquestador), "Error en el envio o recepcion de datos del cliente");
+		break;
+	}
+	//cerramos el socket y lo desbindemos del multiplexor
+	multiplexor_unbind_socket(orquestador->multiplexor, socket);
+	socket_close(socket);
+}
+
 void orquestador_handshake(PACKED_ARGS){
 	UNPACK_ARG(tad_orquestador* orquestador);
 	UNPACK_ARG(tad_socket* socket);
 
+	//establecemos la funcion manejadora de desconexion del socket
+	SOCKET_ON_ERROR(socket, orquestador_cliente_desconectado(orquestador, socket));
+
 	//nombres mas cortos
 	var(multiplexor, orquestador->multiplexor);
-
-	DECLARE_ERROR_MANAGER{
-		switch(socket_get_error(socket)){
-		case CONNECTION_CLOSED:
-			logger_error(get_logger(orquestador), "El cliente se desconecto inesperadamente");
-			break;
-		case UNEXPECTED_PACKAGE:
-			logger_error(get_logger(orquestador), "El cliente envio un paquete incorrecto");
-			break;
-		default:
-			logger_error(get_logger(orquestador), "Error en el envio o recepcion de datos del cliente");
-			break;
-		}
-		//en caso de error cerramos el socket y lo desbindemos del multiplexor
-		multiplexor_unbind_socket(multiplexor, socket);
-		socket_close(socket);
-		return;
-	}FOR_SOCKET(socket);
 
 	//recibimos un paquete de presentacion
 	tad_package* paquete = socket_receive_one_of_this_packages(socket, 2, PRESENTACION_NIVEL, PRESENTACION_PERSONAJE);
@@ -132,6 +135,9 @@ void orquestador_handshake(PACKED_ARGS){
 void orquestador_manejar_nivel(PACKED_ARGS){
 	UNPACK_ARG(tad_orquestador* self);
 	UNPACK_ARG(tad_socket* socket);
+
+	//establecemos la funcion manejadora de desconexion del socket
+	SOCKET_ON_ERROR(socket, orquestador_cliente_desconectado(self, socket));
 
 	//nombres mas cortos
 	var(multiplexor, self->multiplexor);
@@ -159,8 +165,8 @@ void orquestador_manejar_personaje(PACKED_ARGS){
 	UNPACK_ARG(tad_orquestador* self);
 	UNPACK_ARG(tad_socket* socket);
 
-	//desbindeamos el socket del multiplexor ya que esta es la ultima comunicacion
-	multiplexor_unbind_socket(self->multiplexor, socket); //TODO aca pincha. problema al remover el socket de la lista de asociados al multiplexor....
+	//establecemos la funcion manejadora de desconexion del socket
+	SOCKET_ON_ERROR(socket, orquestador_cliente_desconectado(self, socket));
 
 	//recibimos nombre y simbolo del personaje
 	char* nombre = socket_receive_expected_string(socket, PERSONAJE_NOMBRE); //TODO armar estructura unica
@@ -170,6 +176,9 @@ void orquestador_manejar_personaje(PACKED_ARGS){
 	//recibimos su peticion de nivel o informe de objetivos completos
 	tad_package* paquete = socket_receive_one_of_this_packages(socket, 2, PERSONAJE_SOLICITUD_NIVEL, PERSONAJE_OBJETIVOS_COMPLETADOS);
 	var(tipo, package_get_data_type(paquete));
+
+	//desbindeamos el socket del multiplexor ya que esa fue la ultima comunicacion
+	multiplexor_unbind_socket(self->multiplexor, socket);
 
 	char* nombre_nivel;
 
