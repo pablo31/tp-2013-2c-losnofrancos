@@ -20,7 +20,7 @@
 #include "personaje.h"
 
 
-
+//porque no me agarra los cambiosssss!!!
 private bool verificar_argumentos(int argc, char* argv[]) {
 	if (argc < 2) {
 		printf("Error: Debe ingresar los nombres de los archivos log y configuracion.\n");
