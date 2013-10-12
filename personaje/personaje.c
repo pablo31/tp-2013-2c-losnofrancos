@@ -30,8 +30,6 @@ private bool verificar_argumentos(int argc, char* argv[]) {
 }
 
 
-
-
 /***********************************************
  * GETTERS & SETTERS ***************************
  ***********************************************/
@@ -76,17 +74,10 @@ private void personaje_destruir(t_personaje* self);
 private void morir(t_personaje* self);
 private void comer_honguito_verde(t_personaje* self);
 
+private void desconectarse_al_orquestador(PACKED_ARGS);
+private void conectarse_al_orquestador(PACKED_ARGS);
 private void conectarse_al_planificador(PACKED_ARGS);
 private void jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, tad_logger* logger);
-
-
-
-
-
-
-
-
-
 
 
 int main(int argc, char* argv[]) {
@@ -112,28 +103,26 @@ int main(int argc, char* argv[]) {
 	logger_info(get_logger(self), "Senales establecidas");
 
 
-
 	var(niveles, get_niveles(self));
 	var(cantidad_de_niveles, list_size(niveles));
 	tad_thread* thread[cantidad_de_niveles];
 
 	int i;
 
-	//iniciamos un nuevo hilo por cada nivel que tenemosq ue jugar
+	//se inicia un nuevo hilo por cada nivel que tiene jugar
 	for(i = 0; i < cantidad_de_niveles; i++){
 		t_nivel* nivel = list_get(niveles, i);
 		thread[i] = thread_begin(conectarse_al_planificador, 2, self, nivel);
 	}
 
-	//esperamos a que todos los hilos terminen
-	for(i = 0; i < cantidad_de_niveles; i++){
-		thread_join(thread[i]);
+
+	if (!self->completoTodosLosNiveles){
+		//esperamos a que todos los hilos terminen
+		for(i = 0; i < cantidad_de_niveles; i++){
+			thread_join(thread[i]);
+		}
+		//TODO conectarse al orquestador, decir que gano todos los niveles!
 	}
-
-
-
-
-	//TODO conectarse con oruqestador y decirle que cumplimos los objetivos!
 
 	personaje_destruir(self);
 	logger_dispose();
@@ -142,31 +131,6 @@ int main(int argc, char* argv[]) {
 }
 
 
-private void morir(t_personaje* self){
-	var(vidas, get_vidas(self));
-	var(vidas_iniciales, get_vidas_iniciales(self));
-
-	if(vidas > 0){
-		vidas--;
-		logger_info(get_logger(self), "El personaje perdio una vida, le quedan %d", vidas);
-		//TODO ver que nivel hay que reiniciar
-	}else{
-		vidas = vidas_iniciales;
-		logger_info(get_logger(self), "El personaje perdio su ultima vida");
-		logger_info(get_logger(self), "Las vidas se reestableceran a %d", vidas);
-		//TODO ver que hacer en esta situacion jaja
-	}
-
-	set_vidas(self, vidas);
-}
-
-private void comer_honguito_verde(t_personaje* self){
-	logger_info(get_logger(self), "Llego un honguito de esos que pegan ;)");
-	var(vidas, get_vidas(self));
-	vidas++;
-	logger_info(get_logger(self), "El personaje gano una vida, posee en total %d", vidas);
-	set_vidas(self, vidas);
-}
 
 
 
@@ -197,44 +161,21 @@ private t_personaje* personaje_crear(char* config_path){
 		list_add(niveles, nivel);
 	}
 	self->niveles = niveles;
-
+	self->completoTodosLosNiveles= false;
 	//liberamos recursos
 	config_destroy(config);
 
 	return self;
 }
 
-private void personaje_destruir(t_personaje* self){
-	var(niveles, self->niveles);
-	var(size, list_size(niveles));
-	int i;
-	for(i = size; i > 0; i--){
-		t_nivel* nivel = list_get(niveles, i);
-		list_remove(niveles, i);
-		dealloc(nivel);
-	}
-	list_destroy(niveles);
 
-	logger_dispose_instance(get_logger(self));
+private void desconectarse_al_orquestador(tad_socket* socket,tad_logger* logger){
+	logger_info(logger, "El personaje se desconecto del orquestador");
+	socket_close(socket);
+	logger_dispose_instance(logger);
 
-	free(self->nombre);
-	free(self->ippuerto_orquestador);
-
-	dealloc(self);
 }
-
-
-
-
-
-private void conectarse_al_planificador(PACKED_ARGS){
-	UNPACK_ARG(t_personaje* self);
-	UNPACK_ARG(t_nivel* nivel);
-
-	var(nombre_nivel, nivel->nombre);
-
-	tad_logger* logger = logger_new_instance("Thread nivel %s", nombre_nivel);
-	logger_info(logger, "Hilo para jugar el nivel %s iniciado", nombre_nivel);
+private tad_socket conectarse_al_orquestador(t_personaje* self,t_nivel* nivel,tad_logger* logger){
 
 	var(ippuerto_orquestador, get_ippuerto_orquestador(self));
 	var(ip, string_get_ip(ippuerto_orquestador));
@@ -256,7 +197,7 @@ private void conectarse_al_planificador(PACKED_ARGS){
 		}
 		socket_close(socket);
 		logger_dispose_instance(logger);
-		return;
+		return null;
 	}FOR_SOCKET(socket);
 
 	socket_receive_expected_empty_package(socket, PRESENTACION_ORQUESTADOR);
@@ -271,6 +212,19 @@ private void conectarse_al_planificador(PACKED_ARGS){
 	logger_info(logger, "Enviando datos del personaje");
 	socket_send_string(socket, PERSONAJE_NOMBRE, get_nombre(self));
 	socket_send_char(socket, PERSONAJE_SIMBOLO, get_simbolo(self));
+
+	return socket;
+}
+private void conectarse_al_planificador(PACKED_ARGS){
+	UNPACK_ARG(t_personaje* self);
+	UNPACK_ARG(t_nivel* nivel);
+
+	var(nombre_nivel, nivel->nombre);
+
+	tad_logger* logger = logger_new_instance("Thread nivel %s", nombre_nivel);
+	logger_info(logger, "Hilo para jugar el nivel %s iniciado", nombre_nivel);
+
+	tad_socket* socket = conectarse_al_orquestador(self,nivel,logger);
 
 	logger_info(logger, "Enviando solicitud de conexion al nivel");
 	socket_send_string(socket, PERSONAJE_SOLICITUD_NIVEL, nombre_nivel);
@@ -366,171 +320,49 @@ t_posicion* pedir_posicion_objetivo(t_personaje* self, char* objetivo,tad_logger
 }
 
 
-//t_personaje* personaje_create(char* config_path) {
-//	t_personaje* new = malloc(sizeof(t_personaje));
-//	t_config* config = config_create(config_path); //commons... andres para nivel es igual...
-//
-//	new->nombre = string_duplicate(config_get_string_value(config, "nombre"));
-//
-//	char* s = string_duplicate(config_get_string_value(config, "simbolo"));
-//	new->simbolo = s[0];
-//
-//	new->plan_de_niveles = config_get_array_value(config, "planDeNiveles");
-//	new->objetivos = _personaje_load_objetivos(config, new->plan_de_niveles);
-//	new->vidas = config_get_int_value(config, "vidas");
-//	new->orquestador_info = connection_create(
-//			config_get_string_value(config, "orquestador"));
-//
-//	void morir(char* mensaje) {
-//		config_destroy(config);
-//		free(s);
-//		personaje_destroy(new);
-//		printf("Error en el archivo de configuración: %s\n", mensaje);
-//	}
-//
-//	if (!config_has_property(config, "puerto")) {
-//		morir("Falta el puerto");
-//		return NULL ;
-//	}
-//	new->puerto = config_get_int_value(config, "puerto");
-//
-//	char* log_file = "personaje.log";
-//	char* log_level = "INFO";
-//	if (config_has_property(config, "logFile")) {
-//		log_file = string_duplicate(config_get_string_value(config, "logFile"));
-//	}
-//	if (config_has_property(config, "logLevel")) {
-//		log_level = string_duplicate(
-//				config_get_string_value(config, "logLevel"));
-//	}
-//	new->logger = log_create(log_file, "Personaje", true,
-//			log_level_from_string(log_level));
-//	config_destroy(config);
-//
-//	new->socket_orquestador = NULL;
-//	new->nivel_actual = NULL;
-//	new->posicion = NULL;
-//	new->posicion_objetivo = NULL;
-//	new->nivel_finalizado = false;
-//	new->nivel_actual_index = 0;
-//	new->vidas_iniciales = new->vidas;
-//	new->objetivos_array = NULL;
-//	new->objetivo_actual = NULL;
-//	new->objetivo_actual_index = 0;
-//	new->is_blocked = false;
-//
-//	free(s);
-//	free(log_file);
-//	free(log_level);
-//	return new;
-//}
 
+private void morir(t_personaje* self){
+	var(vidas, get_vidas(self));
+	var(vidas_iniciales, get_vidas_iniciales(self));
 
+	if(vidas > 0){
+		vidas--;
+		logger_info(get_logger(self), "El personaje perdio una vida, le quedan %d", vidas);
+		//TODO ver que nivel hay que reiniciar
+	}else{
+		vidas = vidas_iniciales;
+		logger_info(get_logger(self), "El personaje perdio su ultima vida");
+		logger_info(get_logger(self), "Las vidas se reestableceran a %d", vidas);
+		//TODO ver que hacer en esta situacion jaja
+	}
 
-//void personaje_destroy(t_personaje* self) {
-//	free(self->nombre);
-//	array_destroy(self->plan_de_niveles);
-//	dictionary_destroy_and_destroy_elements(self->objetivos,
-//			(void*) array_destroy);
-//	connection_destroy(self->orquestador_info);
-//	log_destroy(self->logger);
-//	if (self->socket_orquestador != NULL ) {
-//		if (self->socket_orquestador->serv_socket != NULL ) {
-//			sockets_destroy(self->socket_orquestador->serv_socket);
-//		}
-//		sockets_destroyClient(self->socket_orquestador);
-//	}
-//	if (self->nivel_actual != NULL ) {
-//		personaje_nivel_destroy(self->nivel_actual);
-//	}
-//	if (self->posicion != NULL ) {
-//		posicion_destroy(self->posicion);
-//	}
-//
-//	if (self->posicion_objetivo != NULL ) {
-//		posicion_destroy(self->posicion_objetivo);
-//	}
-//
-//	if (self->objetivo_actual != NULL ) {
-//		free(self->objetivo_actual);
-//	}
-//
-//	free(self);
-//}
+	set_vidas(self, vidas);
+}
 
+private void comer_honguito_verde(t_personaje* self){
+	logger_info(get_logger(self), "Llego un honguito de esos que pegan ;)");
+	var(vidas, get_vidas(self));
+	vidas++;
+	logger_info(get_logger(self), "El personaje gano una vida, posee en total %d", vidas);
+	set_vidas(self, vidas);
+}
 
-//bool personaje_conectar_a_orquestador(t_personaje* self) {
-//
-//	self->socket_orquestador = sockets_conectar_a_servidor(NULL, self->puerto,
-//			self->orquestador_info->ip, self->orquestador_info->puerto,
-//			self->logger, M_HANDSHAKE_PERSONAJE, PERSONAJE_HANDSHAKE,
-//			HANDSHAKE_SUCCESS, "Orquestador");
-//
-//	if (self->socket_orquestador == NULL ) {
-//		return false;
-//	}
-//
-//	t_mensaje* mensaje = mensaje_recibir(self->socket_orquestador);
-//
-//	if (mensaje == NULL ) {
-//		log_error(self->logger,
-//				"Personaje %s: El orquestador se ha desconectado.",
-//				self->nombre);
-//		return false;
-//	}
-//
-//	if (mensaje->type != M_GET_SYMBOL_PERSONAJE_REQUEST) {
-//		mensaje_destroy(mensaje);
-//		return false;
-//	}
-//
-//	mensaje_destroy(mensaje);
-//
-//	char* simbolo = string_from_format("%c", self->simbolo);
-//
-//	mensaje_create_and_send(M_GET_SYMBOL_PERSONAJE_RESPONSE,
-//			string_duplicate(simbolo), strlen(simbolo) + 1,
-//			self->socket_orquestador);
-//	free(simbolo);
-//
-//	return true;
-//}
+private void personaje_destruir(t_personaje* self){
+	var(niveles, self->niveles);
+	var(size, list_size(niveles));
+	int i;
+	for(i = size; i > 0; i--){
+		t_nivel* nivel = list_get(niveles, i);
+		list_remove(niveles, i);
+		dealloc(nivel);
+	}
+	list_destroy(niveles);
 
+	logger_dispose_instance(get_logger(self));
 
-//bool personaje_conectar_a_planificador(t_personaje* self) {
-//	self->nivel_actual->socket_planificador = sockets_conectar_a_servidor(NULL,
-//			self->puerto, self->nivel_actual->planificador->ip,
-//			self->nivel_actual->planificador->puerto, self->logger,
-//			M_HANDSHAKE_PERSONAJE, PERSONAJE_HANDSHAKE, HANDSHAKE_SUCCESS,
-//			"Planificador");
-//
-//	if (self->nivel_actual->socket_planificador == NULL ) {
-//		return false;
-//	}
-//
-//	t_mensaje* mensaje = mensaje_recibir(
-//			self->nivel_actual->socket_planificador);
-//
-//	if (mensaje == NULL ) {
-//		log_error(self->logger,
-//				"Personaje %s: El planificador del nivel %s se ha desconectado.",
-//				self->nombre, self->nivel_actual->nombre);
-//		return false;
-//	}
-//
-//	if (mensaje->type != M_GET_SYMBOL_PERSONAJE_REQUEST) {
-//		mensaje_destroy(mensaje);
-//		return false;
-//	}
-//
-//	mensaje_destroy(mensaje);
-//
-//	char* simbolo = string_from_format("%c", self->simbolo);
-//
-//	mensaje_create_and_send(M_GET_SYMBOL_PERSONAJE_RESPONSE,
-//			string_duplicate(simbolo), strlen(simbolo) + 1,
-//			self->nivel_actual->socket_planificador);
-//	free(simbolo);
-//
-//	return true;
-//}
+	free(self->nombre);
+	free(self->ippuerto_orquestador);
+	free(self->posicion);
+	free(self->posicion_objetivo);
+	dealloc(self);
+}
