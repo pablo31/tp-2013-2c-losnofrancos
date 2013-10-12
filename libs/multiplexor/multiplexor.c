@@ -105,19 +105,31 @@ void multiplexor_unbind_socket(tad_multiplexor* m, tad_socket* socket){
 
 //Escucha por paquetes entrantes en los sockets asociados, bloqueando la ejecucion
 void multiplexor_wait_for_io(tad_multiplexor* m){
+	t_list* phone_book = m->phone_book;
+	int opbs = list_size(phone_book); //original phone book size
+
+	//creamos una copia de guia telefonica en un array
+	phone phones[opbs];
+	int i;
+	for(i = 0; i < opbs; i++){
+		phones[i] = *(phone*)(list_get(phone_book, i));
+	}
+
+	//creamos una copia de la textura de fds
 	int max_fd = m->max_fd + 1;
 	fd_set* master_set = multiplexor_get_master(m);
 	fd_set read_set = *master_set;
 
+	//ejecutamos el nucleo del multiplexor
 	select(max_fd, &read_set, null, null, null); //bloqueante
 
-	//buscamos los sockets a los cuales les llegaron paquetes
-	foreach(p, m->phone_book, phone*){
-		int socket_id = socket_get_id(p->socket);
-
+	//iteramos sobre el array buscando los sockets que recibieron mensajes
+	for(i = 0; i < opbs; i++){
+		phone p = phones[i];
+		int socket_id = socket_get_id(p.socket);
 		//ejecutamos el manejador
-		if(FD_ISSET(socket_id, &read_set)) //es muy kamikaze
-			command_execute(p->command);
+		if(FD_ISSET(socket_id, &read_set))
+			command_execute(p.command);
 	}
 }
 

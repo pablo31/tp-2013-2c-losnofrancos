@@ -82,9 +82,8 @@ tad_plataforma* plataforma_crear(){
 
 void plataforma_finalizar(tad_plataforma* self){
 	//liberamos los recursos de los planificadores
-	foreach(planificador, self->planificadores, tad_planificador*){
+	foreach(planificador, self->planificadores, tad_planificador*)
 		planificador_finalizar(planificador);
-	}
 	//liberamos los recursos del orquestador
 	orquestador_finalizar(self->orquestador);
 	//liberamos los recursos propios de plataforma

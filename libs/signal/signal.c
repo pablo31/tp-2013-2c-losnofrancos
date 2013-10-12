@@ -70,10 +70,12 @@ void signal_declare_handler(int signal_id, void* function, int numargs, ...){
 
 //Libera todos los recursos de las senales bindeadas
 void signal_dispose_all(){
-	foreach(sc, command_list, signal_command*){
+
+	void destroyer(void* psc){
+		signal_command* sc = psc;
 		command_dispose(sc->command);
-		//TODO free(sc)???
+		dealloc(sc);
 	}
 
-	list_destroy(command_list);
+	list_destroy_and_destroy_elements(command_list, destroyer);
 }

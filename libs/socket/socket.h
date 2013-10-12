@@ -126,5 +126,19 @@ enum SOCKET_ERR {
 	#define FOR_SOCKET(__r_md_socket) \
 		socket_bind_process_status(__r_md_socket, &__r_md_ps)
 
+	//Error handler definition
+	#define SOCKET_ON_ERROR(socket, call) \
+		DECLARE_ERROR_MANAGER{ \
+			call; \
+			return; \
+		}FOR_SOCKET(socket)
+
+	//Error handler (with ret value) definition
+	#define SOCKET_ON_ERROR_WRET(socket, call, ret) \
+		DECLARE_ERROR_MANAGER{ \
+			call; \
+			return ret; \
+		}FOR_SOCKET(socket)
+
 
 #endif /* SOCKET_H_ */

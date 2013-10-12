@@ -87,6 +87,7 @@ void* get_next_argument(void* args_pointer){
 
 //Libera recursos
 void command_dispose(tad_command* command){
-	arguments_dispose(command->arguments);
+	tad_arguments* arguments = command->arguments;
+	if(arguments != null) arguments_dispose(arguments);
 	dealloc(command);
 }
