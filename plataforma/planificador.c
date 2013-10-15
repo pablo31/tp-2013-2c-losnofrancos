@@ -63,6 +63,8 @@ void planificador_agregar_personaje(tad_planificador* self, char* nombre, char s
 	list_add(self->personajes, personaje);
 	//informamos al usuario
 	logger_info(get_logger(self), "El personaje %s entro al nivel", nombre);
+	//nos presentamos
+	socket_send_empty_package(socket, PRESENTACION_PLANIFICADOR);
 }
 
 private void planificador_liberar_personaje(tad_planificador* self, tad_personaje* personaje){
