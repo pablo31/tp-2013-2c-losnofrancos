@@ -52,4 +52,19 @@ typedef jmp_buf process_status;
 //thats all u gonna need! (;
 
 
+
+
+//Try Catch Block (beta, do not use it)
+#define TRY \
+	jmp_buf __r_md_tjb; \
+	int __ex_num = setjmp(__r_md_tjb); \
+	if(!__ex_num)
+#define CATCH(ex) \
+	else if(__ex_num == ex)
+#define CATCH_OTHER \
+	else
+#define THROW(ex) \
+	longjmp(__r_md_tjb, ex)
+
+
 #endif /* ERROR_MANAGEMENT_H_ */
