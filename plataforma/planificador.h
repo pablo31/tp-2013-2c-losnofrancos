@@ -8,7 +8,7 @@
 #ifndef PLANIFICADOR_H_
 #define PLANIFICADOR_H_
 
-#include "../libs/collection/round.h"
+#include "../libs/common/collections/queue.h"
 #include "../libs/socket/socket.h"
 #include "../libs/multiplexor/multiplexor.h"
 #include "../libs/logger/logger.h"
@@ -32,7 +32,7 @@ typedef struct s_nivel tad_nivel;
 
 struct s_planificador{
 	tad_nivel* nivel;
-	t_round* personajes;
+	t_queue* personajes;
 	tad_multiplexor* multiplexor;
 
 	tad_logger* logger;

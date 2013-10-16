@@ -45,7 +45,7 @@ tad_planificador* planificador_crear(char* nombre_nivel, tad_socket* socket_nive
 	nivel->socket = socket_nivel;
 	ret->nivel = nivel;
 	//inicializamos la lista circular de personajes
-	ret->personajes = round_create();
+	ret->personajes = queue_create();
 	//inicializamos el multiplexor
 	var(multiplexor, multiplexor_create());
 	ret->multiplexor = multiplexor;
@@ -67,7 +67,7 @@ void planificador_agregar_personaje(tad_planificador* self, char* nombre, char s
 	personaje->simbolo = simbolo;
 	personaje->socket = socket;
 	//lo agregamos a la lista de personajes del planificador
-	round_add(self->personajes, personaje);
+	queue_push(self->personajes, personaje);
 	//lo bindeamos al multiplexor
 //	multiplexor_bind_socket(self->multiplexor, socket, manejadora, 2, self, personaje); //TODO habilitar
 	//informamos al usuario
@@ -95,13 +95,10 @@ void planificador_finalizar(tad_planificador* self){
 
 	//liberamos los recursos de los datos de los personajes
 	var(personajes, self->personajes);
-	round_restart(personajes);
-	while(!round_has_ended(personajes)){
-		tad_personaje* personaje = round_remove(personajes);
-		planificador_liberar_personaje(self, personaje);
-		round_forward(personajes);
+	void destroyer(void* ptr_personaje){
+		planificador_liberar_personaje(self, ptr_personaje);
 	}
-	round_dispose(personajes);
+	queue_destroy_and_destroy_elements(personajes, destroyer);
 
 	//liberamos los recursos del multiplexor
 	multiplexor_dispose(self->multiplexor);
@@ -124,7 +121,10 @@ void planificador_finalizar(tad_planificador* self){
  ***************************************/
 
 void planificador_ejecutar(PACKED_ARGS){
-	//UNPACK_ARG(tad_planificador* self);
+	UNPACK_ARG(tad_planificador* self);
 
 	//TODO logica de planificador; multiplexor; comunicacion con nivel y personajes; etc
 }
+
+
+

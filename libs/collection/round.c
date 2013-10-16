@@ -34,6 +34,10 @@ int round_size(t_round* round){
 	return list_size(round->list);
 }
 
+int round_is_empty(t_round* round){
+	return round_size(round) == 0;
+}
+
 void round_dispose(t_round* round){
 	list_destroy(round->list);
 	dealloc(round);

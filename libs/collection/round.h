@@ -23,6 +23,7 @@ void round_add(t_round* round, void* element);
 void* round_get(t_round* round);
 void* round_remove(t_round* round);
 int round_size(t_round* round);
+int round_is_empty(t_round* round);
 void round_dispose(t_round* round);
 
 void round_set_autoreverse(t_round* round, int value);
