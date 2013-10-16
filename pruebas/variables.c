@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "../libs/error/error_management.h"
 #include "../libs/common.h"
 
@@ -27,7 +28,7 @@ void foo(int as_out i){
 int main(void){
 	printf("\n > Prueba de programacion a alto nivel\n");
 	printf(" > \tMuestra como trabajar a mas alto nivel con los macros incluidos en libs.\n");
-	printf(" > \tEntre ellos: instanciacion de objetos, variables sin tipar, funciones con valores out, y bloque try-catch.\n");
+	printf(" > \tEntre ellos: instanciacion de clases, variables sin tipar, funciones con valores out, y bloque try-catch.\n");
 
 	//alojamos una instancia de my_class
 	alloc(my_obj, my_class);
