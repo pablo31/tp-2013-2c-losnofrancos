@@ -37,6 +37,10 @@ all:
 	gcc -Wall -g -ggdb -c libs/signal/signal.c libs/command/command.c libs/command/arguments.c
 	ar rcs libsgn.a signal.o command.o arguments.o list.o
 
+	@echo "   >>> COMPILANDO LIBRERIA COLLECTION"
+	gcc -Wall -g -ggdb -c libs/collection/round.c
+	ar rcs libctn.a round.o list.o
+
 	@echo ""
 	@echo "# PRUEBAS"
 	@echo ""
@@ -48,7 +52,7 @@ all:
 	gcc -Wall -g -ggdb pruebas/server.c libcommon.a libsck.a liblog.a libsgn.a libmpx.a -o prueba_servidor.sh
 
 	@echo "   >>> COMPILANDO PRUEBA DE LISTAS"
-	gcc -Wall -g -ggdb pruebas/listas.c libcommon.a -o prueba_listas.sh
+	gcc -Wall -g -ggdb pruebas/listas.c libcommon.a libctn.a -o prueba_listas.sh
 
 	@echo "   >>> COMPILANDO PRUEBAS THREADS Y SEMAFOROS"
 	gcc -Wall -g -ggdb pruebas/threads.c libth.a -o prueba_threads.sh -lpthread

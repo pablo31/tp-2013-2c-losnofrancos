@@ -13,7 +13,7 @@
 t_round* round_create(){
 	alloc(ret, t_round);
 	ret->list = list_create();
-	ret->pointer = -1;
+	ret->pointer = 0;
 	ret->auto_reverse = 0;
 	return ret;
 }
@@ -26,10 +26,12 @@ void* round_get(t_round* round){
 	return list_get(round->list, round->pointer);
 }
 
-void* round_remove(t_round* round, int index){
-	if(index < round->pointer)
-		round->pointer--;
-	return list_remove(round->list, index);
+void* round_remove(t_round* round){
+	return list_remove(round->list, round->pointer);
+}
+
+int round_size(t_round* round){
+	return list_size(round->list);
 }
 
 void round_dispose(t_round* round){
@@ -49,7 +51,12 @@ void round_foward(t_round* round){
 			round->pointer = 0;
 		else
 			round->pointer = size;
-	}
+	}else
+		round->pointer = index;
+}
+
+void round_restart(t_round* round){
+	round->pointer = 0;
 }
 
 int round_has_ended(t_round* round){

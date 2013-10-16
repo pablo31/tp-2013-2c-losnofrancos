@@ -8,6 +8,8 @@
 #ifndef ROUND_H_
 #define ROUND_H_
 
+#include "../common/collections/list.h"
+
 struct s_round{
 	t_list* list;
 	int pointer;
@@ -19,11 +21,13 @@ typedef struct s_round t_round;
 t_round* round_create();
 void round_add(t_round* round, void* element);
 void* round_get(t_round* round);
-void* round_remove(t_round* round, int index);
+void* round_remove(t_round* round);
+int round_size(t_round* round);
 void round_dispose(t_round* round);
 
 void round_set_autoreverse(t_round* round, int value);
 void round_foward(t_round* round);
+void round_restart(t_round* round);
 int round_has_ended(t_round* round);
 
 
