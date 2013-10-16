@@ -6,7 +6,9 @@
  */
 
 #include "../libs/multiplexor/multiplexor.h"
+#include "../libs/socket/socket_utils.h"
 #include "../libs/common.h"
+#include "../libs/protocol/protocol.h"
 
 #include "planificador.h"
 

@@ -74,9 +74,7 @@ private void personaje_destruir(t_personaje* self);
 private void morir(t_personaje* self);
 private void comer_honguito_verde(t_personaje* self);
 
-private void desconectarse_al_planificador(PACKED_ARGS);
 private void conectarse_al_orquestador(PACKED_ARGS);
-private void conectarse_al_planificador(PACKED_ARGS);
 private void jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, tad_logger* logger);
 
 
@@ -125,6 +123,13 @@ int main(int argc, char* argv[]) {
 		t_nivel* nivel = list_get(niveles, i);
 		thread[i] = thread_begin(conectarse_al_orquestador, 2, self, nivel);
 	}
+
+	//esperamos a que todos los hilos terminen de juegar
+	for(i = 0; i < cantidad_de_niveles; i++){
+		thread_join(thread[i]);
+	}
+
+	//TODO conectarse al orquestador para decirle que ganamos
 
 	personaje_destruir(self);
 	logger_dispose();
@@ -196,10 +201,6 @@ private void conectarse_al_orquestador(PACKED_ARGS){
 }
 
 private void jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, tad_logger* logger){
-
-	self->objetivo_actual_index = 0;
-	self->objetivo_actual = NULL;
-
 	//TODO espera las señales
 	//esperando señales y a trabajar duro
 }
@@ -232,10 +233,20 @@ private t_personaje* personaje_crear(char* config_path){
 	for(i = 0; i < 3; i++){
 		alloc(nivel, t_nivel);
 		nivel->nombre = string_from_format("nivel%d", i + 1);
+
+		var(objetivos, round_create());
+		alloc(objetivo, char);
+		*objetivo = 'H';
+		round_add(objetivos, objetivo);
+		ralloc(objetivo);
+		*objetivo = 'F';
+		round_add(objetivos, objetivo);
+		nivel->objetivos = objetivos;
+
 		list_add(niveles, nivel);
 	}
 	self->niveles = niveles;
-	self->completoTodosLosNiveles= false;
+
 	//liberamos recursos
 	config_destroy(config);
 
@@ -243,35 +254,35 @@ private t_personaje* personaje_crear(char* config_path){
 }
 
 
-t_posicion* pedir_posicion_objetivo(t_personaje* self, char* objetivo,tad_logger* logger,  tad_socket* socket) {
-
-	log_info(logger,"Personaje:  %s",self->nombre);
-	log_info(logger,"Solicitando proximo recurso:  %s",self->objetivo_actual);
-
-	char input = self->objetivo_actual;
-	tad_package* paquete = package_create('s', strlen(input) + 1, input);
-	socket_send_package(socket, paquete);
-
-	log_info(logger," Paquete enviado del Personaje:  %s",self->nombre);
-
-	//Recibimos el paquete que estaba en espera
-	tad_package* paquete = socket_receive_package(socket);
-
-	char* texto = package_get_data(paquete);
-	printf("Paquete recibido: tipo '%c', longitud %d, texto '%s'.\n",
-			package_get_data_type(paquete),
-			package_get_data_length(paquete),
-		texto);
-
-	//esta es la magiaaaaa WOOOo... xD
-	//supuestamente el  package_get_data_type(paquete) me devuelve un par (x,y)
-	t_posicion* posicion_objetivo = posicion_duplicate(package_get_data_type(paquete));
-
-	//se libera sus recursos
-	package_dispose(paquete);
-	free(texto);
-	return posicion_objetivo;
-}
+//t_posicion* pedir_posicion_objetivo(t_personaje* self, char* objetivo,tad_logger* logger,  tad_socket* socket) {
+//
+//	log_info(logger,"Personaje:  %s",self->nombre);
+//	log_info(logger,"Solicitando proximo recurso:  %s",self->objetivo_actual);
+//
+//	char input = self->objetivo_actual;
+//	tad_package* paquete = package_create('s', strlen(input) + 1, input);
+//	socket_send_package(socket, paquete);
+//
+//	log_info(logger," Paquete enviado del Personaje:  %s",self->nombre);
+//
+//	//Recibimos el paquete que estaba en espera
+//	tad_package* paquete = socket_receive_package(socket);
+//
+//	char* texto = package_get_data(paquete);
+//	printf("Paquete recibido: tipo '%c', longitud %d, texto '%s'.\n",
+//			package_get_data_type(paquete),
+//			package_get_data_length(paquete),
+//		texto);
+//
+//	//esta es la magiaaaaa WOOOo... xD
+//	//supuestamente el  package_get_data_type(paquete) me devuelve un par (x,y)
+//	t_posicion* posicion_objetivo = posicion_duplicate(package_get_data_type(paquete));
+//
+//	//se libera sus recursos
+//	package_dispose(paquete);
+//	free(texto);
+//	return posicion_objetivo;
+//}
 
 
 
@@ -303,20 +314,25 @@ private void comer_honguito_verde(t_personaje* self){
 
 private void personaje_destruir(t_personaje* self){
 	var(niveles, self->niveles);
-	var(size, list_size(niveles));
-	int i;
-	for(i = size; i > 0; i--){
-		t_nivel* nivel = list_get(niveles, i);
-		list_remove(niveles, i);
+
+	void liberar_nivel(void* ptr_nivel){
+		 t_nivel* nivel = ptr_nivel;
+
+		 t_round* objetivos = nivel->objetivos;
+		 round_restart(objetivos);
+		 while(!round_has_ended(objetivos)){
+			 char* objetivo = round_remove(objetivos);
+			 free(objetivo);
+		 }
+		 round_dispose(objetivos);
+
 		dealloc(nivel);
 	}
-	list_destroy(niveles);
+	list_destroy_and_destroy_elements(niveles, liberar_nivel);
 
 	logger_dispose_instance(get_logger(self));
 
 	free(self->nombre);
 	free(self->ippuerto_orquestador);
-	free(self->posicion);
-	free(self->posicion_objetivo);
 	dealloc(self);
 }
