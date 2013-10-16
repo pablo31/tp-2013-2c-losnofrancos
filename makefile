@@ -7,7 +7,7 @@
 all: 
 	clear
 
-	@echo "Es Lo Que Hay 2013 >>"
+	@echo "Es Lo Que Hay 2013 / Los No Francos 2013 >>"
 	@echo ""
 
 	@echo "# LIBRERIAS"
@@ -80,18 +80,24 @@ all:
 	@echo "   >>> COMPILANDO PROCESO NIVEL"
 	gcc -Wall -ggdb nivel/nivel_ui.c nivel/nivel_configuracion.c nivel/nivel.c -lncurses libcommon.a libsck.a liblog.a -o nivel.sh
 	
-#	@echo ""
-#	@echo "   <<< Limpiando archivos output"
-#	rm *.o
-#	@echo "   <<< Eliminando librerias"
-#	rm *.a
+	@echo ""
+	@echo "   <<< Limpiando archivos output"
+	rm *.o
+	@echo "   <<< Eliminando librerias"
+	rm *.a
 
 # make clean	
 # Esta opcion nos borra las librerias generadas y los ejecutables. Nos sirve para cuando nos quedo a medio masticar una compilacion
 clean:
-	clear #esto hace que se 'limpie' la terminal 
+	clear #esto hace que se 'limpie' la terminal
+	@echo "Limpiando archivos output"
+	rm *.o
+	@echo "Limpiando librerias"
+	rm *.a
 	@echo "Limpiando ejecutables"
-	rm *.sh		
+	rm *.sh
+	@echo "Limpiando archivos de log"
+	rm *.log
 	@echo ""
 
 # make install
