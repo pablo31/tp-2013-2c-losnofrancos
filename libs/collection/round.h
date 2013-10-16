@@ -26,7 +26,7 @@ int round_size(t_round* round);
 void round_dispose(t_round* round);
 
 void round_set_autoreverse(t_round* round, int value);
-void round_foward(t_round* round);
+void round_forward(t_round* round);
 void round_restart(t_round* round);
 int round_has_ended(t_round* round);
 

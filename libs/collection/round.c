@@ -43,7 +43,7 @@ void round_set_autoreverse(t_round* round, int value){
 	round->auto_reverse = value;
 }
 
-void round_foward(t_round* round){
+void round_forward(t_round* round){
 	int index = round->pointer + 1;
 	int size = list_size(round->list);
 	if(index >= size){

@@ -33,7 +33,7 @@ int main(void){
 	while(!round_has_ended(round)){
 		elem = round_get(round);
 		printf("%d\n", *elem);
-		round_foward(round);
+		round_forward(round);
 	}
 
 	round_restart(round);
