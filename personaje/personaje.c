@@ -74,9 +74,8 @@ private void personaje_destruir(t_personaje* self);
 private void morir(t_personaje* self);
 private void comer_honguito_verde(t_personaje* self);
 
-private void desconectarse_al_planificador(PACKED_ARGS);
-private void conectarse_al_orquestador(PACKED_ARGS);
-private void conectarse_al_planificador(PACKED_ARGS);
+private void inicio_nuevo_hilo(PACKED_ARGS);
+private void conectarse_al_orquestador(t_personaje* self, t_nivel* nivel, tad_logger* logger);
 private void jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, tad_logger* logger);
 
 
@@ -119,16 +118,19 @@ int main(int argc, char* argv[]) {
 	var(cantidad_de_niveles, list_size(niveles));
 	tad_thread* thread[cantidad_de_niveles];
 
-
-	tad_socket* socket = conectarse_al_orquestador(self);
-
-
 	int i;
 	//se inicia un nuevo hilo por cada nivel que tiene jugar
 	for(i = 0; i < cantidad_de_niveles; i++){
 		t_nivel* nivel = list_get(niveles, i);
-		thread[i] = thread_begin(conectarse_al_planificador, 2, self, nivel);
+		thread[i] = thread_begin(inicio_nuevo_hilo, 2, self, nivel);
 	}
+
+	//esperamos a que todos los hilos terminen de juegar
+	for(i = 0; i < cantidad_de_niveles; i++){
+		thread_join(thread[i]);
+	}
+
+	//TODO conectarse al orquestador para decirle que ganamos
 
 	personaje_destruir(self);
 	logger_dispose();
@@ -136,79 +138,78 @@ int main(int argc, char* argv[]) {
 	return EXIT_SUCCESS;
 }
 
-private void conectarse_al_planificador(PACKED_ARGS){
+
+
+
+private void inicio_nuevo_hilo(PACKED_ARGS){
 	UNPACK_ARG(t_personaje* self);
 	UNPACK_ARG(t_nivel* nivel);
 
+	//obtenemos una instancia del logger para el nivel
+	tad_logger* logger_nivel = logger_new_instance("Thread nivel %s", nivel->nombre);
 
-	var(nombre_nivel, nivel->nombre);
-	tad_logger* loggerPorNivel = logger_new_instance("Thread nivel %s", nivel.nombre);
-	tad_socket* socket = socket_listen(self.ippuerto_orquestador);
-	jugar_nivel(self, nivel,socket,loggerPorNivel);
 
+	conectarse_al_orquestador(self, nivel, logger_nivel);
 }
 
 
-private tad_socket conectarse_al_orquestador(t_personaje* self){
+private void manejar_error_orquestador(tad_socket* socket, tad_logger* logger){
+	switch(socket_get_error(socket)){
+	case CONNECTION_CLOSED:
+		logger_error(logger, "El orquestador se desconecto inesperadamente");
+		break;
+	case UNEXPECTED_PACKAGE:
+		logger_error(logger, "El orquestador envio un paquete incorrecto");
+		break;
+	default:
+		logger_error(logger, "Error en el envio o recepcion de datos del orquestador");
+		break;
+	}
+	socket_close(socket);
+}
 
+private void conectarse_al_orquestador(t_personaje* self, t_nivel* nivel, tad_logger* logger_nivel){
 	var(ippuerto_orquestador, get_ippuerto_orquestador(self));
 	var(ip, string_get_ip(ippuerto_orquestador));
 	var(puerto, string_get_port(ippuerto_orquestador));
 
+	//conectamos con el orquestador
 	tad_socket* socket = socket_connect(ip, puerto);
 
-	DECLARE_ERROR_MANAGER{
-		switch(socket_get_error(socket)){
-		case CONNECTION_CLOSED:
-			logger_error(self->logger, "El orquestador se desconecto inesperadamente");
-			break;
-		case UNEXPECTED_PACKAGE:
-			logger_error(self->logger, "El orquestador envio un paquete incorrecto");
-			break;
-		default:
-			logger_error(self->logger, "Error en el envio o recepcion de datos del orquestador");
-			break;
-		}
-		socket_close(socket);
-		logger_dispose_instance(self->logger);
-		return null;
-	}FOR_SOCKET(socket);
+	//establecemos la funcion manejadora de errores y desconexion
+	SOCKET_ON_ERROR(socket, manejar_error_orquestador(socket, logger_nivel));
 
+	//recibimos la presentacion del orquestador
 	socket_receive_expected_empty_package(socket, PRESENTACION_ORQUESTADOR);
-	logger_info(self->logger, "El servidor es un orquestador");
+	logger_info(logger_nivel, "El servidor es un orquestador");
 
 	sleep(2);
 
+	//nos presentamos
 	socket_send_empty_package(socket, PRESENTACION_PERSONAJE);
 
-	sleep(2);
-
-	logger_info(self->logger, "Enviando datos del personaje");
+	//enviamos nuestros datos
+	logger_info(logger_nivel, "Enviando datos del personaje");
 	socket_send_string(socket, PERSONAJE_NOMBRE, get_nombre(self));
 	socket_send_char(socket, PERSONAJE_SIMBOLO, get_simbolo(self));
 
-	return socket;
+	//enviamos el nombre del nivel al que nos queremos conectar
+	logger_info(logger_nivel, "Enviando solicitud de derivacion al planificador");
+	socket_send_string(socket, PERSONAJE_SOLICITUD_NIVEL, nivel->nombre);
+
+	//en este punto deberiamos estar conectados al planificador
+	socket_receive_expected_empty_package(socket, PRESENTACION_PLANIFICADOR);
+	logger_info(logger_nivel, "Conectado con el planificador");
+
+	//jugamos el nivel
+	jugar_nivel(self, nivel, socket, logger_nivel);
+}
+
+private void jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, tad_logger* logger_nivel){
+	SOCKET_ON_ERROR(socket, manejar_error_orquestador(socket, logger_nivel));
 }
 
 
-private void desconectarse_al_planificador(tad_socket* socket,tad_logger* logger){
-	logger_info(logger, "El personaje se desconecto del orquestador");
-	socket_close(socket);
-	logger_dispose_instance(logger);
-
-}
-
-private void jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, tad_logger* logger){
-
-	logger_info(logger, "El personaje  %s", self->nombre);
-	logger_info(logger, "Jugando al Nivel  %s", nivel->nombre);
-
-	self->objetivo_actual_index = 0;
-	self->objetivo_actual = NULL;
-
-	//TODO espera las señales
-	//esperando señales y a trabajar duro
-}
 
 
 
@@ -236,10 +237,20 @@ private t_personaje* personaje_crear(char* config_path){
 	for(i = 0; i < 3; i++){
 		alloc(nivel, t_nivel);
 		nivel->nombre = string_from_format("nivel%d", i + 1);
+
+		var(objetivos, round_create());
+		alloc(objetivo, char);
+		*objetivo = 'H';
+		round_add(objetivos, objetivo);
+		ralloc(objetivo);
+		*objetivo = 'F';
+		round_add(objetivos, objetivo);
+		nivel->objetivos = objetivos;
+
 		list_add(niveles, nivel);
 	}
 	self->niveles = niveles;
-	self->completoTodosLosNiveles= false;
+
 	//liberamos recursos
 	config_destroy(config);
 
@@ -247,35 +258,35 @@ private t_personaje* personaje_crear(char* config_path){
 }
 
 
-t_posicion* pedir_posicion_objetivo(t_personaje* self, char* objetivo,tad_logger* logger,  tad_socket* socket) {
-
-	log_info(logger,"Personaje:  %s",self->nombre);
-	log_info(logger,"Solicitando proximo recurso:  %s",self->objetivo_actual);
-
-	char input = self->objetivo_actual;
-	tad_package* paquete = package_create('s', strlen(input) + 1, input);
-	socket_send_package(socket, paquete);
-
-	log_info(logger," Paquete enviado del Personaje:  %s",self->nombre);
-
-	//Recibimos el paquete que estaba en espera
-	tad_package* paquete = socket_receive_package(socket);
-
-	char* texto = package_get_data(paquete);
-	printf("Paquete recibido: tipo '%c', longitud %d, texto '%s'.\n",
-			package_get_data_type(paquete),
-			package_get_data_length(paquete),
-		texto);
-
-	//esta es la magiaaaaa WOOOo... xD
-	//supuestamente el  package_get_data_type(paquete) me devuelve un par (x,y)
-	t_posicion* posicion_objetivo = posicion_duplicate(package_get_data_type(paquete));
-
-	//se libera sus recursos
-	package_dispose(paquete);
-	free(texto);
-	return posicion_objetivo;
-}
+//t_posicion* pedir_posicion_objetivo(t_personaje* self, char* objetivo,tad_logger* logger,  tad_socket* socket) {
+//
+//	log_info(logger,"Personaje:  %s",self->nombre);
+//	log_info(logger,"Solicitando proximo recurso:  %s",self->objetivo_actual);
+//
+//	char input = self->objetivo_actual;
+//	tad_package* paquete = package_create('s', strlen(input) + 1, input);
+//	socket_send_package(socket, paquete);
+//
+//	log_info(logger," Paquete enviado del Personaje:  %s",self->nombre);
+//
+//	//Recibimos el paquete que estaba en espera
+//	tad_package* paquete = socket_receive_package(socket);
+//
+//	char* texto = package_get_data(paquete);
+//	printf("Paquete recibido: tipo '%c', longitud %d, texto '%s'.\n",
+//			package_get_data_type(paquete),
+//			package_get_data_length(paquete),
+//		texto);
+//
+//	//esta es la magiaaaaa WOOOo... xD
+//	//supuestamente el  package_get_data_type(paquete) me devuelve un par (x,y)
+//	t_posicion* posicion_objetivo = posicion_duplicate(package_get_data_type(paquete));
+//
+//	//se libera sus recursos
+//	package_dispose(paquete);
+//	free(texto);
+//	return posicion_objetivo;
+//}
 
 
 
@@ -307,20 +318,25 @@ private void comer_honguito_verde(t_personaje* self){
 
 private void personaje_destruir(t_personaje* self){
 	var(niveles, self->niveles);
-	var(size, list_size(niveles));
-	int i;
-	for(i = size; i > 0; i--){
-		t_nivel* nivel = list_get(niveles, i);
-		list_remove(niveles, i);
+
+	void liberar_nivel(void* ptr_nivel){
+		 t_nivel* nivel = ptr_nivel;
+
+		 t_round* objetivos = nivel->objetivos;
+		 round_restart(objetivos);
+		 while(!round_has_ended(objetivos)){
+			 char* objetivo = round_remove(objetivos);
+			 free(objetivo);
+		 }
+		 round_dispose(objetivos);
+
 		dealloc(nivel);
 	}
-	list_destroy(niveles);
+	list_destroy_and_destroy_elements(niveles, liberar_nivel);
 
 	logger_dispose_instance(get_logger(self));
 
 	free(self->nombre);
 	free(self->ippuerto_orquestador);
-	free(self->posicion);
-	free(self->posicion_objetivo);
 	dealloc(self);
 }

@@ -109,8 +109,7 @@ void multiplexor_wait_for_io(tad_multiplexor* m){
 	int opbs = list_size(phone_book); //original phone book size
 
 	//creamos una copia de guia telefonica en un array
-	phone phones[opbs];
-	int i;
+	phone phones[opbs]; int i;
 	for(i = 0; i < opbs; i++){
 		phones[i] = *(phone*)(list_get(phone_book, i));
 	}
@@ -135,9 +134,8 @@ void multiplexor_wait_for_io(tad_multiplexor* m){
 
 //Libera los recursos del multiplexor
 void multiplexor_dispose(tad_multiplexor* m){
-	foreach(p, m->phone_book, phone*){
+	foreach(p, m->phone_book, phone*)
 		multiplexor_dispose_phone(p);
-	}
 
 	list_destroy(m->phone_book);
 	dealloc(m);

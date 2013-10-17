@@ -7,7 +7,7 @@
 all: 
 	clear
 
-	@echo "Es Lo Que Hay 2013 >>"
+	@echo "Es Lo Que Hay 2013 / Los No Francos 2013 >>"
 	@echo ""
 
 	@echo "# LIBRERIAS"
@@ -37,6 +37,10 @@ all:
 	gcc -Wall -g -ggdb -c libs/signal/signal.c libs/command/command.c libs/command/arguments.c
 	ar rcs libsgn.a signal.o command.o arguments.o list.o
 
+	@echo "   >>> COMPILANDO LIBRERIA COLLECTION"
+	gcc -Wall -g -ggdb -c libs/collection/round.c
+	ar rcs libctn.a round.o list.o
+
 	@echo ""
 	@echo "# PRUEBAS"
 	@echo ""
@@ -48,7 +52,7 @@ all:
 	gcc -Wall -g -ggdb pruebas/server.c libcommon.a libsck.a liblog.a libsgn.a libmpx.a -o prueba_servidor.sh
 
 	@echo "   >>> COMPILANDO PRUEBA DE LISTAS"
-	gcc -Wall -g -ggdb pruebas/listas.c libcommon.a -o prueba_listas.sh
+	gcc -Wall -g -ggdb pruebas/listas.c libcommon.a libctn.a -o prueba_listas.sh
 
 	@echo "   >>> COMPILANDO PRUEBAS THREADS Y SEMAFOROS"
 	gcc -Wall -g -ggdb pruebas/threads.c libth.a -o prueba_threads.sh -lpthread
@@ -68,26 +72,32 @@ all:
 	@echo ""
 	
 	@echo "   >>> COMPILANDO PROCESO PERSONAJE"
-	gcc -Wall -g -ggdb personaje/personaje.c libcommon.a libsck.a liblog.a libth.a libsgn.a -o personaje.sh -lpthread
+	gcc -Wall -g -ggdb personaje/personaje.c libcommon.a libctn.a libsck.a liblog.a libth.a libsgn.a -o personaje.sh -lpthread
 	
 	@echo "   >>> COMPILANDO PROCESO PLATAFORMA"
-	gcc -Wall -g -ggdb plataforma/plataforma.c plataforma/orquestador.c plataforma/planificador.c libcommon.a libsck.a liblog.a libth.a libmpx.a libsgn.a -o plataforma.sh -lpthread
+	gcc -Wall -g -ggdb plataforma/plataforma.c plataforma/orquestador.c plataforma/planificador.c libcommon.a libctn.a libsck.a liblog.a libth.a libmpx.a libsgn.a -o plataforma.sh -lpthread
 
 	@echo "   >>> COMPILANDO PROCESO NIVEL"
 	gcc -Wall -ggdb nivel/nivel_ui.c nivel/nivel_configuracion.c nivel/nivel.c -lncurses libcommon.a libsck.a liblog.a -o nivel.sh
 	
-#	@echo ""
-#	@echo "   <<< Limpiando archivos output"
-#	rm *.o
-#	@echo "   <<< Eliminando librerias"
-#	rm *.a
+	@echo ""
+	@echo "   <<< Limpiando archivos output"
+	rm *.o
+	@echo "   <<< Eliminando librerias"
+	rm *.a
 
 # make clean	
 # Esta opcion nos borra las librerias generadas y los ejecutables. Nos sirve para cuando nos quedo a medio masticar una compilacion
 clean:
-	clear #esto hace que se 'limpie' la terminal 
+	clear #esto hace que se 'limpie' la terminal
 	@echo "Limpiando ejecutables"
-	rm *.sh		
+	rm *.sh
+	@echo "Limpiando archivos de log"
+	rm *.log
+	@echo "Limpiando archivos output"
+	rm *.o
+	@echo "Limpiando librerias"
+	rm *.a
 	@echo ""
 
 # make install

@@ -8,41 +8,45 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include "../lista/lista_recorrible.h"
+#include "../libs/collection/round.h"
 #include "../libs/common/collections/list.h"
 #include "../libs/common.h"
 
 int main(void){
 
-	printf("Pruebas > Listas recorribles\nInicializando lista...\n");
+	printf("Pruebas > Listas recorribles\n");
 
-//	//Escritura
-//	int* elemento = malloc(sizeof(int));
-//	*elemento = 0;
-//	tad_lista_recorrible* lista = lista_recorrible_crear();
-//	printf("Lista inicializada\n");
-//	lista_recorrible_agregar(lista, elemento);
-//	elemento = malloc(sizeof(int));
-//	*elemento = 1;
-//	lista_recorrible_agregar(lista, elemento);
-//	elemento = malloc(sizeof(int));
-//	*elemento = 4;
-//	lista_recorrible_agregar(lista, elemento);
-//	printf("Elementos agregados\n");
-//
-//	//Lectura
-//	elemento = lista_recorrible_elemento_actual(lista);
-//	printf("Primer elemento: %d\n", *elemento);
-//	lista_recorrible_avanzar(lista);
-//	elemento = lista_recorrible_elemento_actual(lista);
-//	printf("Segundo elemento: %d\n", *elemento);
-//	elemento = lista_recorrible_elemento_actual(lista);
-//	printf("Segundo elemento bis: %d\n", *elemento);
-//	lista_recorrible_avanzar(lista);
-//	elemento = lista_recorrible_elemento_actual(lista);
-//	printf("Tercer elemento: %d\n", *elemento);
-//
-//	lista_recorrible_destruir(lista);
+	//Prueba de lista circular
+
+	t_round* round = round_create();
+
+	alloc(elem, int);
+	*elem = 1;
+	round_add(round, elem);
+	ralloc(elem);
+	*elem = 2;
+	round_add(round, elem);
+	ralloc(elem);
+	*elem = 3;
+	round_add(round, elem);
+
+	while(!round_has_ended(round)){
+		elem = round_get(round);
+		printf("%d\n", *elem);
+		round_forward(round);
+	}
+
+	round_restart(round);
+
+	while(!round_has_ended(round)){
+		elem = round_remove(round);
+		dealloc(elem);
+	}
+
+	round_dispose(round);
+
+
+	//Prueba del macro foreach
 
 	t_list* lista = list_create();
 	char* a = "elemento 1!";

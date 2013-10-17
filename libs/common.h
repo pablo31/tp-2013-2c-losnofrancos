@@ -6,6 +6,7 @@
  */
 
 #include <stdint.h>
+#include <stdlib.h>
 
 //method visibility
 #define public
@@ -41,8 +42,8 @@ typedef char string;
  ***************************************/
 
 //object alloc
-#define alloc(name, type) \
-	type* name = malloc(sizeof(type))
+#define alloc(obj, type) \
+	type* obj = malloc(sizeof(type))
 /* ejemplo de uso de alloc *******************************************
  * Sea:					typedef mi_estructura mi_tipo
  * Si hacemos:			alloc(instancia, mi_tipo)
@@ -55,6 +56,8 @@ typedef char string;
  * Si hacemos:			dealloc(obj)
  * Seria lo mismo que:	free(obj)
  ********************************************************************/
+#define ralloc(obj) \
+		obj = malloc(sizeof(typeof(obj)))
 
 //short-def var ref
 #define var(name, obj) \

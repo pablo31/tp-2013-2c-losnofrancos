@@ -6,7 +6,9 @@
  */
 
 #include "../libs/multiplexor/multiplexor.h"
+#include "../libs/socket/socket_utils.h"
 #include "../libs/common.h"
+#include "../libs/protocol/protocol.h"
 
 #include "planificador.h"
 
@@ -42,8 +44,9 @@ tad_planificador* planificador_crear(char* nombre_nivel, tad_socket* socket_nive
 	nivel->nombre = nombre_nivel;
 	nivel->socket = socket_nivel;
 	ret->nivel = nivel;
-	//inicializamos la lista de personajes
-	ret->personajes = list_create();
+	//inicializamos las colas de personajes
+	ret->personajes_listos = queue_create();
+	ret->personajes_bloqueados = queue_create();
 
 	logger_info(get_logger(ret), "Planificador del Nivel %s inicializado", nombre_nivel);
 	return ret;
@@ -59,14 +62,17 @@ void planificador_agregar_personaje(tad_planificador* self, char* nombre, char s
 	personaje->nombre = nombre;
 	personaje->simbolo = simbolo;
 	personaje->socket = socket;
-	//lo agregamos a la lista de personajes del planificador
-	list_add(self->personajes, personaje);
+	//lo agregamos a la lista de personajes listos del planificador
+	queue_push(self->personajes_listos, personaje);
 	//informamos al usuario
 	logger_info(get_logger(self), "El personaje %s entro al nivel", nombre);
+	//nos presentamos
+	socket_send_empty_package(socket, PRESENTACION_PLANIFICADOR);
 }
 
 private void planificador_liberar_personaje(tad_planificador* self, tad_personaje* personaje){
-	socket_close(personaje->socket);
+	var(socket, personaje->socket);
+	socket_close(socket);
 	var(nombre, personaje->nombre);
 	logger_info(get_logger(self), "El personaje %s fue pateado", nombre);
 	free(nombre);
@@ -81,10 +87,11 @@ void planificador_finalizar(tad_planificador* self){
 	logger_info(get_logger(self), "Finalizando");
 
 	//liberamos los recursos de los datos de los personajes
-	void liberar_personaje(void* personaje){
-		planificador_liberar_personaje(self, personaje);
+	void destroyer(void* ptr_personaje){
+		planificador_liberar_personaje(self, ptr_personaje);
 	}
-	list_destroy_and_destroy_elements(self->personajes, liberar_personaje);
+	queue_destroy_and_destroy_elements(self->personajes_listos, destroyer);
+	queue_destroy_and_destroy_elements(self->personajes_bloqueados, destroyer);
 
 	//liberamos los recursos de los datos del nivel
 	//socket_close(self->nivel->socket); //TODO habilitar esto cuando los niveles se conecten
@@ -104,7 +111,16 @@ void planificador_finalizar(tad_planificador* self){
  ***************************************/
 
 void planificador_ejecutar(PACKED_ARGS){
-	//UNPACK_ARG(tad_planificador* self);
+//	UNPACK_ARG(tad_planificador* self);
+//
+//	var(listos, self->personajes_listos);
+//	var(bloqueados, self->personajes_bloqueados);
+//
+//	int quantum = 2; //TODO levantar desde archivo
+//	int i;
 
 	//TODO logica de planificador; multiplexor; comunicacion con nivel y personajes; etc
 }
+
+
+
