@@ -44,13 +44,9 @@ tad_planificador* planificador_crear(char* nombre_nivel, tad_socket* socket_nive
 	nivel->nombre = nombre_nivel;
 	nivel->socket = socket_nivel;
 	ret->nivel = nivel;
-	//inicializamos la lista circular de personajes
-	ret->personajes = queue_create();
-	//inicializamos el multiplexor
-	var(multiplexor, multiplexor_create());
-	ret->multiplexor = multiplexor;
-	//bindeamos el socket del nivel al multiplexor
-//	multiplexor_bind_socket(multiplexor, socket_nivel, manejadora, 1, ret); //TODO habilitar
+	//inicializamos las colas de personajes
+	ret->personajes_listos = queue_create();
+	ret->personajes_bloqueados = queue_create();
 
 	logger_info(get_logger(ret), "Planificador del Nivel %s inicializado", nombre_nivel);
 	return ret;
@@ -66,10 +62,8 @@ void planificador_agregar_personaje(tad_planificador* self, char* nombre, char s
 	personaje->nombre = nombre;
 	personaje->simbolo = simbolo;
 	personaje->socket = socket;
-	//lo agregamos a la lista de personajes del planificador
-	queue_push(self->personajes, personaje);
-	//lo bindeamos al multiplexor
-//	multiplexor_bind_socket(self->multiplexor, socket, manejadora, 2, self, personaje); //TODO habilitar
+	//lo agregamos a la lista de personajes listos del planificador
+	queue_push(self->personajes_listos, personaje);
 	//informamos al usuario
 	logger_info(get_logger(self), "El personaje %s entro al nivel", nombre);
 	//nos presentamos
@@ -78,7 +72,6 @@ void planificador_agregar_personaje(tad_planificador* self, char* nombre, char s
 
 private void planificador_liberar_personaje(tad_planificador* self, tad_personaje* personaje){
 	var(socket, personaje->socket);
-	multiplexor_unbind_socket(self->multiplexor, socket);
 	socket_close(socket);
 	var(nombre, personaje->nombre);
 	logger_info(get_logger(self), "El personaje %s fue pateado", nombre);
@@ -94,14 +87,11 @@ void planificador_finalizar(tad_planificador* self){
 	logger_info(get_logger(self), "Finalizando");
 
 	//liberamos los recursos de los datos de los personajes
-	var(personajes, self->personajes);
 	void destroyer(void* ptr_personaje){
 		planificador_liberar_personaje(self, ptr_personaje);
 	}
-	queue_destroy_and_destroy_elements(personajes, destroyer);
-
-	//liberamos los recursos del multiplexor
-	multiplexor_dispose(self->multiplexor);
+	queue_destroy_and_destroy_elements(self->personajes_listos, destroyer);
+	queue_destroy_and_destroy_elements(self->personajes_bloqueados, destroyer);
 
 	//liberamos los recursos de los datos del nivel
 	//socket_close(self->nivel->socket); //TODO habilitar esto cuando los niveles se conecten
@@ -121,7 +111,13 @@ void planificador_finalizar(tad_planificador* self){
  ***************************************/
 
 void planificador_ejecutar(PACKED_ARGS){
-	UNPACK_ARG(tad_planificador* self);
+//	UNPACK_ARG(tad_planificador* self);
+//
+//	var(listos, self->personajes_listos);
+//	var(bloqueados, self->personajes_bloqueados);
+//
+//	int quantum = 2; //TODO levantar desde archivo
+//	int i;
 
 	//TODO logica de planificador; multiplexor; comunicacion con nivel y personajes; etc
 }

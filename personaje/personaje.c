@@ -74,7 +74,8 @@ private void personaje_destruir(t_personaje* self);
 private void morir(t_personaje* self);
 private void comer_honguito_verde(t_personaje* self);
 
-private void conectarse_al_orquestador(PACKED_ARGS);
+private void inicio_nuevo_hilo(PACKED_ARGS);
+private void conectarse_al_orquestador(t_personaje* self, t_nivel* nivel, tad_logger* logger);
 private void jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, tad_logger* logger);
 
 
@@ -121,7 +122,7 @@ int main(int argc, char* argv[]) {
 	//se inicia un nuevo hilo por cada nivel que tiene jugar
 	for(i = 0; i < cantidad_de_niveles; i++){
 		t_nivel* nivel = list_get(niveles, i);
-		thread[i] = thread_begin(conectarse_al_orquestador, 2, self, nivel);
+		thread[i] = thread_begin(inicio_nuevo_hilo, 2, self, nivel);
 	}
 
 	//esperamos a que todos los hilos terminen de juegar
@@ -140,8 +141,19 @@ int main(int argc, char* argv[]) {
 
 
 
+private void inicio_nuevo_hilo(PACKED_ARGS){
+	UNPACK_ARG(t_personaje* self);
+	UNPACK_ARG(t_nivel* nivel);
 
-private void manejar_error_socket(tad_socket* socket, tad_logger* logger){
+	//obtenemos una instancia del logger para el nivel
+	tad_logger* logger_nivel = logger_new_instance("Thread nivel %s", nivel->nombre);
+
+
+	conectarse_al_orquestador(self, nivel, logger_nivel);
+}
+
+
+private void manejar_error_orquestador(tad_socket* socket, tad_logger* logger){
 	switch(socket_get_error(socket)){
 	case CONNECTION_CLOSED:
 		logger_error(logger, "El orquestador se desconecto inesperadamente");
@@ -154,16 +166,9 @@ private void manejar_error_socket(tad_socket* socket, tad_logger* logger){
 		break;
 	}
 	socket_close(socket);
-	logger_dispose_instance(logger);
 }
 
-private void conectarse_al_orquestador(PACKED_ARGS){
-	UNPACK_ARG(t_personaje* self);
-	UNPACK_ARG(t_nivel* nivel);
-
-	//obtenemos una instancia del logger para el nivel
-	tad_logger* logger_nivel = logger_new_instance("Thread nivel %s", nivel->nombre);
-
+private void conectarse_al_orquestador(t_personaje* self, t_nivel* nivel, tad_logger* logger_nivel){
 	var(ippuerto_orquestador, get_ippuerto_orquestador(self));
 	var(ip, string_get_ip(ippuerto_orquestador));
 	var(puerto, string_get_port(ippuerto_orquestador));
@@ -172,7 +177,7 @@ private void conectarse_al_orquestador(PACKED_ARGS){
 	tad_socket* socket = socket_connect(ip, puerto);
 
 	//establecemos la funcion manejadora de errores y desconexion
-	SOCKET_ON_ERROR(socket, manejar_error_socket(socket, logger_nivel));
+	SOCKET_ON_ERROR(socket, manejar_error_orquestador(socket, logger_nivel));
 
 	//recibimos la presentacion del orquestador
 	socket_receive_expected_empty_package(socket, PRESENTACION_ORQUESTADOR);
@@ -200,9 +205,8 @@ private void conectarse_al_orquestador(PACKED_ARGS){
 	jugar_nivel(self, nivel, socket, logger_nivel);
 }
 
-private void jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, tad_logger* logger){
-	//TODO espera las señales
-	//esperando señales y a trabajar duro
+private void jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, tad_logger* logger_nivel){
+	SOCKET_ON_ERROR(socket, manejar_error_orquestador(socket, logger_nivel));
 }
 
 

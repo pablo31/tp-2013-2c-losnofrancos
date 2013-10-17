@@ -90,14 +90,14 @@ all:
 # Esta opcion nos borra las librerias generadas y los ejecutables. Nos sirve para cuando nos quedo a medio masticar una compilacion
 clean:
 	clear #esto hace que se 'limpie' la terminal
-	@echo "Limpiando archivos output"
-	rm *.o
-	@echo "Limpiando librerias"
-	rm *.a
 	@echo "Limpiando ejecutables"
 	rm *.sh
 	@echo "Limpiando archivos de log"
 	rm *.log
+	@echo "Limpiando archivos output"
+	rm *.o
+	@echo "Limpiando librerias"
+	rm *.a
 	@echo ""
 
 # make install
