@@ -47,6 +47,10 @@ tad_planificador* planificador_crear(char* nombre_nivel, tad_socket* socket_nive
 	//inicializamos las colas de personajes
 	ret->personajes_listos = queue_create();
 	ret->personajes_bloqueados = queue_create();
+	//inicializamos el multiplexor y le bindeamos el socket del nivel
+	var(m, multiplexor_create());
+//	multiplexor_bind_socket(m, socket_nivel, funcion, 2, ret, nivel); //TODO habilitar
+	ret->multiplexor = m;
 
 	logger_info(get_logger(ret), "Planificador del Nivel %s inicializado", nombre_nivel);
 	return ret;
@@ -62,6 +66,8 @@ void planificador_agregar_personaje(tad_planificador* self, char* nombre, char s
 	personaje->nombre = nombre;
 	personaje->simbolo = simbolo;
 	personaje->socket = socket;
+	//asociamos su socket al multiplexor
+//	multiplexor_bind_socket(self->multiplexor, socket, funcion, 2, self, personaje); //TODO habilitar
 	//lo agregamos a la lista de personajes listos del planificador
 	queue_push(self->personajes_listos, personaje);
 	//informamos al usuario
@@ -72,6 +78,7 @@ void planificador_agregar_personaje(tad_planificador* self, char* nombre, char s
 
 private void planificador_liberar_personaje(tad_planificador* self, tad_personaje* personaje){
 	var(socket, personaje->socket);
+	multiplexor_unbind_socket(self->multiplexor, socket);
 	socket_close(socket);
 	var(nombre, personaje->nombre);
 	logger_info(get_logger(self), "El personaje %s fue pateado", nombre);
@@ -94,8 +101,15 @@ void planificador_finalizar(tad_planificador* self){
 	queue_destroy_and_destroy_elements(self->personajes_bloqueados, destroyer);
 
 	//liberamos los recursos de los datos del nivel
-	//socket_close(self->nivel->socket); //TODO habilitar esto cuando los niveles se conecten
-	dealloc(self->nivel);
+	var(m, self->multiplexor);
+	var(nivel, self->nivel);
+	var(socket, nivel->socket);
+	multiplexor_unbind_socket(m, socket);
+	//socket_close(socket); //TODO habilitar esto cuando los niveles se conecten
+	dealloc(nivel);
+
+	//liberamos los recursos del multiplexor
+	multiplexor_dispose(m);
 
 	//liberamos los recursos propios del planificador
 	logger_dispose_instance(self->logger);

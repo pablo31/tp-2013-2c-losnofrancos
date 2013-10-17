@@ -36,6 +36,8 @@ struct s_planificador{
 	t_queue* personajes_listos;
 	t_queue* personajes_bloqueados;
 
+	tad_multiplexor* multiplexor;
+
 	tad_logger* logger;
 };
 typedef struct s_planificador tad_planificador;
