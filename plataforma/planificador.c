@@ -124,9 +124,14 @@ void planificador_finalizar(tad_planificador* self){
  * LOGICA ******************************
  ***************************************/
 
-//private void manejadora_nivel(PACKED_ARGS)
 //private void paquete_entrante_nivel(tad_planificador* self){
+//	var(socket, self->nivel->socket);
+//	SOCKET_ON_ERROR(socket, planificador_finalizar(self)); //TODO hacer una func manejadora de desconexioon de nivel
 //
+//}
+//private void manejadora_nivel(PACKED_ARGS){
+//	UNPACK_ARG(tad_planificador* self);
+//	paquete_entrante_nivel(self);
 //}
 
 
