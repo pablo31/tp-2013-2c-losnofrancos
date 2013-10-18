@@ -18,8 +18,8 @@
  */
 
 //va_args args-count macro
-#define VA_NUM_ARGS(...) VA_NUM_ARGS_IMPL(__VA_ARGS__, 5,4,3,2,1)
-#define VA_NUM_ARGS_IMPL(_1,_2,_3,_4,_5,N,...) N
+#define VA_NUM_ARGS(...) VA_NUM_ARGS_IMPL(0, ## __VA_ARGS__, 5, 4, 3, 2, 1, 0)
+#define VA_NUM_ARGS_IMPL(_0, _1, _2, _3, _4, _5, N, ...) N
 
 //overload
 #define macro_dispatcher(func, ...) \
@@ -28,13 +28,6 @@
             macro_dispatcher__(func, nargs)
 #define macro_dispatcher__(func, nargs) \
             func ## nargs
-
-
-
-////va-args args-count macro (can return 0)
-//#define VA_NUM_ARGS(...)
-//    (sizeof(#__VA_ARGS__) == sizeof("")
-//     ? 0 : VA_NUM_ARGS_IMPL(__VA_ARGS__, 5,4,3,2,1))
 
 
 #endif /* VARIADIC_H_ */
