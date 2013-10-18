@@ -12,7 +12,6 @@
 
 #include "../libs/error/error_management.h"
 #include "../libs/common.h"
-#include "../libs/variadic.h"
 
 
 struct my_struct{

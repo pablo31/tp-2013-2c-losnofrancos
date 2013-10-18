@@ -103,9 +103,9 @@ void planificador_finalizar(tad_planificador* self){
 	//liberamos los recursos de los datos del nivel
 	var(m, self->multiplexor);
 	var(nivel, self->nivel);
-	var(socket, nivel->socket);
-	multiplexor_unbind_socket(m, socket);
-	//socket_close(socket); //TODO habilitar esto cuando los niveles se conecten
+//	var(socket, nivel->socket);
+//	multiplexor_unbind_socket(m, socket);
+//	socket_close(socket); //TODO habilitar esto cuando los niveles se conecten
 	dealloc(nivel);
 
 	//liberamos los recursos del multiplexor

@@ -88,7 +88,7 @@ private void logger_write(tad_logger* logger,
 	free(formatted_text);
 }
 
-#define logger_implement_log_level(level_name) \
+#define logger_implement_log_level_c(level_name) \
 	void logger_##level_name##_val(tad_logger* logger, const char* text, va_list inargs){ \
 		logger_write(logger, text, inargs, log_##level_name); } \
 	void logger_##level_name(tad_logger* logger, const char* text, ...){ \
@@ -96,8 +96,8 @@ private void logger_write(tad_logger* logger,
 		va_start(inargs, text); \
 		logger_##level_name##_val(logger, text, inargs); } \
 
-logger_implement_log_level(trace);
-logger_implement_log_level(info);
-logger_implement_log_level(debug);
-logger_implement_log_level(warning);
-logger_implement_log_level(error);
+logger_implement_log_level_c(trace);
+logger_implement_log_level_c(info);
+logger_implement_log_level_c(debug);
+logger_implement_log_level_c(warning);
+logger_implement_log_level_c(error);
