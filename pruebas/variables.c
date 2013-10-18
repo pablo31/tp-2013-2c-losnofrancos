@@ -12,6 +12,16 @@
 
 #include "../libs/error/error_management.h"
 #include "../libs/common.h"
+#include "../libs/variadic.h"
+
+
+
+
+#define print1(a) printf(a)
+#define print2(a, b) printf(a); printf(b)
+#define print3(a, b, c) printf(a); printf(b); printf(c)
+
+#define variadic_print(...) macro_dispatcher(print, __VA_ARGS__) (__VA_ARGS__)
 
 
 struct my_struct{

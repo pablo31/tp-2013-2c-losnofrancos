@@ -124,6 +124,25 @@ void planificador_finalizar(tad_planificador* self){
  * LOGICA ******************************
  ***************************************/
 
+//private void manejadora_nivel(PACKED_ARGS)
+//private void paquete_entrante_nivel(tad_planificador* self){
+//
+//}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void planificador_ejecutar(PACKED_ARGS){
 //	UNPACK_ARG(tad_planificador* self);
 //
