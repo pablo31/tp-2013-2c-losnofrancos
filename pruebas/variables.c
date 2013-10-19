@@ -21,14 +21,38 @@ struct my_struct{
 typedef struct my_struct my_class;
 
 
+/***************************************************************
+ * Ejemplo de funcion con sobrecarga en cantidad de parametros
+ ***************************************************************/
+#include "../libs/variadic.h"
+#define min(...) overloaded(min, __VA_ARGS__)
+
+int min1(int a){
+	return a;
+}
+int min2(int a, int b){
+	return a>b?b:a;
+}
+int min3(int a, int b, int c){
+	return min(a, min(b,c));
+}
+
+
+/***************************************************************
+ * Ejemplo de funcion con parametros out
+ ***************************************************************/
 void foo(int as_out i){
 	set i = 2;
 }
 
+
+/***************************************************************
+ * Bloque Main
+ ***************************************************************/
 int main(void){
 	printf("\n > Prueba de programacion a alto nivel\n");
 	printf(" > \tMuestra como trabajar a mas alto nivel con los macros incluidos en libs.\n");
-	printf(" > \tEntre ellos: instanciacion de clases, variables sin tipar, funciones con valores out, y bloque try-catch.\n");
+	printf(" > \tEntre ellos: instanciacion de clases, variables sin tipar, funciones con valores out, sobrecarga, y bloque try-catch.\n");
 
 	//alojamos una instancia de my_class
 	alloc(my_obj, my_class);
@@ -48,8 +72,13 @@ int main(void){
 	int i;
 	foo(out i);
 
+	//llamamos a una funcion con sobrecarga
+	int valor1 = min(5);
+	int valor2 = min(10, 15);
+	int valor3 = min(20, 25, 30);
+
 	//imprimimos resultados en pantalla
-	printf("%s\n%s\n%s\n%d\n", reference->a, reference->b, hola, i);
+	printf("%s\n%s\n%s\n%d\n%d\n%d\n%d\n", reference->a, reference->b, hola, i, valor1, valor2, valor3);
 
 	//liberamos los recursos de my_obj
 	dealloc(my_obj);

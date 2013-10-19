@@ -14,23 +14,31 @@
 //Cualquier cambio en este enum afecta directamente a todos los procesos, ya que todos comparten este .h
 
 enum DATA_TYPE_PROTOCOL {
+	//handshake
 	PRESENTACION_PERSONAJE = 1,
 	PRESENTACION_ORQUESTADOR = 2,
 	PRESENTACION_PLANIFICADOR = 3,
 	PRESENTACION_NIVEL = 4,
 
-	PERSONAJE_OBJETIVOS_COMPLETOS = 10,
-	PERSONAJE_OBJETIVOS_INCOMPLETOS = 11,
-
-	NIVEL_NUMERO = 50,
-
+	//personaje - orquestador
 	PERSONAJE_OBJETIVOS_COMPLETADOS = 100,
 	PERSONAJE_SOLICITUD_NIVEL = 101,
+	PERSONAJE_NOMBRE = 102,
+	PERSONAJE_SIMBOLO = 103,
 
-	PERSONAJE_NOMBRE = 102, //TODO estos datos van en el paquete PERSONAJE_SOLICITUD_NIVEL
-	PERSONAJE_SIMBOLO = 103, //TODO estos datos van en el paquete PERSONAJE_SOLICITUD_NIVEL
+	//personaje - planificador
+	PERSONAJE_MOVIMIENTO = 104,
+	PERSONAJE_SOLICITUD_RECURSO = 105,
 
-	PLANIFICADOR_OTORGA_QUANTUM = 200
+	//nivel - planificador
+	NIVEL_NUMERO = 150,
+
+	//planificador - personaje
+	PLANIFICADOR_OTORGA_QUANTUM = 200,
+
+	//mensajes compartidos entre planificador, nivel, y personaje
+	OTORGAR_RECURSO = 220,
+	MOVIMIENTO_CONFIRMADO = 221
 };
 
 #endif /* PAQUETE_TIPO_DATO_H_ */

@@ -45,7 +45,7 @@ void command_dispose(tad_command* command);
 #define UNPACK_ARG(__arg) \
 	__arg = get_next_argument(__r_md_argsptr)
 #define UNPACK_ARGS(...) \
-	macro_dispatcher(UNPACK_ARGS, __VA_ARGS__) (__VA_ARGS__)
+	concat_numargs(UNPACK_ARGS, __VA_ARGS__) (__VA_ARGS__)
 
 
 

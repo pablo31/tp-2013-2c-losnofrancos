@@ -124,15 +124,23 @@ void planificador_finalizar(tad_planificador* self){
  * LOGICA ******************************
  ***************************************/
 
-//private void paquete_entrante_nivel(tad_planificador* self){
-//	var(socket, self->nivel->socket);
-//	SOCKET_ON_ERROR(socket, planificador_finalizar(self)); //TODO hacer una func manejadora de desconexioon de nivel
-//
-//}
-//private void manejadora_nivel(PACKED_ARGS){
-//	UNPACK_ARG(tad_planificador* self);
-//	paquete_entrante_nivel(self);
-//}
+private void paquete_entrante_nivel(tad_planificador* self){
+	var(socket, self->nivel->socket);
+	SOCKET_ON_ERROR(socket, planificador_finalizar(self)); //TODO hacer una func manejadora de desconexioon de nivel
+
+	tad_package* paquete = socket_receive_one_of_this_packages(socket, 1, OTORGAR_RECURSO); //TODO
+	var(tipo, package_get_data_type(paquete));
+
+	switch(tipo){
+	case OTORGAR_RECURSO:
+		//TODO
+		break;
+	}
+}
+private void manejadora_nivel(PACKED_ARGS){
+	UNPACK_ARG(tad_planificador* self);
+	paquete_entrante_nivel(self);
+}
 
 
 
