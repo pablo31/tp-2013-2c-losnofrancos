@@ -24,16 +24,16 @@ typedef struct my_struct my_class;
 /***************************************************************
  * Ejemplo de funcion con sobrecarga en cantidad de parametros
  ***************************************************************/
-#include "../libs/variadic.h"
+#include "../libs/overload.h"
 #define min(...) overloaded(min, __VA_ARGS__)
 
-int min1(int a){
+int min(int a){
 	return a;
 }
-int min2(int a, int b){
+int min(int a, int b){
 	return a>b?b:a;
 }
-int min3(int a, int b, int c){
+int min(int a, int b, int c){
 	return min(a, min(b,c));
 }
 
