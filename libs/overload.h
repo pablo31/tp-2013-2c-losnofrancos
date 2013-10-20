@@ -25,7 +25,7 @@
 
 //concatena el nombre de una funcion con su cantidad de argumentos
 #define concat_numargs(func, ...) \
-		concat_redirect(func, VA_NUM_ARGS(__VA_ARGS__))
+		concat_indirection(func, VA_NUM_ARGS(__VA_ARGS__))
 //concatena el nombre de una funcion con un 0 o 1 dependiendo de si recibe argumentos o no
 #define concat_hasargs(func, ...) \
 		concat_indirection(func, VA_HAS_ARGS(__VA_ARGS__))
