@@ -25,7 +25,7 @@ typedef struct my_struct my_class;
  * Ejemplo de funcion con sobrecarga en cantidad de parametros
  ***************************************************************/
 #include "../libs/overload.h"
-#define min(...) overloaded(min, __VA_ARGS__)
+#define min(args...) overload(min, args)
 
 int min(int a){
 	return a;

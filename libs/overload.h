@@ -22,17 +22,14 @@
 //devuelve 0 o 1 dependiendo si un __VA_ARGS__ es vacio o no, respectivamente
 #define VA_HAS_ARGS(...) VA_NUM_ARGS_IMPL(0, ## __VA_ARGS__, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
 
-
 //concatena el nombre de una funcion con su cantidad de argumentos
-#define concat_numargs(func, ...) \
-		concat_indirection(func, VA_NUM_ARGS(__VA_ARGS__))
+#define concat_numargs(func, ...) concat_indirection(func, VA_NUM_ARGS(__VA_ARGS__))
 //concatena el nombre de una funcion con un 0 o 1 dependiendo de si recibe argumentos o no
-#define concat_hasargs(func, ...) \
-		concat_indirection(func, VA_HAS_ARGS(__VA_ARGS__))
-
-#define overloaded(func, ...) concat_numargs(func, __VA_ARGS__) (__VA_ARGS__)
+#define concat_hasargs(func, ...) concat_indirection(func, VA_HAS_ARGS(__VA_ARGS__))
 
 
+//permite implementar funciones con overload
+#define overload(func, args...) concat_numargs(func, args) (args)
 /*
  * Como crear una funcion con sobrecarga:
  * Por ejemplo, queremos crear la funcion max que puede recibir 1, 2 o 3 parametros.
@@ -40,9 +37,10 @@
  * int max(int a) { return a; }
  * int max(int a, int b) { return a>b?a:b;}
  * int max(int a, int b, int c) { return max(a, max(b,c)); }
- * Y luego debemos definir el macro
- * #define max(...) overloaded(max, __VA_ARGS__)
- * Finalmente, podemos invocar a cualquiera de las tres llamandolas simplemente max
+ * Y luego debemos definir el siguiente macro
+ * #define max(args...) overload(max, args)
+ * Nota: solo debemos cambiar "max" por el nombre de nuestra funcion.
+ * Finalmente, podemos invocar a max con sobrecarga
  * max(a); max(a, b); max(a, b, c);
  */
 
