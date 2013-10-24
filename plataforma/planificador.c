@@ -11,6 +11,7 @@
 #include "../libs/common.h"
 #include "../libs/overload.h"
 #include "../libs/protocol/protocol.h"
+#include "../libs/vector/vector2.h"
 
 #include "planificador.h"
 
@@ -188,6 +189,7 @@ private void otorgar_quantums(tad_planificador* self, int quantums){
 	var(personaje, siguiente_personaje(self));
 	if(!personaje) return;
 
+	var(simbolo, personaje->simbolo);
 	var(socket, personaje->socket);
 	var(socket_nivel, self->nivel->socket);
 
@@ -204,11 +206,24 @@ private void otorgar_quantums(tad_planificador* self, int quantums){
 		var(tipo, package_get_data_type(paquete));
 
 		if(tipo == SOLICITUD_UBICACION_RECURSO){
-			//TODO
+			//reenviamos la solicitud al nivel
+			socket_send_package(socket_nivel, paquete);
+			//esperamos su respuesta
+			tad_package* respuesta = socket_receive_expected_package(socket_nivel, UBICACION_RECURSO);
+			//se la reenviamos al personaje
+			socket_send_package(socket, respuesta);
+			package_dispose(respuesta);
 		}else if(tipo == PERSONAJE_MOVIMIENTO){
-			//TODO
+			vector2 direccion = package_get_vector2(paquete);
+			tad_package* reenvio = package_create_char_and_vector2(PERSONAJE_MOVIMIENTO, simbolo, direccion);
+			socket_send_package(socket_nivel, reenvio);
+			package_dispose(reenvio);
 		}else if(tipo == PERSONAJE_SOLICITUD_RECURSO){
-			//TODO
+			char recurso = package_get_char(paquete);
+			tad_package* reenvio = package_create_two_chars(PERSONAJE_SOLICITUD_RECURSO, simbolo, recurso);
+			socket_send_package(socket_nivel, reenvio);
+			package_dispose(reenvio);
+			//TODO esperar respuesta
 		}
 
 		package_dispose(paquete);

@@ -223,3 +223,7 @@ vector2 socket_receive_expected_vector2(tad_socket* socket, byte data_type){
 	free(data);
 	return ret;
 }
+
+vector2 package_get_vector2(tad_package* package){
+	return vector2_deserialize(package_get_data(package));
+}

@@ -58,6 +58,7 @@
 
 	void socket_send_vector2(tad_socket* socket, byte data_type, vector2 v);
 	vector2 socket_receive_expected_vector2(tad_socket* socket, byte data_type);
+	vector2 package_get_vector2(tad_package* package);
 
 
 	/****************************************
