@@ -18,6 +18,10 @@
 #include "../common/collections/list.h"
 #include "../command/command.h"
 
+//Overload
+#include "../overload.h"
+#define multiplexor_wait_for_io(args...) overload(multiplexor_wait_for_io, args)
+
 
 struct s_multiplexor{
 	fd_set master_set; //fds texture
@@ -39,6 +43,8 @@ void multiplexor_unbind_socket(tad_multiplexor* m, tad_socket* socket);
 
 //Espera paquetes entrantes en los sockets asociados al multiplexor
 void multiplexor_wait_for_io(tad_multiplexor* m);
+//Espera paquetes entrantes en los sockets asociados al multiplexor por un tiempo maximo
+void multiplexor_wait_for_io(tad_multiplexor* m, int seconds);
 
 //Libera los recursos del multiplexor
 void multiplexor_dispose(tad_multiplexor* m);

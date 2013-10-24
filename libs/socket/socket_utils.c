@@ -185,6 +185,12 @@ char socket_receive_expected_char(tad_socket* socket, byte data_type){
 	return ret;
 }
 
+char package_get_char(tad_package* package){
+	char* ptr = package_get_data(package);
+	char ret = *ptr;
+	return ret;
+}
+
 //int
 
 void socket_send_int(tad_socket* socket, byte data_type, int value){

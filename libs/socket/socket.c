@@ -290,7 +290,7 @@ private void socket_send_data(tad_socket* socket, int data_length, void* data){
 		free(data);
 		socket_set_error(socket, SEND_ERROR);
 	}
-	else if(error == 0){
+	else if(error == 0){ //TODO send nunca devuelve 0
 		free(data);
 		socket_connection_closed(socket);
 	}

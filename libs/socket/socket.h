@@ -123,22 +123,25 @@ enum SOCKET_ERR {
 	void socket_release_process_status(tad_socket* socket); //try not to use this
 
 	//Error management block definition (see ../error/error_management.h)
-	#define FOR_SOCKET(__r_md_socket) \
-		socket_bind_process_status(__r_md_socket, &__r_md_ps)
+	#define SOCKET_ERROR_MANAGER(socket) \
+		process_status __r_md_ps ## socket; \
+		int __r_md_psr ## socket = save_process_status(__r_md_ps ## socket); \
+		socket_bind_process_status(socket, &__r_md_ps ## socket); \
+		if(__r_md_psr ## socket)
 
 	//Error handler definition
 	#define SOCKET_ON_ERROR(socket, call) \
-		DECLARE_ERROR_MANAGER{ \
+		SOCKET_ERROR_MANAGER(socket){ \
 			call; \
 			return; \
-		}FOR_SOCKET(socket)
+		}
 
 	//Error handler (with ret value) definition
 	#define SOCKET_ON_ERROR_WRET(socket, call, ret) \
-		DECLARE_ERROR_MANAGER{ \
+		SOCKET_ERROR_MANAGER(socket){ \
 			call; \
 			return ret; \
-		}FOR_SOCKET(socket)
+		}
 
 
 #endif /* SOCKET_H_ */

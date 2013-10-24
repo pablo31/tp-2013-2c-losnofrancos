@@ -38,12 +38,11 @@ int main(void){
 	tad_socket* socket = socket_connect("127.0.0.1", "7666");
 	printf("Conectado\n");
 
-	DECLARE_ERROR_MANAGER{
+	SOCKET_ERROR_MANAGER(socket){
 		printf("Se cerro la conexion de manera inesperada.\n");
 		socket_close(socket);
 		return EXIT_FAILURE;
-	}FOR_SOCKET(socket);
-
+	}
 
 	char input[255];
 

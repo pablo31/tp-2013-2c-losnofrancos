@@ -33,8 +33,8 @@ typedef struct s_nivel tad_nivel;
 struct s_planificador{
 	tad_nivel* nivel;
 
-	t_queue* personajes_listos;
-	t_queue* personajes_bloqueados;
+	t_list* personajes_listos;
+	t_list* personajes_bloqueados;
 
 	tad_multiplexor* multiplexor;
 

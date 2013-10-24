@@ -44,6 +44,8 @@
 	void socket_send_char(tad_socket* socket, byte data_type, char value);
 	//Recibe un paquete que contiene un char, siempre que sea del tipo especificado
 	char socket_receive_expected_char(tad_socket* socket, byte data_type);
+	//Devuelve el char que conforma los datos de un paquete
+	char package_get_char(tad_package* package);
 
 	//Envia un paquete que contiene un entero
 	void socket_send_int(tad_socket* socket, byte data_type, int value);

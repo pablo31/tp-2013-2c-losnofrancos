@@ -65,13 +65,14 @@ private void paquete_entrante(PACKED_ARGS){
 	UNPACK_ARG(tad_multiplexor* multiplexor);
 	UNPACK_ARG(tad_socket* socket);
 
-	DECLARE_ERROR_MANAGER{
+	//Definimos un manejador de errores
+	SOCKET_ERROR_MANAGER(socket){
 		//En caso de desconexion...
 		printf("Cliente desconectado.\n");
 		multiplexor_unbind_socket(multiplexor, socket);
 		socket_close(socket);
 		return;
-	}FOR_SOCKET(socket);
+	}
 
 	//Recibimos el paquete que estaba en espera
 	tad_package* paquete = socket_receive_package(socket);

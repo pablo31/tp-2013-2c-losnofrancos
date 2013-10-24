@@ -103,8 +103,8 @@ void multiplexor_unbind_socket(tad_multiplexor* m, tad_socket* socket){
 	if(socket_id == m->max_fd) multiplexor_refresh_max_fd(m);
 }
 
-//Escucha por paquetes entrantes en los sockets asociados, bloqueando la ejecucion
-void multiplexor_wait_for_io(tad_multiplexor* m){
+//Ejecuta el select, dado el parametro de tiempo maximo
+private void multiplexor_execute_select(tad_multiplexor* m, struct timeval* tv){
 	t_list* phone_book = m->phone_book;
 	int opbs = list_size(phone_book); //original phone book size
 
@@ -120,7 +120,7 @@ void multiplexor_wait_for_io(tad_multiplexor* m){
 	fd_set read_set = *master_set;
 
 	//ejecutamos el nucleo del multiplexor
-	select(max_fd, &read_set, null, null, null); //bloqueante
+	select(max_fd, &read_set, null, null, tv); //bloqueante
 
 	//iteramos sobre el array buscando los sockets que recibieron mensajes
 	for(i = 0; i < opbs; i++){
@@ -130,6 +130,19 @@ void multiplexor_wait_for_io(tad_multiplexor* m){
 		if(FD_ISSET(socket_id, &read_set))
 			command_execute(p.command);
 	}
+}
+
+//Escucha por paquetes entrantes en los sockets asociados, bloqueando la ejecucion
+void multiplexor_wait_for_io(tad_multiplexor* m){
+	multiplexor_execute_select(m, null);
+}
+
+//Escucha por paquetes entrantes en los sockets asociados, bloqueando la ejecucion, hasta un tiempo limite
+void multiplexor_wait_for_io(tad_multiplexor* m, int seconds){
+	struct timeval tv;
+	tv.tv_sec = seconds;
+	tv.tv_usec = 0;
+	multiplexor_execute_select(m, &tv);
 }
 
 //Libera los recursos del multiplexor
