@@ -155,16 +155,15 @@ void nivel_gui_crear_caja(ITEM_NIVEL** ListaItems, char id, int x , int y, int c
         nivel_gui_crear_item(ListaItems, id, x, y, RECURSO_ITEM_TYPE, cant);
 }
 
-void nivel_gui_crear_enemigo(ITEM_NIVEL** ListaItems, enemigo* enemigo) {
-		/*
-		int* filas = null;
-		int* columnas = null;
 
-		nivel_gui_get_term_size(filas,columnas);
-		srand (time(NULL));
-		enemigo->pos_x = 1 + (rand() % *filas);
-		enemigo->pos_y = 1 + (rand() % *columnas);
-		*/
+void nivel_gui_crear_enemigo(ITEM_NIVEL** ListaItems, enemigo* enemigo,int seed) {		
+		//la seed o semilla es un numero para generar valores aleatorios. 
+		//Se lo paso por argumento asi lo modifico en el for anterior, sino me da siempre numeros iguales
+		// le sumo 1 al resultado porque no puede ser 0/0 la posicion.
+		srand (seed);
+		enemigo->pos_x = 1 + (rand() % rows);
+		enemigo->pos_y = 1 + (rand() % cols);
+		
         nivel_gui_crear_item(ListaItems, enemigo->simbolo, enemigo->pos_x, enemigo->pos_y, ENEMIGO_ITEM_TYPE, 1);
 }
 
@@ -220,13 +219,13 @@ void nivel_restar_recurso(ITEM_NIVEL* ListaItems, char id) {
 void cargar_recursos_nivel(nivel* nivel){	
 	ITEM_NIVEL* ListaItems = NULL;
 
-	int rows, cols;
+	
 	//int q, p;
 
 	//int x = 1;
 	//int y = 1;
 
-    nivel_gui_get_area_nivel(&rows, &cols);
+    //nivel_gui_get_area_nivel(&rows, &cols);
 
 	//q = rows;
 	//p = cols;
@@ -241,11 +240,12 @@ void cargar_recursos_nivel(nivel* nivel){
 	}
 
 	int cantidad_enemigos = list_size(nivel->enemigos);
-
+	int seed = time(NULL);
 	for (i=0; i < cantidad_enemigos; i++){
 		enemigo* enemigo = list_get(nivel->enemigos,i);
 
-		nivel_gui_crear_enemigo(&ListaItems, enemigo);
+		nivel_gui_crear_enemigo(&ListaItems, enemigo, seed);
+		seed++;
 	}
 
 	
