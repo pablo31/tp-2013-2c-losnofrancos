@@ -51,14 +51,14 @@ int main(int argc, char **argv){
 	logger_info(logger, "Conectado con Plataforma");
 
 	//Declaramos un bloque de manejo de errores por si el socket pierde la conexion
-	DECLARE_ERROR_MANAGER{
+	SOCKET_ERROR_MANAGER(socket){
 		//TODO switch que muestre un mensaje distinto dependiendo del error que se produjo
 		logger_error(logger, "Se cierra la conexion con Plataforma de manera inesperada");
 		socket_close(socket);
 		nivel_gui_terminar();
 		destruir_nivel(nvl);
 		return EXIT_FAILURE;
-	}FOR_SOCKET(socket);
+	}
 
 	//Esperamos la presentacion del orquestador
 	socket_receive_expected_empty_package(socket, PRESENTACION_ORQUESTADOR);

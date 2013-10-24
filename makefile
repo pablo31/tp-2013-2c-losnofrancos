@@ -22,8 +22,8 @@ all:
 	ar rcs liblog.a logger.o string.o log.o error.o temporal.o  txt.o process.o
 
 	@echo "   >>> COMPILANDO LIBRERIA SOCKET"
-	gcc -Wall -g -ggdb -c libs/socket/socket.c libs/socket/socket_utils.c
-	ar rcs libsck.a socket.o socket_utils.o logger.o string.o log.o error.o temporal.o  txt.o process.o
+	gcc -Wall -g -ggdb -c libs/socket/socket.c libs/socket/socket_utils.c libs/socket/package_serializers.c
+	ar rcs libsck.a socket.o socket_utils.o package_serializers.o logger.o string.o log.o error.o temporal.o  txt.o process.o
 
 	@echo "   >>> COMPILANDO LIBRERIA THREAD Y MUTEX"
 	gcc -Wall -g -ggdb -c libs/thread/thread.c libs/thread/mutex.c libs/command/command.c libs/command/arguments.c -lpthread
