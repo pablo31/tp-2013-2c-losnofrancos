@@ -209,3 +209,17 @@ int package_get_int(tad_package* package){
 	int ret = *ptr;
 	return ret;
 }
+
+//vector2
+void socket_send_vector2(tad_socket* socket, byte data_type, vector2 v){
+	void* data = vector2_serialize(v);
+	int data_length = sizeof(vector2);
+	socket_send(socket, data_type, data_length, data);
+}
+
+vector2 socket_receive_expected_vector2(tad_socket* socket, byte data_type){
+	void* data = (void*)socket_receive_expected_data(socket, data_type);
+	vector2 ret = vector2_deserialize(data);
+	free(data);
+	return ret;
+}

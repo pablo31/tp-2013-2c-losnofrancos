@@ -20,7 +20,9 @@ typedef struct s_vector2 vector2;
 vector2 vector2_new(int x, int y);
 int vector2_get_x(vector2 v);
 int vector2_get_y(vector2 v);
+int vector2_equals(vector2 a, vector2 b);
 vector2 vector2_add(vector2 a, vector2 b);
+vector2 vector2_subtract(vector2 a, vector2 b);
 
 vector2 vector2_direction_to(vector2 self, vector2 target);
 

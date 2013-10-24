@@ -8,6 +8,8 @@
 #ifndef SOCKET_UTILS_H_
 #define SOCKET_UTILS_H_
 
+#include "../vector/vector2.h"
+
 #include "socket.h"
 
 	/****************************************
@@ -53,6 +55,9 @@
 	int socket_receive_expected_int(tad_socket* socket, byte data_type);
 	//Devuelve el entero que conforma los datos de un paquete
 	int package_get_int(tad_package* package);
+
+	void socket_send_vector2(tad_socket* socket, byte data_type, vector2 v);
+	vector2 socket_receive_expected_vector2(tad_socket* socket, byte data_type);
 
 
 	/****************************************

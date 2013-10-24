@@ -14,8 +14,8 @@ all:
 	@echo ""
 
 	@echo "   >>> COMPILANDO LIBRERIA COMMON"
-	gcc -Wall -g -ggdb -c libs/common/*.c libs/common/collections/*.c
-	ar rcs libcommon.a bitarray.o  config.o  dictionary.o  error.o  list.o  log.o  process.o  queue.o  string.o  temporal.o  txt.o
+	gcc -Wall -g -ggdb -c libs/common/*.c libs/common/collections/*.c libs/vector/vector2.c
+	ar rcs libcommon.a bitarray.o  config.o  dictionary.o  error.o  list.o  log.o  process.o  queue.o  string.o  temporal.o  txt.o vector2.o
 
 	@echo "   >>> COMPILANDO LIBRERIA LOG"
 	gcc -Wall -g -ggdb -c libs/logger/logger.c
@@ -23,7 +23,7 @@ all:
 
 	@echo "   >>> COMPILANDO LIBRERIA SOCKET"
 	gcc -Wall -g -ggdb -c libs/socket/socket.c libs/socket/socket_utils.c libs/socket/package_serializers.c
-	ar rcs libsck.a socket.o socket_utils.o package_serializers.o logger.o string.o log.o error.o temporal.o  txt.o process.o
+	ar rcs libsck.a socket.o socket_utils.o package_serializers.o logger.o string.o log.o error.o temporal.o  txt.o process.o vector2.o
 
 	@echo "   >>> COMPILANDO LIBRERIA THREAD Y MUTEX"
 	gcc -Wall -g -ggdb -c libs/thread/thread.c libs/thread/mutex.c libs/command/command.c libs/command/arguments.c -lpthread
@@ -40,10 +40,6 @@ all:
 	@echo "   >>> COMPILANDO LIBRERIA COLLECTION"
 	gcc -Wall -g -ggdb -c libs/collection/round.c
 	ar rcs libctn.a round.o list.o
-
-	@echo "   >>> COMPILANDO LIBRERIA VECTOR"
-	gcc -Wall -g -ggdb -c libs/vector/vector2.c
-	ar rcs libvtr.a vector2.o
 
 	@echo ""
 	@echo "# PRUEBAS"
