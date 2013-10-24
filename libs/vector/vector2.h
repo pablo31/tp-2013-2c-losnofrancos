@@ -22,6 +22,8 @@ int vector2_get_x(vector2 v);
 int vector2_get_y(vector2 v);
 vector2 vector2_add(vector2 a, vector2 b);
 
+vector2 vector2_direction_to(vector2 self, vector2 target);
+
 void* vector2_serialize(vector2 v);
 vector2 vector2_deserialize(void* src);
 

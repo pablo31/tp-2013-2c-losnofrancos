@@ -41,6 +41,10 @@ all:
 	gcc -Wall -g -ggdb -c libs/collection/round.c
 	ar rcs libctn.a round.o list.o
 
+	@echo "   >>> COMPILANDO LIBRERIA VECTOR"
+	gcc -Wall -g -ggdb -c libs/vector/vector2.c
+	ar rcs libvtr.a vector2.o
+
 	@echo ""
 	@echo "# PRUEBAS"
 	@echo ""
