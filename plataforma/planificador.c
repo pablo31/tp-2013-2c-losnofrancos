@@ -29,8 +29,9 @@
  ***************************************/
 private void paquete_entrante_nivel(PACKED_ARGS);
 private void otorgar_quantums(tad_planificador* self, int quantums);
+private void bloquear_personaje(tad_planificador* self, tad_personaje* personaje);
 private tad_personaje* siguiente_personaje(tad_planificador* self);
-private tad_personaje* buscar_personaje_bloqueado(tad_planificador* self, char simbolo);
+//private tad_personaje* buscar_personaje_bloqueado(tad_planificador* self, char simbolo);
 //private void paquete_entrante_nivel(tad_planificador* self, tad_socket* socket_nivel);
 //private void paquete_entrante_personaje(PACKED_ARGS);
 //private void paquete_entrante_personaje(tad_planificador* self, tad_personaje* personaje);
@@ -203,9 +204,10 @@ private void otorgar_quantums(tad_planificador* self, int quantums){
 				SOLICITUD_UBICACION_RECURSO,
 				PERSONAJE_MOVIMIENTO,
 				PERSONAJE_SOLICITUD_RECURSO);
-		var(tipo, package_get_data_type(paquete));
+		var(tipo_mensaje, package_get_data_type(paquete));
 
-		if(tipo == SOLICITUD_UBICACION_RECURSO){
+		//el personaje solicita la posicion de un recurso
+		if(tipo_mensaje == SOLICITUD_UBICACION_RECURSO){
 			//reenviamos la solicitud al nivel
 			socket_send_package(socket_nivel, paquete);
 			//esperamos su respuesta
@@ -213,23 +215,48 @@ private void otorgar_quantums(tad_planificador* self, int quantums){
 			//se la reenviamos al personaje
 			socket_send_package(socket, respuesta);
 			package_dispose(respuesta);
-		}else if(tipo == PERSONAJE_MOVIMIENTO){
+
+		//el personaje avisa que va a realizar un movimiento
+		}else if(tipo_mensaje == PERSONAJE_MOVIMIENTO){
 			vector2 direccion = package_get_vector2(paquete);
 			tad_package* reenvio = package_create_char_and_vector2(PERSONAJE_MOVIMIENTO, simbolo, direccion);
 			socket_send_package(socket_nivel, reenvio);
 			package_dispose(reenvio);
-		}else if(tipo == PERSONAJE_SOLICITUD_RECURSO){
+
+		//el personaje solicita una instancia de un recurso
+		}else if(tipo_mensaje == PERSONAJE_SOLICITUD_RECURSO){
 			char recurso = package_get_char(paquete);
+
 			tad_package* reenvio = package_create_two_chars(PERSONAJE_SOLICITUD_RECURSO, simbolo, recurso);
 			socket_send_package(socket_nivel, reenvio);
 			package_dispose(reenvio);
-			//TODO esperar respuesta
+
+			tad_package* respuesta = socket_receive_one_of_this_packages(socket_nivel, 2, RECURSO_OTORGADO, RECURSO_NO_DISPONIBLE);
+			var(tipo_respuesta, package_get_data_type(respuesta));
+			if(tipo_respuesta == RECURSO_OTORGADO){
+				//le decimos que el recurso le fue otorgado
+				socket_send_package(socket, respuesta);
+				package_dispose(respuesta);
+			}else if(tipo_respuesta == RECURSO_NO_DISPONIBLE){
+				//lo dejamos colgado esperando el recurso
+				bloquear_personaje(self, personaje);
+				package_dispose(respuesta);
+				return;
+			}
 		}
 
 		package_dispose(paquete);
 	}
 }
 
+private void bloquear_personaje(tad_planificador* self, tad_personaje* personaje){
+	bool personaje_buscado(void* ptr_pj){
+		return ptr_pj == personaje;
+	}
+	list_remove_by_condition(self->personajes_listos, personaje_buscado);
+
+	list_add(self->personajes_bloqueados, personaje);
+}
 
 private tad_personaje* siguiente_personaje(tad_planificador* self){
 	var(personajes, self->personajes_listos);
@@ -240,32 +267,32 @@ private tad_personaje* siguiente_personaje(tad_planificador* self){
 	//TODO algoritmo intercambiable, etc
 }
 
-private tad_personaje* buscar_personaje_bloqueado(tad_planificador* self, char simbolo){
-	foreach(personaje, self->personajes_bloqueados, tad_personaje*)
-		if(personaje->simbolo == simbolo)
-			return personaje;
-	return null;
-}
+//private tad_personaje* buscar_personaje_bloqueado(tad_planificador* self, char simbolo){
+//	foreach(personaje, self->personajes_bloqueados, tad_personaje*)
+//		if(personaje->simbolo == simbolo)
+//			return personaje;
+//	return null;
+//}
 
 private void paquete_entrante_nivel(PACKED_ARGS){
-	UNPACK_ARG(tad_planificador* self);
-	var(socket_nivel, self->nivel->socket);
-
-	SOCKET_ON_ERROR(socket_nivel, error_socket_nivel(self));
-
-	tad_package* paquete = socket_receive_one_of_this_packages(socket_nivel, 1, OTORGAR_RECURSO); //TODO
-	var(tipo, package_get_data_type(paquete));
-
-	if(tipo == OTORGAR_RECURSO){
-		char simbolo; char recurso;
-		package_get_two_chars(paquete, out simbolo, out recurso);
-		var(personaje, buscar_personaje_bloqueado(self, simbolo));
-		logger_info(get_logger(self), "Se le otorgara un recurso %c al personaje %s", recurso, personaje->nombre);
-		socket_send_char(personaje->socket, OTORGAR_RECURSO, recurso);
-		//TODO ver que pasa si buscar_personaje_bloqueado devuelve null
-	}
-
-	package_dispose(paquete);
+//	UNPACK_ARG(tad_planificador* self);
+//	var(socket_nivel, self->nivel->socket);
+//
+//	SOCKET_ON_ERROR(socket_nivel, error_socket_nivel(self));
+//
+//	tad_package* paquete = socket_receive_one_of_this_packages(socket_nivel, 1, OTORGAR_RECURSO); //TODO
+//	var(tipo, package_get_data_type(paquete));
+//
+//	if(tipo == OTORGAR_RECURSO){
+//		char simbolo; char recurso;
+//		package_get_two_chars(paquete, out simbolo, out recurso);
+//		var(personaje, buscar_personaje_bloqueado(self, simbolo));
+//		logger_info(get_logger(self), "Se le otorgara un recurso %c al personaje %s", recurso, personaje->nombre);
+//		socket_send_char(personaje->socket, OTORGAR_RECURSO, recurso);
+//		//TODO ver que pasa si buscar_personaje_bloqueado devuelve null
+//	}
+//
+//	package_dispose(paquete);
 }
 
 

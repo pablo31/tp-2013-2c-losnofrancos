@@ -39,7 +39,8 @@ enum DATA_TYPE_PROTOCOL {
 	//mensajes compartidos entre planificador, nivel, y personaje
 	SOLICITUD_UBICACION_RECURSO = 218,
 	UBICACION_RECURSO = 219,
-	OTORGAR_RECURSO = 220
+        RECURSO_OTORGADO = 220,
+        RECURSO_NO_DISPONIBLE = 221
 };
 
 #endif /* PAQUETE_TIPO_DATO_H_ */

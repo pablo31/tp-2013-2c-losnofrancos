@@ -56,10 +56,6 @@ int main(int argc, char **argv){
 	signal_dynamic_handler(SIGINT, plataforma_finalizar(self));
 	logger_info(get_logger(self), "Signals establecidas");
 
-	plataforma_iniciar_planificador(self, "nivel1", null); //TODO quitar este hardcod
-	plataforma_iniciar_planificador(self, "nivel2", null); //TODO quitar este hardcod
-//	plataforma_iniciar_planificador(self, "nivel3", null); //TODO quitar este hardcod
-
 	//Ejecutamos el orquestador en el hilo principal
 	orquestador_ejecutar(get_orquestador(self));
 
