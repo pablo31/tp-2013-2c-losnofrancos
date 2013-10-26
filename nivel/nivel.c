@@ -66,7 +66,13 @@ int main(int argc, char **argv){
 
 	//Nos presentamos
 	socket_send_empty_package(socket, PRESENTACION_NIVEL);
+
+	//Indicamos nuestro nombre
 	socket_send_string(socket, NIVEL_NUMERO, nvl->nombre);
+	//Le indicamos la cantidad de quantums al planificador
+	socket_send_int(socket, QUANTUM, nvl->quantum);
+	//Le indicamos la pausa entre turnos al planificador
+	socket_send_int(socket, RETARDO, nvl->retardo);
 
 	//Inicializo la UI
 	logger_info(logger, "Inicializando interfaz grafica");

@@ -76,6 +76,9 @@ static void cargar_configuracion_nivel(nivel* nvl, t_config* config){
 	nvl->retardo = config_get_int_value(config,"retardo");
 	logger_info(nvl->logger, "Retardo:%i", nvl->retardo);
 
+	nvl->quantum = config_get_int_value(config,"quantum");
+	logger_info(nvl->logger, "Quantum:%i", nvl->quantum);
+
 	nvl->plataforma = string_duplicate(config_get_string_value(config,"Plataforma"));
 	logger_info(nvl->logger, "Plataforma:%s", nvl->plataforma);
 	

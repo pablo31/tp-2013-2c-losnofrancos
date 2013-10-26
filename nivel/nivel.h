@@ -31,7 +31,8 @@ typedef struct nivel {
 	t_list*     enemigos;
 	uint     sleep_enemigos;
 	char*	 algoritmo;
-	uint 	 retardo;
+	int 	 retardo;
+	int quantum;
 	tad_logger* logger;
 	t_list* cajas;
 } nivel;

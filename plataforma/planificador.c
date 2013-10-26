@@ -27,7 +27,7 @@
 /***************************************
  * DECLARACIONES ***********************
  ***************************************/
-private void paquete_entrante_nivel(PACKED_ARGS);
+//private void paquete_entrante_nivel(PACKED_ARGS);
 private void otorgar_quantums(tad_planificador* self, int quantums);
 private void bloquear_personaje(tad_planificador* self, tad_personaje* personaje);
 private tad_personaje* siguiente_personaje(tad_planificador* self);
@@ -98,9 +98,9 @@ tad_planificador* planificador_crear(char* nombre_nivel, tad_socket* socket_nive
 	self->personajes_listos = list_create();
 	self->personajes_bloqueados = list_create();
 	//inicializamos el multiplexor y le bindeamos el socket del nivel
-	var(m, multiplexor_create());
-	multiplexor_bind_socket(m, socket_nivel, paquete_entrante_nivel, 1, self);
-	self->multiplexor = m;
+//	var(m, multiplexor_create());
+//	multiplexor_bind_socket(m, socket_nivel, paquete_entrante_nivel, 1, self);
+//	self->multiplexor = m;
 
 	logger_info(get_logger(self), "Planificador del Nivel %s inicializado", nombre_nivel);
 	return self;
@@ -147,15 +147,15 @@ void planificador_finalizar(tad_planificador* self){
 	list_destroy_and_destroy_elements(self->personajes_bloqueados, destroyer);
 
 	//liberamos los recursos de los datos del nivel
-	var(m, self->multiplexor);
+//	var(m, self->multiplexor);
 	var(nivel, self->nivel);
 	var(socket_nivel, nivel->socket);
-	multiplexor_unbind_socket(m, socket_nivel);
+//	multiplexor_unbind_socket(m, socket_nivel);
 	socket_close(socket_nivel);
 	dealloc(nivel);
 
 	//liberamos los recursos del multiplexor
-	multiplexor_dispose(m);
+//	multiplexor_dispose(m);
 
 	//liberamos los recursos propios del planificador
 	logger_dispose_instance(self->logger);
@@ -174,15 +174,19 @@ void planificador_finalizar(tad_planificador* self){
 void planificador_ejecutar(PACKED_ARGS){
 	UNPACK_ARG(tad_planificador* self);
 
-//	var(multiplexor, self->multiplexor);
+	var(socket_nivel, self->nivel->socket);
+	SOCKET_ON_ERROR(socket_nivel, error_socket_nivel(self));
+	//el nivel nos indica la cantidad de quantums
+	int quantum = socket_receive_expected_int(socket_nivel, QUANTUM);
+	logger_info(get_logger(self), "La cantidad de quantums sera de %d", quantum);
+	//el nivel nos indica el retardo entre turnos
+	int retardo = socket_receive_expected_int(socket_nivel, RETARDO);
+	logger_info(get_logger(self), "El retardo entre cambio de turno sera de %d", retardo);
 
-	var(quantums, 2); //TODO levantar desde archivo
-
-
+	//ejecutamos la logica de planificador
 	while(1){
-//		multiplexor_wait_for_io(multiplexor, 1); //esperamos mensajes del nivel hasta por 1 segundo
-		otorgar_quantums(self, quantums);
-		sleep(2); //TODO pausa configurable
+		otorgar_quantums(self, quantum);
+		sleep(retardo);
 	}
 }
 
@@ -195,7 +199,6 @@ private void otorgar_quantums(tad_planificador* self, int quantums){
 	var(socket_nivel, self->nivel->socket);
 
 	SOCKET_ON_ERROR(socket, error_socket_personaje(self, personaje));
-	SOCKET_ON_ERROR(socket_nivel, error_socket_nivel(self));
 
 	while(quantums--){
 		socket_send_empty_package(socket, PLANIFICADOR_OTORGA_QUANTUM);
@@ -260,10 +263,8 @@ private void bloquear_personaje(tad_planificador* self, tad_personaje* personaje
 
 private tad_personaje* siguiente_personaje(tad_planificador* self){
 	var(personajes, self->personajes_listos);
-	if(list_size(personajes) > 0)
-		return list_remove(personajes, 0);
-	else
-		return null;
+	if(list_size(personajes) > 0) return list_remove(personajes, 0);
+	else return null;
 	//TODO algoritmo intercambiable, etc
 }
 
@@ -274,7 +275,7 @@ private tad_personaje* siguiente_personaje(tad_planificador* self){
 //	return null;
 //}
 
-private void paquete_entrante_nivel(PACKED_ARGS){
+//private void paquete_entrante_nivel(PACKED_ARGS){
 //	UNPACK_ARG(tad_planificador* self);
 //	var(socket_nivel, self->nivel->socket);
 //
@@ -293,7 +294,7 @@ private void paquete_entrante_nivel(PACKED_ARGS){
 //	}
 //
 //	package_dispose(paquete);
-}
+//}
 
 
 

@@ -36,7 +36,7 @@ struct s_planificador{
 	t_list* personajes_listos;
 	t_list* personajes_bloqueados;
 
-	tad_multiplexor* multiplexor;
+//	tad_multiplexor* multiplexor;
 
 	tad_logger* logger;
 };
