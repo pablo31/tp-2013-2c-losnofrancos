@@ -14,11 +14,13 @@
 #include "../libs/common.h"
 
 
-struct my_struct{
+/***************************************************************
+ * Ejemplo de declaracion de una clase
+ ***************************************************************/
+class(my_class){
 	char* a;
 	char* b;
 };
-typedef struct my_struct my_class;
 
 
 /***************************************************************
@@ -27,6 +29,9 @@ typedef struct my_struct my_class;
 #include "../libs/overload.h"
 #define min(args...) overload(min, args)
 
+int min(){
+	return 0;
+}
 int min(int a){
 	return a;
 }
@@ -58,27 +63,28 @@ int main(void){
 	alloc(my_obj, my_class);
 
 	//seteamos sus atributos
-	my_obj->a = "Struct Text A";
-	my_obj->b = "Struct Text Z";
+	my_obj->a = "Struct Field A";
+	my_obj->b = "Struct Field B";
 
 	//creamos variables sin tipar, referencias a distintos objetos
 	var(reference, my_obj);
 	var(hola, "123");
 
 	//seteamos uno de los atributos de una referencia a my_obj
-	reference->b = "Struct Text B";
+	reference->b = "Struct Field B Modified!";
 
 	//obtenemos un valor out de una funcion
 	int i;
 	foo(out i);
 
 	//llamamos a una funcion con sobrecarga
+	int valor0 = min();
 	int valor1 = min(5);
 	int valor2 = min(10, 15);
 	int valor3 = min(20, 25, 30);
 
 	//imprimimos resultados en pantalla
-	printf("%s\n%s\n%s\n%d\n%d\n%d\n%d\n", reference->a, reference->b, hola, i, valor1, valor2, valor3);
+	printf("%s\n%s\n%s\n%d\n%d\n%d\n%d\n%d\n", reference->a, reference->b, hola, i, valor0, valor1, valor2, valor3);
 
 	//liberamos los recursos de my_obj
 	dealloc(my_obj);
@@ -86,16 +92,16 @@ int main(void){
 	//ejemplo de uso del bloque try catch
 	TRY{
 		printf("Entrando al bloque TRY\n");
-		THROW(12);
+		THROW(75);
 		printf("Se arrojo excepcion 12 pero no fue atrapada!\n");
 	}
 	CATCH(12){
 		printf("Atrapada excepcion 12!\n");
-		THROW(75);
+		THROW(99);
 	}
 	CATCH(75){
 		printf("Atrapada excepcion 75!\n");
-		THROW(99);
+		THROW(12);
 	}
 	CATCH_OTHER{
 		//para saber que excepcion atrapamos usamos el int __ex_num

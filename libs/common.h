@@ -38,6 +38,12 @@ typedef char string;
  * HI-LEVEL MACROS *********************
  ***************************************/
 
+//short class typedef
+#define class(name) \
+	struct __r_md_s_ ## name; \
+	typedef struct __r_md_s_ ## name name; \
+	struct __r_md_s_ ## name
+
 //foreach loop
 #define foreach(item, list, type) \
 	t_link_element* __r_le; \
