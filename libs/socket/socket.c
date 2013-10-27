@@ -266,6 +266,7 @@ void socket_close(tad_socket* socket){
 	logger_debug(socket_get_logger(socket), "Cerrando");
 	close(socket_get_id(socket));
 	logger_dispose_instance(socket_get_logger(socket));
+	dealloc(socket->error_manager);
 	dealloc(socket);
 }
 
