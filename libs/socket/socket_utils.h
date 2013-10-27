@@ -42,24 +42,14 @@
 	//Devuelve el string que conforma los datos de un paquete
 	char* package_get_string(tad_package* package);
 
-	//Envia un paquete que contiene un char
-	void socket_send_char(tad_socket* socket, byte data_type, char value);
-	//Recibe un paquete que contiene un char, siempre que sea del tipo especificado
-	char socket_receive_expected_char(tad_socket* socket, byte data_type);
-	//Devuelve el char que conforma los datos de un paquete
-	char package_get_char(tad_package* package);
+	#define socket_implement_common_h(type) \
+		void socket_send_ ## type (tad_socket*, byte, type); \
+		type socket_receive_expected_ ## type (tad_socket*, byte); \
+		type package_get_ ## type (tad_package*)
 
-	//Envia un paquete que contiene un entero
-	void socket_send_int(tad_socket* socket, byte data_type, int value);
-	//Recibe un paquete que contiene un entero, siempre que sea del tipo especificado
-	int socket_receive_expected_int(tad_socket* socket, byte data_type);
-	//Devuelve el entero que conforma los datos de un paquete
-	int package_get_int(tad_package* package);
-
-	void socket_send_vector2(tad_socket* socket, byte data_type, vector2 v);
-	vector2 socket_receive_expected_vector2(tad_socket* socket, byte data_type);
-	vector2 package_get_vector2(tad_package* package);
-
+	socket_implement_common_h(char);
+	socket_implement_common_h(int);
+	socket_implement_common_h(vector2);
 
 	/****************************************
 	 * MISC *********************************

@@ -169,61 +169,24 @@ char* package_get_string(tad_package* package){
 	return (char*)package_get_data(package);
 }
 
-//char
+//common data types
 
-void socket_send_char(tad_socket* socket, byte data_type, char value){
-	char* ptr = malloc(sizeof(char));
-	*ptr = value;
-	socket_send(socket, data_type, sizeof(char), ptr);
-	free(ptr);
-}
+#define socket_implement_common_c(type) \
+	void socket_send_ ## type (tad_socket* socket, byte data_type, type value){ \
+		socket_send(socket, data_type, sizeof(type), &value); \
+	} \
+	type socket_receive_expected_ ## type (tad_socket* socket, byte data_type){ \
+		type* ptr = (type*)socket_receive_expected_data(socket, data_type); \
+		type ret = *ptr; \
+		free(ptr); \
+		return ret; \
+	} \
+	type package_get_ ## type (tad_package* package){ \
+		type* ptr = package_get_data(package); \
+		type ret = *ptr; \
+		return ret; \
+	}
 
-char socket_receive_expected_char(tad_socket* socket, byte data_type){
-	char* ptr = (char*)socket_receive_expected_data(socket, data_type);
-	char ret = *ptr;
-	free(ptr);
-	return ret;
-}
-
-char package_get_char(tad_package* package){
-	char* ptr = package_get_data(package);
-	char ret = *ptr;
-	return ret;
-}
-
-//int
-
-void socket_send_int(tad_socket* socket, byte data_type, int value){
-	socket_send(socket, data_type, sizeof(int), &value);
-}
-
-int socket_receive_expected_int(tad_socket* socket, byte data_type){
-	int* ptr = (int*)socket_receive_expected_data(socket, data_type);
-	int ret = *ptr;
-	free(ptr);
-	return ret;
-}
-
-int package_get_int(tad_package* package){
-	int* ptr = package_get_data(package);
-	int ret = *ptr;
-	return ret;
-}
-
-//vector2
-void socket_send_vector2(tad_socket* socket, byte data_type, vector2 v){
-	void* data = vector2_serialize(v);
-	int data_length = sizeof(vector2);
-	socket_send(socket, data_type, data_length, data);
-}
-
-vector2 socket_receive_expected_vector2(tad_socket* socket, byte data_type){
-	void* data = (void*)socket_receive_expected_data(socket, data_type);
-	vector2 ret = vector2_deserialize(data);
-	free(data);
-	return ret;
-}
-
-vector2 package_get_vector2(tad_package* package){
-	return vector2_deserialize(package_get_data(package));
-}
+socket_implement_common_c(char);
+socket_implement_common_c(int);
+socket_implement_common_c(vector2);
