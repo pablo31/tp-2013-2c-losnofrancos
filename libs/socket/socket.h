@@ -21,34 +21,30 @@
  ****************************************/
 
 //header
-struct s_header{
+class(tad_header){
 	byte data_type;
 	int data_length;
 } __attribute__ ((__packed__));
-typedef struct s_header tad_header;
 
 //package
-struct s_package{
+class(tad_package){
 	tad_header* header;
 	void* data;
 };
-typedef struct s_package tad_package;
 
 //socket error manager
-struct s_error_manager{
+class(tad_error_manager){
 	int error_number;
 	byte code_jump_enabled;
 	process_status* last_process_status;
 };
-typedef struct s_error_manager tad_error_manager;
 
 //socket
-struct s_socket{
+class(tad_socket){
 	int socket_id;
 	tad_logger* logger;
 	tad_error_manager* error_manager;
 };
-typedef struct s_socket tad_socket;
 
 
 /****************************************

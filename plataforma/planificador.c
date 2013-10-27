@@ -98,9 +98,9 @@ tad_planificador* planificador_crear(char* nombre_nivel, tad_socket* socket_nive
 	self->personajes_listos = list_create();
 	self->personajes_bloqueados = list_create();
 	//inicializamos el multiplexor y le bindeamos el socket del nivel
-//	var(m, multiplexor_create());
-//	multiplexor_bind_socket(m, socket_nivel, paquete_entrante_nivel, 1, self);
-//	self->multiplexor = m;
+	var(m, multiplexor_create());
+//	multiplexor_bind_socket(m, socket_nivel, paquete_entrante_nivel, 1, self); //TODO habilitar
+	self->multiplexor = m;
 
 	logger_info(get_logger(self), "Planificador del Nivel %s inicializado", nombre_nivel);
 	return self;
@@ -147,15 +147,15 @@ void planificador_finalizar(tad_planificador* self){
 	list_destroy_and_destroy_elements(self->personajes_bloqueados, destroyer);
 
 	//liberamos los recursos de los datos del nivel
-//	var(m, self->multiplexor);
+	var(m, self->multiplexor);
 	var(nivel, self->nivel);
 	var(socket_nivel, nivel->socket);
-//	multiplexor_unbind_socket(m, socket_nivel);
+	multiplexor_unbind_socket(m, socket_nivel);
 	socket_close(socket_nivel);
 	dealloc(nivel);
 
 	//liberamos los recursos del multiplexor
-//	multiplexor_dispose(m);
+	multiplexor_dispose(m);
 
 	//liberamos los recursos propios del planificador
 	logger_dispose_instance(self->logger);
@@ -174,23 +174,30 @@ void planificador_finalizar(tad_planificador* self){
 void planificador_ejecutar(PACKED_ARGS){
 	UNPACK_ARG(tad_planificador* self);
 
+	//seteamos el manejo de errores ante una desconexion del nivel
 	var(socket_nivel, self->nivel->socket);
 	SOCKET_ON_ERROR(socket_nivel, error_socket_nivel(self));
-	//el nivel nos indica la cantidad de quantums
-	int quantum = socket_receive_expected_int(socket_nivel, QUANTUM);
-	logger_info(get_logger(self), "La cantidad de quantums sera de %d", quantum);
-	//el nivel nos indica el retardo entre turnos
-	int retardo = socket_receive_expected_int(socket_nivel, RETARDO);
-	logger_info(get_logger(self), "El retardo entre cambio de turno sera de %d", retardo);
 
-	//ejecutamos la logica de planificador
+	//el nivel nos indica la cantidad de quantums y el retardo entre turnos
+	int quantum = socket_receive_expected_int(socket_nivel, QUANTUM);
+	int retardo = socket_receive_expected_int(socket_nivel, RETARDO);
+	logger_info(get_logger(self), "La cantidad de quantums sera de %d", quantum);
+	logger_info(get_logger(self), "El retardo entre cambio de turno sera de %dms", retardo);
+
+	int retardo_faltante;
+
 	while(1){
+		//esperamos paquetes del nivel
+		multiplexor_wait_for_io(self->multiplexor, retardo, out retardo_faltante);
+		//si el select no uso el retardo completo, lo completamos durmiendo
+		if(retardo_faltante > 0) usleep(retardo_faltante * 1000);
+		//ejecutamos la logica
 		otorgar_quantums(self, quantum);
-		sleep(retardo);
 	}
 }
 
 private void otorgar_quantums(tad_planificador* self, int quantums){
+	//obtenemos el siguiente personaje al que le toca jugar
 	var(personaje, siguiente_personaje(self));
 	if(!personaje) return;
 
@@ -198,6 +205,7 @@ private void otorgar_quantums(tad_planificador* self, int quantums){
 	var(socket, personaje->socket);
 	var(socket_nivel, self->nivel->socket);
 
+	//seteamos el manejo de errores ante una desconexion del personaje
 	SOCKET_ON_ERROR(socket, error_socket_personaje(self, personaje));
 
 	while(quantums--){
@@ -233,19 +241,20 @@ private void otorgar_quantums(tad_planificador* self, int quantums){
 			tad_package* reenvio = package_create_two_chars(PERSONAJE_SOLICITUD_RECURSO, simbolo, recurso);
 			socket_send_package(socket_nivel, reenvio);
 			package_dispose(reenvio);
+			bloquear_personaje(self, personaje);
 
-			tad_package* respuesta = socket_receive_one_of_this_packages(socket_nivel, 2, RECURSO_OTORGADO, RECURSO_NO_DISPONIBLE);
-			var(tipo_respuesta, package_get_data_type(respuesta));
-			if(tipo_respuesta == RECURSO_OTORGADO){
-				//le decimos que el recurso le fue otorgado
-				socket_send_package(socket, respuesta);
-				package_dispose(respuesta);
-			}else if(tipo_respuesta == RECURSO_NO_DISPONIBLE){
-				//lo dejamos colgado esperando el recurso
-				bloquear_personaje(self, personaje);
-				package_dispose(respuesta);
-				return;
-			}
+//			tad_package* respuesta = socket_receive_one_of_this_packages(socket_nivel, 2, RECURSO_OTORGADO, RECURSO_NO_DISPONIBLE);
+//			var(tipo_respuesta, package_get_data_type(respuesta));
+//			if(tipo_respuesta == RECURSO_OTORGADO){
+//				//le decimos que el recurso le fue otorgado
+//				socket_send_package(socket, respuesta);
+//				package_dispose(respuesta);
+//			}else if(tipo_respuesta == RECURSO_NO_DISPONIBLE){
+//				//lo dejamos colgado esperando el recurso
+//				bloquear_personaje(self, personaje);
+//				package_dispose(respuesta);
+//				return;
+//			}
 		}
 
 		package_dispose(paquete);
