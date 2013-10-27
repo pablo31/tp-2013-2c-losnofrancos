@@ -51,6 +51,8 @@
 	socket_implement_common_h(int);
 	socket_implement_common_h(vector2);
 
+	#undef socket_implement_common_h
+
 	/****************************************
 	 * MISC *********************************
 	 ****************************************/

@@ -37,6 +37,8 @@ logger_implement_log_level_h(debug);
 logger_implement_log_level_h(warning);
 logger_implement_log_level_h(error);
 
+#undef logger_implement_log_level_h
+
 //Another way to log
 #define logger_log(logger, level_name, ...) \
 		logger_##level_name(logger, __VA_ARGS__)

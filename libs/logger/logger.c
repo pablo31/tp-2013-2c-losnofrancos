@@ -101,3 +101,5 @@ logger_implement_log_level_c(info);
 logger_implement_log_level_c(debug);
 logger_implement_log_level_c(warning);
 logger_implement_log_level_c(error);
+
+#undef logger_implement_log_level_c

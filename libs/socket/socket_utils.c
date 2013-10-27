@@ -190,3 +190,5 @@ char* package_get_string(tad_package* package){
 socket_implement_common_c(char);
 socket_implement_common_c(int);
 socket_implement_common_c(vector2);
+
+#undef socket_implement_common_c
