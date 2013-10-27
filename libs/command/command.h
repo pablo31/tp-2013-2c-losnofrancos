@@ -60,9 +60,5 @@ void command_dispose(tad_command* command);
 #define UNPACK_ARGS5(__arg1, __arg2, __arg3, __arg4, __arg5) \
 	UNPACK_ARG(__arg1); UNPACK_ARG(__arg2); UNPACK_ARG(__arg3); UNPACK_ARG(__arg4); UNPACK_ARG(__arg5)
 
-//#define UNPACK_ARGS(...) concat_hasargs(UNPACK_ARGS, __VA_ARGS__) (__VA_ARGS__)
-//#define UNPACK_ARGS0(...)
-//#define UNPACK_ARGS1(_arg, ...) UNPACK_ARG(__arg); UNPACK_ARGS(__VA_ARGS__)
-
 
 #endif /* COMMAND_H_ */
