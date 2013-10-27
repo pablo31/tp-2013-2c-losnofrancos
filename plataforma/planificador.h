@@ -32,6 +32,8 @@ typedef struct s_nivel tad_nivel;
 
 struct s_planificador{
 	tad_nivel* nivel;
+	int quantum;
+	int retardo;
 
 	t_list* personajes_listos;
 	t_list* personajes_bloqueados;

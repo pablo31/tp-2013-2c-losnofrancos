@@ -105,8 +105,7 @@ void orquestador_cliente_desconectado(tad_orquestador* orquestador, tad_socket* 
 }
 
 void orquestador_handshake(PACKED_ARGS){
-	UNPACK_ARG(tad_orquestador* orquestador);
-	UNPACK_ARG(tad_socket* socket);
+	UNPACK_ARGS(tad_orquestador* orquestador, tad_socket* socket);
 
 	//establecemos la funcion manejadora de desconexion del socket
 	SOCKET_ON_ERROR(socket, orquestador_cliente_desconectado(orquestador, socket));
@@ -133,8 +132,7 @@ void orquestador_handshake(PACKED_ARGS){
 }
 
 void orquestador_manejar_nivel(PACKED_ARGS){
-	UNPACK_ARG(tad_orquestador* self);
-	UNPACK_ARG(tad_socket* socket);
+	UNPACK_ARGS(tad_orquestador* self, tad_socket* socket);
 
 	//establecemos la funcion manejadora de desconexion del socket
 	SOCKET_ON_ERROR(socket, orquestador_cliente_desconectado(self, socket));
@@ -162,8 +160,7 @@ void orquestador_manejar_nivel(PACKED_ARGS){
 }
 
 void orquestador_manejar_personaje(PACKED_ARGS){
-	UNPACK_ARG(tad_orquestador* self);
-	UNPACK_ARG(tad_socket* socket);
+	UNPACK_ARGS(tad_orquestador* self, tad_socket* socket);
 
 	//establecemos la funcion manejadora de desconexion del socket
 	SOCKET_ON_ERROR(socket, orquestador_cliente_desconectado(self, socket));

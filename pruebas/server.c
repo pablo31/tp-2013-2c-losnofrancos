@@ -50,8 +50,7 @@ int main(void){
 
 
 private void conexion_entrante(PACKED_ARGS){
-	UNPACK_ARG(tad_multiplexor* multiplexor);
-	UNPACK_ARG(tad_socket* socket_escucha);
+	UNPACK_ARGS(tad_multiplexor* multiplexor, tad_socket* socket_escucha);
 
 	//Aceptamos la conexion
 	tad_socket* socket_conexion = socket_accept_connection(socket_escucha);
@@ -62,8 +61,7 @@ private void conexion_entrante(PACKED_ARGS){
 }
 
 private void paquete_entrante(PACKED_ARGS){
-	UNPACK_ARG(tad_multiplexor* multiplexor);
-	UNPACK_ARG(tad_socket* socket);
+	UNPACK_ARGS(tad_multiplexor* multiplexor, tad_socket* socket);
 
 	//Definimos un manejador de errores
 	SOCKET_ERROR_MANAGER(socket){

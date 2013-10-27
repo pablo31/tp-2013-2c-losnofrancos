@@ -183,17 +183,42 @@ void planificador_ejecutar(PACKED_ARGS){
 	int retardo = socket_receive_expected_int(socket_nivel, RETARDO);
 	logger_info(get_logger(self), "La cantidad de quantums sera de %d", quantum);
 	logger_info(get_logger(self), "El retardo entre cambio de turno sera de %dms", retardo);
+	self->quantum = quantum;
+	self->retardo = retardo;
 
 	int retardo_faltante;
 
 	while(1){
 		//esperamos paquetes del nivel
-		multiplexor_wait_for_io(self->multiplexor, retardo, out retardo_faltante);
+		multiplexor_wait_for_io(self->multiplexor, self->retardo, out retardo_faltante);
 		//si el select no uso el retardo completo, lo completamos durmiendo
 		if(retardo_faltante > 0) usleep(retardo_faltante * 1000);
 		//ejecutamos la logica
-		otorgar_quantums(self, quantum);
+		otorgar_quantums(self, self->quantum);
 	}
+}
+
+private tad_package* esperar_ubicacion_recurso(tad_planificador* self, tad_socket* socket_nivel){
+	tad_package* paquete;
+
+	while(1){
+		paquete = socket_receive_one_of_this_packages(socket_nivel, 3,
+				UBICACION_RECURSO,
+				QUANTUM,
+				RETARDO);
+		var(tipo, package_get_data_type(paquete));
+
+		if(tipo == QUANTUM)
+			self->quantum = package_get_int(paquete);
+		else if(tipo == RETARDO)
+			self->retardo = package_get_int(paquete);
+		else
+			break;
+
+		package_dispose(paquete);
+	}
+
+	return paquete;
 }
 
 private void otorgar_quantums(tad_planificador* self, int quantums){
@@ -222,7 +247,7 @@ private void otorgar_quantums(tad_planificador* self, int quantums){
 			//reenviamos la solicitud al nivel
 			socket_send_package(socket_nivel, paquete);
 			//esperamos su respuesta
-			tad_package* respuesta = socket_receive_expected_package(socket_nivel, UBICACION_RECURSO);
+			tad_package* respuesta = esperar_ubicacion_recurso(self, socket_nivel);
 			//se la reenviamos al personaje
 			socket_send_package(socket, respuesta);
 			package_dispose(respuesta);
