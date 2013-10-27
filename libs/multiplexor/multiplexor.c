@@ -132,17 +132,26 @@ private void multiplexor_execute_select(tad_multiplexor* m, struct timeval* tv){
 	}
 }
 
-//Escucha por paquetes entrantes en los sockets asociados, bloqueando la ejecucion
+//Espera paquetes entrantes en los sockets asociados al multiplexor
 void multiplexor_wait_for_io(tad_multiplexor* m){
 	multiplexor_execute_select(m, null);
 }
 
-//Escucha por paquetes entrantes en los sockets asociados, bloqueando la ejecucion, hasta un tiempo limite
-void multiplexor_wait_for_io(tad_multiplexor* m, int seconds){
+//Espera paquetes por un tiempo maximo determinado
+void multiplexor_wait_for_io(tad_multiplexor* m, int ms){
 	struct timeval tv;
-	tv.tv_sec = seconds;
-	tv.tv_usec = 0;
+	tv.tv_sec = 0;
+	tv.tv_usec = ms * 1000;
 	multiplexor_execute_select(m, &tv);
+}
+
+//Espera paquetes por un tiempo maximo determinado, y devuelve el tiempo restante si un paquete llega antes
+void multiplexor_wait_for_io(tad_multiplexor* m, int ms, int as_out remaining_ms){
+	struct timeval tv;
+	tv.tv_sec = 0;
+	tv.tv_usec = ms * 1000;
+	multiplexor_execute_select(m, &tv);
+	set remaining_ms = tv.tv_usec;
 }
 
 //Libera los recursos del multiplexor

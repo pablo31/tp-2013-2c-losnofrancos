@@ -14,22 +14,31 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "../socket/socket.h"
 #include "../common/collections/list.h"
+#include "../socket/socket.h"
 #include "../command/command.h"
 
-//Overload
+
+/***************************************************************
+ * Class definition
+ ***************************************************************/
+class(tad_multiplexor){
+	fd_set master_set;		//fds texture
+	int max_fd;				//highest fd number from fds texture
+	t_list* phone_book;		//socket-handler dictionary
+};
+
+
+/***************************************************************
+ * Overloads
+ ***************************************************************/
 #include "../overload.h"
 #define multiplexor_wait_for_io(args...) overload(multiplexor_wait_for_io, args)
 
 
-struct s_multiplexor{
-	fd_set master_set; //fds texture
-	int max_fd; //highest fd number from fds texture
-	t_list* phone_book; //socket-handler dictionary
-};
-typedef struct s_multiplexor tad_multiplexor;
-
+/***************************************************************
+ * Public methods
+ ***************************************************************/
 
 //Crea una instancia multiplexor
 tad_multiplexor* multiplexor_create();
@@ -43,8 +52,10 @@ void multiplexor_unbind_socket(tad_multiplexor* m, tad_socket* socket);
 
 //Espera paquetes entrantes en los sockets asociados al multiplexor
 void multiplexor_wait_for_io(tad_multiplexor* m);
-//Espera paquetes entrantes en los sockets asociados al multiplexor por un tiempo maximo
-void multiplexor_wait_for_io(tad_multiplexor* m, int seconds);
+//Espera paquetes por un tiempo maximo determinado
+void multiplexor_wait_for_io(tad_multiplexor* m, int ms);
+//Espera paquetes por un tiempo maximo determinado, y devuelve el tiempo restante si un paquete llega antes
+void multiplexor_wait_for_io(tad_multiplexor* m, int ms, int as_out remaining_ms);
 
 //Libera los recursos del multiplexor
 void multiplexor_dispose(tad_multiplexor* m);
