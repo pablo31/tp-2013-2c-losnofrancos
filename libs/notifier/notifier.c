@@ -30,3 +30,9 @@ void notifier_dispose(tad_notifier* self){
 	close(nfd);
 }
 
+int __notifier_get_fd(void* self){
+	return ((tad_notifier*)self)->fd;
+}
+void __notifier_dispose(void* self){
+	notifier_dispose(self);
+}

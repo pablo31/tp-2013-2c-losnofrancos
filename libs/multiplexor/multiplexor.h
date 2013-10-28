@@ -73,10 +73,23 @@ void multiplexor_dispose_and_dispose_objects(tad_multiplexor* m);
 	multiplexor_bind(m, socket, __socket_get_id, __socket_close, handler, VA_NUM_ARGS(args), args)
 
 #define multiplexor_rebind_socket(m, socket, handler, args...) \
-		multiplexor_rebind(m, socket, handler, VA_NUM_ARGS(args), args)
+	multiplexor_rebind(m, socket, handler, VA_NUM_ARGS(args), args)
 
 #define multiplexor_unbind_socket(m, socket) \
 	multiplexor_unbind(m, socket);
+
+
+/***************************************************************
+ * Notifier methods
+ ***************************************************************/
+#define multiplexor_bind_notifier(m, n, handler, args...) \
+	multiplexor_bind(m, n, __notifier_get_fd, __notifier_dispose, handler, VA_NUM_ARGS(args), args)
+
+#define multiplexor_rebind_notifier(m, n, handler, args...) \
+	multiplexor_rebind(m, n, handler, VA_NUM_ARGS(args), args)
+
+#define multiplexor_unbind_notifier(m, n) \
+	multiplexor_unbind(m, n);
 
 
 #endif /* MULTIPLEXOR_H_ */
