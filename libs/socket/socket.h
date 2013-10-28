@@ -85,9 +85,6 @@ enum SOCKET_ERR {
 /****************************************
  * SOCKET METHODS ***********************
 ****************************************/
-	//Devuelve el FD del socket
-	int socket_get_id(tad_socket* socket); //try not to use this
-
 	//Crea y conecta un socket cliente a un servidor
 	tad_socket* socket_connect(char* ip, char* port);
 	//Crea y pone en escucha un socket servidor
@@ -102,6 +99,13 @@ enum SOCKET_ERR {
 	//Recibe un paquete
 	tad_package* socket_receive_package(tad_socket* socket);
 
+/****************************************
+ * SOCKET MULTIPLEXOR METHODS ***********
+****************************************/
+	//Devuelve el FD del socket (uso exclusivo del multiplexor)
+	int __socket_get_id(void* socket); //try not to use this
+	//Cierra la conexion y libera los recursos del socket (uso exclusivo del multiplexor)
+	void __socket_close(void* socket); //try not to use this
 
 /****************************************
  * SOCKET ERROR MANAGEMENT **************

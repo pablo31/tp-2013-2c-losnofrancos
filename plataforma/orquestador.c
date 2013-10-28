@@ -42,7 +42,7 @@ void orquestador_ejecutar(tad_orquestador* self){
 	var(multiplexor, multiplexor_create());
 
 	//asociamos el socket de escucha al multiplexor
-	multiplexor_bind_socket(multiplexor, socket_escucha, orquestador_conexion_entrante, 1, self);
+	multiplexor_bind_socket(multiplexor, socket_escucha, orquestador_conexion_entrante, self);
 
 	//guardamos las referencias en self
 	self->socket_escucha = socket_escucha;
@@ -57,7 +57,7 @@ void orquestador_ejecutar(tad_orquestador* self){
 
 void orquestador_finalizar(tad_orquestador* self){
 	//cerramos todos los sockets y destruimos el multiplexor
-	multiplexor_dispose_and_close_sockets(self->multiplexor);
+	multiplexor_dispose_and_dispose_objects(self->multiplexor);
 	//destruimos la instancia del logger
 	logger_info(get_logger(self), "Finalizando");
 	logger_dispose_instance(self->logger);
@@ -83,7 +83,7 @@ void orquestador_conexion_entrante(PACKED_ARGS){
 	//enviamos un paquete de presentacion
 	socket_send_empty_package(socket_conexion, PRESENTACION_ORQUESTADOR);
 	//asociamos el socket a una nueva funcion manejadora de clientes
-	multiplexor_bind_socket(multiplexor, socket_conexion, orquestador_handshake, 2, orquestador, socket_conexion);
+	multiplexor_bind_socket(multiplexor, socket_conexion, orquestador_handshake, orquestador, socket_conexion);
 }
 
 
@@ -122,11 +122,11 @@ void orquestador_handshake(PACKED_ARGS){
 	switch(tipo){
 	case PRESENTACION_NIVEL:
 		logger_info(get_logger(orquestador), "El cliente es un Nivel");
-		multiplexor_rebind_socket(multiplexor, socket, orquestador_manejar_nivel, 2, orquestador, socket);
+		multiplexor_rebind_socket(multiplexor, socket, orquestador_manejar_nivel, orquestador, socket);
 		break;
 	case PRESENTACION_PERSONAJE:
 		logger_info(get_logger(orquestador), "El cliente es un Personaje");
-		multiplexor_rebind_socket(multiplexor, socket, orquestador_manejar_personaje, 2, orquestador, socket);
+		multiplexor_rebind_socket(multiplexor, socket, orquestador_manejar_personaje, orquestador, socket);
 		break;
 	}
 }

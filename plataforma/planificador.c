@@ -76,7 +76,7 @@ tad_planificador* planificador_crear(char* nombre_nivel, tad_socket* socket_nive
 	self->personajes_bloqueados = list_create();
 	//inicializamos el multiplexor y le bindeamos el socket del nivel
 	var(m, multiplexor_create());
-	multiplexor_bind_socket(m, socket_nivel, paquete_entrante_nivel, 1, self);
+	multiplexor_bind_socket(m, socket_nivel, paquete_entrante_nivel, self);
 	self->multiplexor = m;
 
 	logger_info(get_logger(self), "Planificador del Nivel %s inicializado", nombre_nivel);
