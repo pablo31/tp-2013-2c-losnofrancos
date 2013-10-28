@@ -134,6 +134,7 @@ void planificador_finalizar(tad_planificador* self){
 
 	//liberamos los recursos propios del planificador
 	logger_dispose_instance(self->logger);
+	free(self->algoritmo);
 	dealloc(self);
 }
 
@@ -156,10 +157,12 @@ void planificador_ejecutar(PACKED_ARGS){
 	//el nivel nos indica la cantidad de quantums y el retardo entre turnos
 	int quantum = socket_receive_expected_int(socket_nivel, QUANTUM);
 	int retardo = socket_receive_expected_int(socket_nivel, RETARDO);
+	char* algoritmo = socket_receive_expected_string(socket_nivel, ALGORITMO);
 	logger_info(get_logger(self), "La cantidad de quantums sera de %d", quantum);
 	logger_info(get_logger(self), "El retardo entre cambio de turno sera de %dms", retardo);
 	self->quantum = quantum;
 	self->retardo = retardo;
+	self->algoritmo = algoritmo;
 
 	int retardo_faltante;
 

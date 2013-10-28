@@ -32,6 +32,7 @@ typedef struct s_nivel tad_nivel;
 
 struct s_planificador{
 	tad_nivel* nivel;
+	char* algoritmo;
 	int quantum;
 	int retardo;
 
