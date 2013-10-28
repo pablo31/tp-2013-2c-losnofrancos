@@ -6,6 +6,8 @@
 #include "../libs/logger/logger.h"
 #include "../libs/socket/socket.h"
 #include "../libs/socket/socket_utils.h"
+#include "../libs/multiplexor/multiplexor.h"
+#include "../libs/notifier/notifier.h"
 #include "../libs/common.h"
 
 #include "../libs/protocol/protocol.h"
@@ -13,6 +15,12 @@
 #include "nivel_ui.h"
 #include "nivel_configuracion.h"
 #include "nivel.h"
+
+
+private void config_file_modified(PACKED_ARGS);
+
+
+
 
 private bool verificar_argumentos(int argc, char* argv[]) {
 	if (argc < 2) {
@@ -84,8 +92,12 @@ int main(int argc, char **argv){
 	//Cargo los recursos en la pantalla
 	cargar_recursos_nivel(nvl);
 
+	tad_multiplexor* multiplexor = multiplexor_create();
+	tad_notifier* notifier = notifier_create(config_file);
+	multiplexor_bind_notifier(multiplexor, notifier, config_file_modified, nvl, socket, config_file);
 	while(1){
 		//TODO multiplexor - logica de nivel
+		multiplexor_wait_for_io(multiplexor);
 	}
 
 	logger_info(logger, "Fin del proceso Nivel");
@@ -95,4 +107,38 @@ int main(int argc, char **argv){
 	destruir_nivel(nvl);
 
 	return EXIT_SUCCESS;
+}
+
+
+private void config_file_modified(PACKED_ARGS){
+	UNPACK_ARGS(nivel* self, tad_socket* socket, char* config_file);
+
+	char* algoritmo = self->algoritmo;
+	int quantum = self->quantum;
+	int retardo = self->retardo;
+
+	char* nuevo_algoritmo;
+	int nuevo_quantum;
+	int nuevo_retardo;
+
+	t_config* config = config_create(config_file);
+
+	cargar_configuracion_cambiante(self, config,
+			out nuevo_algoritmo, out nuevo_quantum, out nuevo_retardo);
+
+	config_destroy(config);
+
+	if(quantum != nuevo_quantum){
+		self->quantum = nuevo_quantum;
+		socket_send_int(socket, QUANTUM, nuevo_quantum);
+	}
+	if(retardo != nuevo_retardo){
+		self->retardo = nuevo_retardo;
+		socket_send_int(socket, RETARDO, nuevo_retardo);
+	}
+	if(!string_equals(algoritmo, nuevo_algoritmo)){
+		self->algoritmo = nuevo_algoritmo;
+		free(algoritmo);
+		socket_send_string(socket, ALGORITMO, nuevo_algoritmo);
+	}
 }
