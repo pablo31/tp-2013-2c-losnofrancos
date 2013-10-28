@@ -7,7 +7,7 @@
 all: 
 	clear
 
-	@echo "Es Lo Que Hay 2013 / Los No Francos 2013 >>"
+	@echo "Los No Francos 2013 >>"
 	@echo ""
 
 	@echo "# LIBRERIAS"
@@ -31,7 +31,11 @@ all:
 
 	@echo "   >>> COMPILANDO LIBRERIA MULTIPLEXOR"
 	gcc -Wall -g -ggdb -c libs/multiplexor/multiplexor.c libs/command/command.c libs/command/arguments.c
-	ar rcs libmpx.a multiplexor.o list.o command.o arguments.o list.o
+	ar rcs libmpx.a multiplexor.o command.o arguments.o list.o
+	
+	@echo "   >>> COMPILANDO LIBRERIA NOTIFIER"
+	gcc -Wall -g -ggdb -c libs/notifier/notifier.c
+	ar rcs libntf.a notifier.o
 
 	@echo "   >>> COMPILANDO LIBRERIA SIGNAL"
 	gcc -Wall -g -ggdb -c libs/signal/signal.c libs/command/command.c libs/command/arguments.c
@@ -63,6 +67,9 @@ all:
 
 	@echo "   >>> COMPILANDO PRUEBA DE SENALES"
 	gcc -Wall -g -ggdb pruebas/senales.c libsgn.a -o prueba_senales.sh
+	
+	@echo "   >>> COMPILANDO PRUEBA DE NOTIFICADOR"
+	gcc -Wall -g -ggdb pruebas/notificador.c libsgn.a libntf.a -o prueba_notificador.sh
 
 	@echo "   >>> COMPILANDO PRUEBA DE VARIABLES"
 	gcc -Wall -g -ggdb pruebas/variables.c -o prueba_variables.sh
@@ -78,7 +85,7 @@ all:
 	gcc -Wall -g -ggdb plataforma/plataforma.c plataforma/orquestador.c plataforma/planificador.c libcommon.a libctn.a libsck.a liblog.a libth.a libmpx.a libsgn.a -o plataforma.sh -lpthread
 
 	@echo "   >>> COMPILANDO PROCESO NIVEL"
-	gcc -Wall -ggdb nivel/nivel_ui.c nivel/nivel_configuracion.c nivel/nivel.c -lncurses libcommon.a libsck.a liblog.a -o nivel.sh
+	gcc -Wall -ggdb nivel/nivel_ui.c nivel/nivel_configuracion.c nivel/nivel.c -lncurses libcommon.a libsck.a liblog.a libmpx.a libntf.a -o nivel.sh
 	
 	@echo ""
 	@echo "   <<< Limpiando archivos output"
