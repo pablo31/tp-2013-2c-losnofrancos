@@ -290,13 +290,19 @@ private void manejar_paquete_nivel(tad_planificador* self, tad_package* paquete)
 	var(tipo, package_get_data_type(paquete));
 
 	if(tipo == QUANTUM){
-		self->quantum = package_get_int(paquete);
+		int quantum = package_get_int(paquete);
+		logger_info(get_logger(self), "La cantidad de quantums cambio a %d", quantum);
+		self->quantum = quantum;
 
 	}else if(tipo == RETARDO){
-		self->retardo = package_get_int(paquete);
+		int retardo = package_get_int(paquete);
+		logger_info(get_logger(self), "El retardo entre cambio de turno cambio a %dms", retardo);
+		self->retardo = retardo;
 
 	}else if (tipo == ALGORITMO){
 		char* algoritmo = package_get_string(paquete);
+		logger_info(get_logger(self), "El algoritmo de planificacion cambio a %s", algoritmo);
+
 		if(string_equals("SRDF", algoritmo))
 			self->algoritmo = algoritmo_srdf;
 		else
