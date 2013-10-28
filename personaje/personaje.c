@@ -16,7 +16,6 @@
 #include "../libs/socket/socket_utils.h"
 #include "../libs/protocol/protocol.h"
 #include "../libs/common.h"
-#include "personaje_posicion.h"
 #include "personaje.h"
 
 

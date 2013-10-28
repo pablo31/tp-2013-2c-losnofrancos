@@ -9,7 +9,6 @@
 #include "../libs/socket/socket_utils.h"
 #include "../libs/socket/package_serializers.h"
 #include "../libs/common.h"
-#include "../libs/overload.h"
 #include "../libs/protocol/protocol.h"
 #include "../libs/vector/vector2.h"
 
@@ -17,51 +16,27 @@
 
 
 /***************************************
- * OVERLOADS ***************************
- ***************************************/
-//#define paquete_entrante_nivel(args...) overload(paquete_entrante_nivel, args)
-//#define paquete_entrante_personaje_quantum(args...) overload(paquete_entrante_personaje_quantum, args)
-//#define paquete_entrante_personaje(args...) overload(paquete_entrante_personaje, args)
-
-
-/***************************************
  * DECLARACIONES ***********************
  ***************************************/
+
+//interaccion con nivel
 private void paquete_entrante_nivel(PACKED_ARGS);
 private void manejar_paquete_nivel(tad_planificador* self, tad_package* paquete);
+
+//interaccion con personaje
 private void otorgar_turno(tad_planificador* self, int quantum);
 private tad_package* esperar_ubicacion_recurso(tad_planificador* self, tad_socket* socket_nivel);
-private void bloquear_personaje(tad_planificador* self, tad_personaje* personaje);
+
+//algoritmo planificador
 private tad_personaje* siguiente_personaje(tad_planificador* self);
+
+//bloqueo y desbloqueo de personajes
+private void bloquear_personaje(tad_planificador* self, tad_personaje* personaje);
 private tad_personaje* buscar_personaje_bloqueado(tad_planificador* self, char simbolo);
-//private void paquete_entrante_nivel(tad_planificador* self, tad_socket* socket_nivel);
-//private void paquete_entrante_personaje(PACKED_ARGS);
-//private void paquete_entrante_personaje(tad_planificador* self, tad_personaje* personaje);
 
-
-/***************************************
- * MANEJADORAS DE DESCONEXIONES ********
- ***************************************/
+//manejo de desconexiones
 private void error_socket_personaje(tad_planificador* self, tad_personaje* personaje);
 private void error_socket_nivel(tad_planificador* self);
-
-
-/***************************************
- * INDIRECCIONES ***********************
- ***************************************/
-//private void paquete_entrante_nivel(PACKED_ARGS){
-//	UNPACK_ARG(tad_planificador* self);
-//	UNPACK_ARG(tad_socket* socket_nivel);
-//	paquete_entrante_nivel(self, socket_nivel);
-//}
-//
-//private void paquete_entrante_personaje(PACKED_ARGS){
-//	UNPACK_ARG(tad_planificador* self);
-//	UNPACK_ARG(tad_personaje* personaje);
-//	paquete_entrante_personaje_quantum(self, personaje);
-//}
-
-
 
 
 /***************************************
@@ -71,11 +46,9 @@ private void error_socket_nivel(tad_planificador* self);
 private char* get_nombre_nivel(tad_planificador* self){
 	return self->nivel->nombre;
 }
-
 private tad_logger* get_logger(tad_planificador* self){
 	return self->logger;
 }
-
 char* planificador_nombre_nivel(tad_planificador* self){
 	return get_nombre_nivel(self);
 }
