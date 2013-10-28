@@ -5,10 +5,11 @@
  *      Author: pablo
  */
 
+#include <string.h>
+
 #include "../libs/multiplexor/multiplexor.h"
 #include "../libs/socket/socket_utils.h"
 #include "../libs/socket/package_serializers.h"
-#include "../libs/common.h"
 #include "../libs/protocol/protocol.h"
 #include "../libs/vector/vector2.h"
 
@@ -24,11 +25,12 @@ private void paquete_entrante_nivel(PACKED_ARGS);
 private void manejar_paquete_nivel(tad_planificador* self, tad_package* paquete);
 
 //interaccion con personaje
-private void otorgar_turno(tad_planificador* self, int quantum);
+private void otorgar_turno(tad_planificador* self);
 private tad_package* esperar_ubicacion_recurso(tad_planificador* self, tad_socket* socket_nivel);
 
 //algoritmo planificador
-private tad_personaje* siguiente_personaje(tad_planificador* self);
+private tad_personaje* algoritmo_srdf(tad_planificador* self);
+private tad_personaje* algoritmo_rr(tad_planificador* self);
 
 //bloqueo y desbloqueo de personajes
 private void bloquear_personaje(tad_planificador* self, tad_personaje* personaje);
@@ -74,7 +76,7 @@ tad_planificador* planificador_crear(char* nombre_nivel, tad_socket* socket_nive
 	self->personajes_bloqueados = list_create();
 	//inicializamos el multiplexor y le bindeamos el socket del nivel
 	var(m, multiplexor_create());
-	multiplexor_bind_socket(m, socket_nivel, paquete_entrante_nivel, 1, self);
+	multiplexor_bind_socket(m, socket_nivel, paquete_entrante_nivel, self);
 	self->multiplexor = m;
 
 	logger_info(get_logger(self), "Planificador del Nivel %s inicializado", nombre_nivel);
@@ -134,7 +136,6 @@ void planificador_finalizar(tad_planificador* self){
 
 	//liberamos los recursos propios del planificador
 	logger_dispose_instance(self->logger);
-	free(self->algoritmo);
 	dealloc(self);
 }
 
@@ -160,9 +161,13 @@ void planificador_ejecutar(PACKED_ARGS){
 	char* algoritmo = socket_receive_expected_string(socket_nivel, ALGORITMO);
 	logger_info(get_logger(self), "La cantidad de quantums sera de %d", quantum);
 	logger_info(get_logger(self), "El retardo entre cambio de turno sera de %dms", retardo);
+	logger_info(get_logger(self), "El algoritmo de planificacion sera %s", algoritmo);
 	self->quantum = quantum;
 	self->retardo = retardo;
-	self->algoritmo = algoritmo;
+	if(string_equals("SRDF", algoritmo))
+		self->algoritmo = algoritmo_srdf;
+	else
+		self->algoritmo = algoritmo_rr;
 
 	int retardo_faltante;
 
@@ -170,8 +175,9 @@ void planificador_ejecutar(PACKED_ARGS){
 		//aprovechamos el tiempo de retardo para ejecutar un select sobre el socket del nivel
 		multiplexor_wait_for_io(self->multiplexor, self->retardo, out retardo_faltante);
 		if(retardo_faltante > 0) usleep(retardo_faltante * 1000);
+
 		//ejecutamos la logica
-		otorgar_turno(self, self->quantum);
+		otorgar_turno(self);
 	}
 }
 
@@ -179,11 +185,12 @@ private tad_package* esperar_ubicacion_recurso(tad_planificador* self, tad_socke
 	tad_package* paquete;
 
 	while(1){
-		paquete = socket_receive_one_of_this_packages(socket_nivel, 4,
+		paquete = socket_receive_one_of_this_packages(socket_nivel, 5,
 				UBICACION_RECURSO, //este es el unico que nos interesa de verdad
 				RECURSO_OTORGADO,
 				QUANTUM,
-				RETARDO);
+				RETARDO,
+				ALGORITMO);
 		var(tipo, package_get_data_type(paquete));
 
 		if(tipo == UBICACION_RECURSO) break;
@@ -195,9 +202,9 @@ private tad_package* esperar_ubicacion_recurso(tad_planificador* self, tad_socke
 	return paquete;
 }
 
-private void otorgar_turno(tad_planificador* self, int quantum){
+private void otorgar_turno(tad_planificador* self){
 	//obtenemos el siguiente personaje al que le toca jugar
-	var(personaje, siguiente_personaje(self));
+	var(personaje, self->algoritmo(self));
 	if(!personaje) return;
 
 	var(simbolo, personaje->simbolo);
@@ -207,6 +214,7 @@ private void otorgar_turno(tad_planificador* self, int quantum){
 	//seteamos el manejo de errores ante una desconexion del personaje
 	SOCKET_ON_ERROR(socket, error_socket_personaje(self, personaje));
 
+	var(quantum, self->quantum);
 	while(quantum--){
 		socket_send_empty_package(socket, PLANIFICADOR_OTORGA_QUANTUM);
 
@@ -246,11 +254,17 @@ private void otorgar_turno(tad_planificador* self, int quantum){
 	}
 }
 
-private tad_personaje* siguiente_personaje(tad_planificador* self){
+private tad_personaje* algoritmo_rr(tad_planificador* self){
 	var(personajes, self->personajes_listos);
 	if(list_size(personajes) > 0) return list_remove(personajes, 0);
 	else return null;
-	//TODO algoritmo intercambiable, etc
+}
+
+private tad_personaje* algoritmo_srdf(tad_planificador* self){
+	//TODO logica de srdf (temporalmente lo de abajo corresponde a rr)
+	var(personajes, self->personajes_listos);
+	if(list_size(personajes) > 0) return list_remove(personajes, 0);
+	else return null;
 }
 
 
@@ -274,15 +288,33 @@ private tad_personaje* buscar_personaje_bloqueado(tad_planificador* self, char s
 
 private void manejar_paquete_nivel(tad_planificador* self, tad_package* paquete){
 	var(tipo, package_get_data_type(paquete));
+
 	if(tipo == QUANTUM){
-		self->quantum = package_get_int(paquete);
+		int quantum = package_get_int(paquete);
+		logger_info(get_logger(self), "La cantidad de quantums cambio a %d", quantum);
+		self->quantum = quantum;
+
 	}else if(tipo == RETARDO){
-		self->retardo = package_get_int(paquete);
+		int retardo = package_get_int(paquete);
+		logger_info(get_logger(self), "El retardo entre cambio de turno cambio a %dms", retardo);
+		self->retardo = retardo;
+
+	}else if (tipo == ALGORITMO){
+		char* algoritmo = package_get_string(paquete);
+		logger_info(get_logger(self), "El algoritmo de planificacion cambio a %s", algoritmo);
+
+		if(string_equals("SRDF", algoritmo))
+			self->algoritmo = algoritmo_srdf;
+		else
+			self->algoritmo = algoritmo_rr;
+		free(algoritmo);
+
 	}else if(tipo == RECURSO_OTORGADO){
 		var(simbolo, package_get_char(paquete));
 		var(personaje, buscar_personaje_bloqueado(self, simbolo));
 		list_add(self->personajes_listos, personaje);
 		socket_send_empty_package(personaje->socket, RECURSO_OTORGADO);
+
 	}
 }
 
@@ -290,10 +322,11 @@ private void manejar_paquete_nivel(tad_planificador* self, tad_package* paquete)
 private void paquete_entrante_nivel(PACKED_ARGS){
 	UNPACK_ARG(tad_planificador* self);
 
-	tad_package* paquete = socket_receive_one_of_this_packages(self->nivel->socket, 3,
+	tad_package* paquete = socket_receive_one_of_this_packages(self->nivel->socket, 4,
 			RECURSO_OTORGADO,
 			QUANTUM,
-			RETARDO);
+			RETARDO,
+			ALGORITMO);
 
 	manejar_paquete_nivel(self, paquete);
 	package_dispose(paquete);

@@ -12,38 +12,36 @@
 #include "../libs/socket/socket.h"
 #include "../libs/multiplexor/multiplexor.h"
 #include "../libs/logger/logger.h"
+#include "../libs/common.h"
 
 /****************************
  * STRUCTS & TADS ***********
  ****************************/
-struct s_personaje{
+class(tad_personaje){
 	char* nombre;
 	char simbolo;
 	tad_socket* socket;
 };
-typedef struct s_personaje tad_personaje;
 
-struct s_nivel{
+class(tad_nivel){
 	char* nombre;
 	tad_socket* socket;
 };
-typedef struct s_nivel tad_nivel;
 
 
-struct s_planificador{
+class(tad_planificador){
 	tad_nivel* nivel;
-	char* algoritmo;
+	tad_personaje* (*algoritmo)(tad_planificador*);
 	int quantum;
 	int retardo;
 
-	t_list* personajes_listos;
-	t_list* personajes_bloqueados;
+	t_list* personajes_listos; //list<tad_personaje>
+	t_list* personajes_bloqueados; //list<tad_personaje>
 
 	tad_multiplexor* multiplexor;
 
 	tad_logger* logger;
 };
-typedef struct s_planificador tad_planificador;
 
 
 /****************************
