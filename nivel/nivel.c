@@ -73,6 +73,8 @@ int main(int argc, char **argv){
 	socket_send_int(socket, QUANTUM, nvl->quantum);
 	//Le indicamos la pausa entre turnos al planificador
 	socket_send_int(socket, RETARDO, nvl->retardo);
+	//Le indicamos el algoritmo al planificador
+	socket_send_string(socket, ALGORITMO, nvl->algoritmo);
 
 	//Inicializo la UI
 	logger_info(logger, "Inicializando interfaz grafica");
