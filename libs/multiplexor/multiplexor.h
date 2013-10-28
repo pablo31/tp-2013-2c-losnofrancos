@@ -69,27 +69,27 @@ void multiplexor_dispose_and_dispose_objects(tad_multiplexor* m);
 /***************************************************************
  * Socket methods
  ***************************************************************/
-#define multiplexor_bind_socket(m, socket, handler, args...) \
-	multiplexor_bind(m, socket, __socket_get_id, __socket_close, handler, VA_NUM_ARGS(args), args)
+#define multiplexor_bind_socket(multiplexor, socket, handler_function, handler_args...) \
+	multiplexor_bind(multiplexor, socket, __socket_get_id, __socket_close, handler_function, VA_NUM_ARGS(handler_args), handler_args)
 
-#define multiplexor_rebind_socket(m, socket, handler, args...) \
-	multiplexor_rebind(m, socket, handler, VA_NUM_ARGS(args), args)
+#define multiplexor_rebind_socket(multiplexor, socket, handler_function, handler_args...) \
+	multiplexor_rebind(multiplexor, socket, handler_function, VA_NUM_ARGS(handler_args), handler_args)
 
-#define multiplexor_unbind_socket(m, socket) \
-	multiplexor_unbind(m, socket);
+#define multiplexor_unbind_socket(multiplexor, socket) \
+	multiplexor_unbind(multiplexor, socket);
 
 
 /***************************************************************
  * Notifier methods
  ***************************************************************/
-#define multiplexor_bind_notifier(m, n, handler, args...) \
-	multiplexor_bind(m, n, __notifier_get_fd, __notifier_dispose, handler, VA_NUM_ARGS(args), args)
+#define multiplexor_bind_notifier(multiplexor, notifier, handler_function, handler_args...) \
+	multiplexor_bind(multiplexor, notifier, __notifier_get_fd, __notifier_dispose, handler_function, VA_NUM_ARGS(handler_args), handler_args)
 
-#define multiplexor_rebind_notifier(m, n, handler, args...) \
-	multiplexor_rebind(m, n, handler, VA_NUM_ARGS(args), args)
+#define multiplexor_rebind_notifier(multiplexor, notifier, handler_function, handler_args...) \
+	multiplexor_rebind(multiplexor, notifier, handler_function, VA_NUM_ARGS(handler_args), handler_args)
 
-#define multiplexor_unbind_notifier(m, n) \
-	multiplexor_unbind(m, n);
+#define multiplexor_unbind_notifier(multiplexor, notifier) \
+	multiplexor_unbind(multiplexor, notifier);
 
 
 #endif /* MULTIPLEXOR_H_ */

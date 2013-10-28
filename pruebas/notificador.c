@@ -12,8 +12,8 @@
 #include "../libs/signal/signal.h"
 #include "../libs/notifier/notifier.h"
 
-void sigint_handler(tad_notifier* n){
-	notifier_dispose(n);
+void sigint_handler(tad_notifier* notifier){
+	notifier_dispose(notifier);
 	exit(EXIT_SUCCESS);
 }
 
@@ -28,12 +28,12 @@ int main(int argc, char* argv[]) {
 
 	char* file_path = argv[1];
 
-	tad_notifier* n = notifier_create(file_path);
+	tad_notifier* notifier = notifier_create(file_path);
 
-	signal_dynamic_handler(SIGINT, sigint_handler(n));
+	signal_dynamic_handler(SIGINT, sigint_handler(notifier));
 
 	while(1){
-		notifier_wait_for_modification(n);
+		notifier_wait_for_modification(notifier);
 		printf("El archivo fue modificado.\n");
 	}
 

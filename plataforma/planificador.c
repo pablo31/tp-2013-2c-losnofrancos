@@ -348,6 +348,9 @@ private void error_socket_personaje(tad_planificador* self, tad_personaje* perso
 
 private void error_socket_nivel(tad_planificador* self){
 	logger_info(get_logger(self), "El nivel asociado al planificador se desconecto inesperadamente");
+	//quitamos el planificador de la lista de plataforma
+	plataforma_planificador_finalizado(self->plataforma, self);
+	//finalizamos el planificador
 	planificador_finalizar(self);
 }
 
