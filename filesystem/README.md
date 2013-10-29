@@ -1,24 +1,30 @@
-grasa-tools
-===========
+Proceso FileSystem 
+===================
+Uso
 
-Herramientas de Gestión del Gran Sistema de Archivos
+1) Compilar todo con make
 
-
-Usage:
-
-1) Crear un archivo para disco binario. 
-
-	dd if=/dev/urandom of=disco.bin bs=1024 count=10240
+	make
 	
-	** Modificar "count" para la cantidad de kilobytes necesarios.
-
-2) Formatear el disco binario
+2) Crear el archivo de grasa SI NO ESTA CREADO ANTERIORMENTE
 
 	./grasa-format disco.bin
 
-3) Hacer un dump de sus estructuras internas.
+3) Abrir 'filesystem.sh' y comprobar que los parametros de ejecucion
 
-	./grasa-dump disco.bin
+	nano filesystem.sh
 
+4) Ejecutar el shell script filesystem.sh
 
+	./filesystem.sh
 
+5) Comprobar que el proceso este manejando el acceso a la carpeta
+
+	mount
+	** validar que se encuentre una linea similar a 
+	** filesystem on /home/nagel/code/tp-2013-2c-losnofrancos/filesystem/grasa type fuse.filesystem (rw,nosuid,nodev,user=nagel)
+
+6) Desmontar el directorio cuando no se necesite usar mas 
+	
+	fusermount -u grasa
+	**en el ejemplo el directorio es 'grasa'
