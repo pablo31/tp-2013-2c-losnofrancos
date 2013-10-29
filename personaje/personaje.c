@@ -222,34 +222,33 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 	}
 
 	//Recibe mensajes del planificador
-	//a)SOLICITUD_UBICACION_RECURSO, no consume quamtum, verifica que este parado en esa posicion
+	//a)SOLICITUD_UBICACION_RECURSO,solicita la ubicacion de la caja de recursos proxima a obtener, no consume quamtum
 	//b)
 	//c)
 
 	//Hago tres if, porque me parece mejor que el if--else---if---else
 	while(1){
-	/*	tad_package* paquete = socket_receive_one_of_this_packages(socket, 3,
+		tad_package* paquete = socket_receive_one_of_this_packages(socket, 3,
 							SOLICITUD_UBICACION_RECURSO,
 							PERSONAJE_MOVIMIENTO,
 							PERSONAJE_SOLICITUD_RECURSO);
 
 		var(tipo_mensaje, package_get_data_type(paquete));
 
-		vector2 posicion_del_Recurso;
 
 		if(tipo_mensaje == SOLICITUD_UBICACION_RECURSO){
-
+			vector2 direccion = package_get_vector2(paquete);
+			self->posicionDelProximoRecurso.x = direccion.x;
+			self->posicionDelProximoRecurso.y = direccion.y;
 		}
 
 
 		if(tipo_mensaje == PERSONAJE_SOLICITUD_RECURSO){
-			//pablo esto me hace ruido...
-
-			if (vector2_equals(self->posicion,posicion_del_Recurso))
+			if (vector2_equals(self->posicion,self->posicionDelProximoRecurso))
 							socket_send_empty_package(socket, PERSONAJE_SOLICITUD_RECURSO);
 			//avanza una posicion y le solicita al planificador un movimiento
 			 else{
-				 posicion_get_proxima_hacia(self->posicion,posicion_del_Recurso);
+				 posicion_get_proxima_hacia(self->posicion,self->posicionDelProximoRecurso);
 				 socket_send_empty_package(socket, PERSONAJE_MOVIMIENTO);
 			}
 		}
@@ -259,7 +258,7 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 
 		}
 
-    */
+
 	}
 
 	return 1;
