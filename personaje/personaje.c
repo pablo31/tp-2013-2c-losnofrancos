@@ -228,7 +228,7 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 
 	//Hago tres if, porque me parece mejor que el if--else---if---else
 	while(1){
-		tad_package* paquete = socket_receive_one_of_this_packages(socket, 3,
+	/*	tad_package* paquete = socket_receive_one_of_this_packages(socket, 3,
 							SOLICITUD_UBICACION_RECURSO,
 							PERSONAJE_MOVIMIENTO,
 							PERSONAJE_SOLICITUD_RECURSO);
@@ -249,7 +249,7 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 			//avanza una posicion y le solicita al planificador un movimiento
 			 else{
 				 posicion_get_proxima_hacia(self->posicion,self->posicionDelProximoRecurso);
-				 socket_send_empty_package(socket, PERSONAJE_MOVIMIENTO);
+				 socket_send_vector2(socket, PERSONAJE_MOVIMIENTO);
 			}
 		}
 
@@ -257,7 +257,7 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 		if(tipo_mensaje == PERSONAJE_SOLICITUD_RECURSO){
 
 		}
-
+	 	 */
 
 	}
 
@@ -313,36 +313,6 @@ private t_personaje* personaje_crear(char* config_path){
 	return self;
 }
 
-
-//t_posicion* pedir_posicion_objetivo(t_personaje* self, char* objetivo,tad_logger* logger,  tad_socket* socket) {
-//
-//	log_info(logger,"Personaje:  %s",self->nombre);
-//	log_info(logger,"Solicitando proximo recurso:  %s",self->objetivo_actual);
-//
-//	char input = self->objetivo_actual;
-//	tad_package* paquete = package_create('s', strlen(input) + 1, input);
-//	socket_send_package(socket, paquete);
-//
-//	log_info(logger," Paquete enviado del Personaje:  %s",self->nombre);
-//
-//	//Recibimos el paquete que estaba en espera
-//	tad_package* paquete = socket_receive_package(socket);
-//
-//	char* texto = package_get_data(paquete);
-//	printf("Paquete recibido: tipo '%c', longitud %d, texto '%s'.\n",
-//			package_get_data_type(paquete),
-//			package_get_data_length(paquete),
-//		texto);
-//
-//	//esta es la magiaaaaa WOOOo... xD
-//	//supuestamente el  package_get_data_type(paquete) me devuelve un par (x,y)
-//	t_posicion* posicion_objetivo = posicion_duplicate(package_get_data_type(paquete));
-//
-//	//se libera sus recursos
-//	package_dispose(paquete);
-//	free(texto);
-//	return posicion_objetivo;
-//}
 
 
 
