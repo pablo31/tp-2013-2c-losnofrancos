@@ -3,11 +3,9 @@
 #include <fuse.h>
 #include <stdio.h>
 #include <errno.h>
-#include <fcntl.h>
 #include <sys/mman.h>
 #include "grasa.h"
 #include <stdbool.h>
-#include <math.h>
 #include "filesystem.h"
 #include "filesystem_operations.h"
 #include "../libs/logger/logger.h"
@@ -15,7 +13,7 @@
 #include "../libs/common/string.h"
 
 #define TAMANIO_BLOQUE 		  4096
-#define LOG_FILE              "grasa.log"
+#define LOG_FILE              "grasa.log" //el archivo donde se va a guardar el log.
 
 struct fuse_operations grasa_operations = {
   .mkdir = fs_mkdir,
@@ -72,11 +70,28 @@ static t_bitarray* cargar_bitmap(uint32_t cantidad_bloques){
 }
 
 
+void liberar_recursos(){
+	if(mmaped_file != NULL){
+		munmap(mmaped_file , file_size);
+		free(mmaped_file);
+	}
 
-static void cargar_configuracion_grasa(int argc, char *argv[]){
+	free(file_name);
+	free(grasa_bitmap);
+
+	if(header != NULL){
+    	free(header->padding);
+    	free(header->grasa);
+    	free(header);
+	}
+
+	cerrar_logger();
+}
+
+void cargar_configuracion_grasa(int argc, char *argv[]){
 	if ((argc < 3) || (argv[argc-2][0] == '-') || (argv[argc-1][0] == '-')){
 		logger_error(logger, "uso:\n\t./filesystem.sh [opciones de FUSE] archivo_grasa directorio_donde_montar");
-		cerrar_logger();
+		liberar_recursos();
 	    exit(EXIT_FAILURE);
 	}
 
@@ -98,17 +113,6 @@ static void cargar_configuracion_grasa(int argc, char *argv[]){
  	}
 }
 
-/*
-static void liberar_recursos(){
-	if(mmaped_file != NULL){
-		munmap(mmaped_file , file_size);
-		free(mmaped_file);
-	}
-
-	free(file_name);
-}
-*/
-
 int main(int argc, char *argv[]){
 	iniciar_logger(argv[0]);
 	cargar_configuracion_grasa(argc, argv);
@@ -122,9 +126,10 @@ int main(int argc, char *argv[]){
  	header = cargar_header(); 
  	grasa_bitmap = cargar_bitmap(header->size_bitmap);
     
-    fuse_main(args.argc, args.argv, &grasa_operations, NULL);
+	int fuse_retorno = fuse_main(args.argc, args.argv, &grasa_operations, NULL);
 
-    //liberar_recursos();
+	logger_info(logger, "Fin de fuse_main - %s.", (fuse_retorno==0) ? "Finalizacion correcta":"Error");
+    liberar_recursos();
 	
 	return EXIT_SUCCESS;
 }

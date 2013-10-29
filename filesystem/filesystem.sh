@@ -7,7 +7,10 @@ directorio="grasa"
 echo "Montando grasa desde $archivo en $directorio"
 
 #debug
-#valgrind --tool=exp-sgcheck ./filesystem $archivo $directorio 
-./filesystem $archivo $directorio 
+rm grasa.log
+valgrind --tool=exp-sgcheck ./filesystem $archivo $directorio 
+
+
+#./filesystem $archivo $directorio 
 
 echo "Desmonar con 'fusermount -u $directorio'"
