@@ -5,6 +5,7 @@
 #include "../libs/common/collections/list.h"
 #include "../libs/common/config.h"
 #include "../libs/logger/logger.h"
+#include "../libs/vector/vector2.h"
 
 #ifndef NIVEL
 #define NIVEL
@@ -12,15 +13,13 @@
 typedef struct caja{
 	char*	nombre;
 	char	simbolo;
-	uint 	instancias;
-	uint 	pos_x;
-	uint 	pos_y;
+	int 	instancias;
+	vector2 pos;
 } caja;
 
 typedef struct enemigo{
 	char	simbolo;
-	uint 	pos_x;
-	uint 	pos_y;
+	vector2 pos;
 } enemigo;
 
 typedef struct nivel {

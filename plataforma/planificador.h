@@ -14,6 +14,7 @@
 #include "../libs/logger/logger.h"
 #include "../libs/common.h"
 
+
 /****************************
  * STRUCTS & TADS ***********
  ****************************/
@@ -28,8 +29,14 @@ class(tad_nivel){
 	tad_socket* socket;
 };
 
+struct s_planificador;
+typedef struct s_planificador tad_planificador;
 
-class(tad_planificador){
+#include "plataforma.h"
+
+struct s_planificador{
+	tad_plataforma* plataforma;
+
 	tad_nivel* nivel;
 	tad_personaje* (*algoritmo)(tad_planificador*);
 	int quantum;

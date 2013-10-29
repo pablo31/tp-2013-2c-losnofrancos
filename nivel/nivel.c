@@ -140,5 +140,7 @@ private void config_file_modified(PACKED_ARGS){
 		self->algoritmo = nuevo_algoritmo;
 		free(algoritmo);
 		socket_send_string(socket, ALGORITMO, nuevo_algoritmo);
+	}else{
+		free(nuevo_algoritmo);
 	}
 }

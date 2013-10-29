@@ -6,6 +6,7 @@
 #include "nivel_ui.h"
 #include "../libs/logger/logger.h"
 #include "../libs/common/config.h"
+#include "../libs/vector/vector2.h"
 #include "../libs/common.h"
 
 static WINDOW * secwin;
@@ -151,20 +152,22 @@ void nivel_gui_crear_personaje(ITEM_NIVEL** ListaItems, char id, int x , int y) 
         nivel_gui_crear_item(ListaItems, id, x, y, PERSONAJE_ITEM_TYPE, 0);
 }
 
-void nivel_gui_crear_caja(ITEM_NIVEL** ListaItems, char id, int x , int y, int cant) {
-        nivel_gui_crear_item(ListaItems, id, x, y, RECURSO_ITEM_TYPE, cant);
+void nivel_gui_crear_caja(ITEM_NIVEL** ListaItems, caja* c) {
+        nivel_gui_crear_item(ListaItems, c->simbolo, c->pos.x, c->pos.y, RECURSO_ITEM_TYPE, c->instancias);
 }
 
 
-void nivel_gui_crear_enemigo(ITEM_NIVEL** ListaItems, enemigo* enemigo,int seed) {		
+void nivel_gui_crear_enemigo(ITEM_NIVEL** ListaItems, enemigo* enem, int seed) {
 		//la seed o semilla es un numero para generar valores aleatorios. 
 		//Se lo paso por argumento asi lo modifico en el for anterior, sino me da siempre numeros iguales
 		// le sumo 1 al resultado porque no puede ser 0/0 la posicion.
 		srand (seed);
-		enemigo->pos_x = 1 + (rand() % rows);
-		enemigo->pos_y = 1 + (rand() % cols);
+		int pos_x = 1 + (rand() % rows);
+		int pos_y = 1 + (rand() % cols);
+
+		enem->pos = vector2_new(pos_x, pos_y);
 		
-        nivel_gui_crear_item(ListaItems, enemigo->simbolo, enemigo->pos_x, enemigo->pos_y, ENEMIGO_ITEM_TYPE, 1);
+        nivel_gui_crear_item(ListaItems, enem->simbolo, enem->pos.x, enem->pos.y, ENEMIGO_ITEM_TYPE, 1);
 }
 
 void nivel_borrar_item(ITEM_NIVEL** ListaItems, char id) {
@@ -234,17 +237,15 @@ void cargar_recursos_nivel(nivel* nivel){
 	int cantidad_niveles = list_size(nivel->cajas); 
 	int i;
 	for (i=0; i < cantidad_niveles ; i++){
-		caja* caja = list_get(nivel->cajas,i); 		
-
-		nivel_gui_crear_caja(&ListaItems, caja->simbolo, caja->pos_x ,caja->pos_y , caja->instancias);
+		caja* caja = list_get(nivel->cajas,i);
+		nivel_gui_crear_caja(&ListaItems, caja);
 	}
 
 	int cantidad_enemigos = list_size(nivel->enemigos);
-	int seed = time(NULL);
+	int seed = time(null);
 	for (i=0; i < cantidad_enemigos; i++){
-		enemigo* enemigo = list_get(nivel->enemigos,i);
-
-		nivel_gui_crear_enemigo(&ListaItems, enemigo, seed);
+		enemigo* enem = list_get(nivel->enemigos,i);
+		nivel_gui_crear_enemigo(&ListaItems, enem, seed);
 		seed++;
 	}
 

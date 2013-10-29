@@ -78,8 +78,10 @@ tad_plataforma* plataforma_crear(){
 
 void plataforma_finalizar(tad_plataforma* self){
 	//liberamos los recursos de los planificadores
-	foreach(planificador, self->planificadores, tad_planificador*)
+	void liberar_planificador(void* planificador){
 		planificador_finalizar(planificador);
+	}
+	list_destroy_and_destroy_elements(self->planificadores, liberar_planificador);
 	//liberamos los recursos del orquestador
 	orquestador_finalizar(self->orquestador);
 	//liberamos los recursos propios de plataforma
@@ -110,4 +112,12 @@ void plataforma_iniciar_planificador(tad_plataforma* self, char* nombre_nivel, t
 	list_add(self->planificadores, planificador);
 	//ejecutamos el planificador en un nuevo thread
 	thread_free_begin(planificador_ejecutar, 1, planificador);
+}
+
+//Quita de la lista de planificadores al planificador dado
+void plataforma_planificador_finalizado(tad_plataforma* self, tad_planificador* planificador){
+	bool planificador_buscado(void* item){
+		return item == planificador;
+	}
+	list_remove_by_condition(self->planificadores, planificador_buscado);
 }

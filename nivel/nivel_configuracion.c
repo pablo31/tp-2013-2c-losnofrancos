@@ -21,33 +21,35 @@ void destruir_nivel(nivel* nivel){
 	free(nivel);
 }
 
-static caja* crear_caja(char* nombre,char simbolo, uint instancias, uint pos_x, uint pos_y){
-	alloc(caja,caja);
+static caja* crear_caja(char* nombre,char simbolo, int instancias, int pos_x, int pos_y){
+	alloc(ret, caja);
 	
-	caja->nombre = "";
-	caja->nombre = strdup(nombre);
-	caja->simbolo = simbolo;
-	caja->instancias = instancias;
-	caja->pos_x = pos_x;
-	caja->pos_y = pos_y;
+	ret->nombre = "";
+	ret->nombre = strdup(nombre);
+	ret->simbolo = simbolo;
+	ret->instancias = instancias;
+	ret->pos = vector2_new(pos_x, pos_y);
 	
-	return caja;
+	return ret;
 }
 
-static void crear_enemigos(nivel* nivel, uint cantidad){
+static void crear_enemigos(nivel* nivel, int cantidad){
 	int i;
-	int seed = time(NULL);
+	int seed = time(null);
 
 	for (i = 0; i < cantidad; ++i){
 
-		enemigo* enemigo = malloc(sizeof(enemigo));
-		enemigo->simbolo = '*';
+		alloc(enem, enemigo);
+		enem->simbolo = '*';
 
-		srand (++seed);//le agrego una a la semilla para que no genere siempre lo mismo en cada iteracion
-		enemigo->pos_x = 1 + (rand() % 15);//le sumo 1 porque no puede ser 0 0 nunca.
-		enemigo->pos_y = 1 + (rand() % 15);
+		srand (++seed); //le agrego una a la semilla para que no genere siempre lo mismo en cada iteracion
 
-		list_add(nivel->enemigos, enemigo);	
+		int pos_x = 1 + (rand() % 15); //le sumo 1 porque no puede ser 0 0 nunca.
+		int pos_y = 1 + (rand() % 15);
+
+		enem->pos = vector2_new(pos_x, pos_y);
+
+		list_add(nivel->enemigos, enem);
 	}	
 }
 
@@ -70,7 +72,7 @@ static void cargar_configuracion_nivel(nivel* nvl, t_config* config){
 	nvl->recovery = (bool) config_get_int_value(config,"Recovery");
 	logger_info(nvl->logger, "Recovery:%i",nvl->tiempo_deadlock);
 
-	uint enemigos = config_get_int_value(config,"Enemigos");
+	int enemigos = config_get_int_value(config,"Enemigos");
 	logger_info(nvl->logger, "Enemigos:%i",enemigos);
 
 	nvl->sleep_enemigos = config_get_int_value(config,"Sleep_Enemigos");
@@ -86,40 +88,38 @@ static void cargar_configuracion_nivel(nivel* nvl, t_config* config){
 	
 
 	uint  numero_caja = 1;
-	char* nombre_caja = string_from_format("Caja%i",numero_caja);
-	char* nombre =  "";
-	char  simbolo ;
-	uint  instancias;
-	uint  pos_x;
-	uint  pos_y;
+	char* nombre_caja = string_from_format("Caja%i", numero_caja);
 
 	char *p;
 	const int base = 10;
+
 	logger_info(nvl->logger ,"Cajas");
 	logger_info(nvl->logger ,"");
 	while(config_has_property(config, nombre_caja)){
 
-		logger_info(nvl->logger ,"\t%s",nombre_caja);
+		logger_info(nvl->logger, "\t%s", nombre_caja);
 
-		char** valores = config_get_array_value(config,nombre_caja );
+		char** valores = config_get_array_value(config, nombre_caja);
 		
-		nombre = valores[0];
+		char* nombre = valores[0];
 		logger_info(nvl->logger ,"\tNombre:%s",nombre);
-		simbolo = valores[1][0];
+		char simbolo = valores[1][0];
 		logger_info(nvl->logger ,"\tSimbolo:%c",simbolo);
-		instancias = strtol(valores[2], &p, base);
+		int instancias = strtol(valores[2], &p, base); //TODO no se puede hacer algo mas lindo??
 		logger_info(nvl->logger ,"\tInstancias:%i",instancias);
-		pos_x = strtol(valores[3], &p, base);
-		logger_info(nvl->logger ,"\tPosicion eje x:%i",pos_x);		
-		pos_y = strtol(valores[4], &p, base);
+		int pos_x = strtol(valores[3], &p, base);
+		int pos_y = strtol(valores[4], &p, base);
+		logger_info(nvl->logger ,"\tPosicion eje x:%i",pos_x);
 		logger_info(nvl->logger ,"\tPosicion eje y:%i",pos_y);
 		
 		logger_info(nvl->logger ,"");
 		caja* caja = crear_caja(nombre,simbolo,instancias,pos_x,pos_y);		
-		list_add(nvl->cajas, caja);	
+		list_add(nvl->cajas, caja);
 		
 		numero_caja++;
-		nombre_caja = string_from_format("Caja%i",numero_caja);
+
+		free(nombre_caja);
+		nombre_caja = string_from_format("Caja%i", numero_caja);
 	}
 
 	crear_enemigos(nvl,enemigos);
@@ -135,9 +135,8 @@ nivel* crear_nivel(char* config_path) {
 	nvl->plataforma = "";
 	nvl->tiempo_deadlock = 0;
 	nvl->recovery = false;
-	nvl->cajas = malloc(sizeof(caja*));
+
 	nvl->cajas = list_create();
-	nvl->enemigos = malloc(sizeof(enemigo*));
 	nvl->enemigos = list_create();
 	
 	cargar_configuracion_nivel(nvl,config);
