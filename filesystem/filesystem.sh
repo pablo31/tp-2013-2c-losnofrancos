@@ -5,9 +5,9 @@ clear
 archivo="disco.bin" 
 directorio="grasa"
 echo "Montando grasa desde $archivo en $directorio"
-echo ""
-
 
 #debug
 #valgrind --tool=exp-sgcheck ./filesystem $archivo $directorio 
 ./filesystem $archivo $directorio 
+
+echo "Desmonar con 'fusermount -u $directorio'"
