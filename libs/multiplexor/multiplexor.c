@@ -16,7 +16,9 @@
 
 
 typedef struct s_phone{
-	tad_socket* socket;
+	void* object;
+	int (*id_getter)(void*);
+	void (*destroyer)(void*);
 	tad_command* command;
 } phone;
 
@@ -46,32 +48,37 @@ tad_multiplexor* multiplexor_create(){
 	return ret;
 }
 
-//Agrega un socket a la lista de escucha del multiplexor
-void multiplexor_bind_socket(tad_multiplexor* m, tad_socket* socket, void* handler_function, int numargs, ...){
+//Agrega un objeto a la lista de escucha del multiplexor
+void multiplexor_bind(tad_multiplexor* m,
+		void* obj, int(*id_getter)(void*), void (*destroyer)(void*),
+		void* handler_function, int numargs, ...){
+
 	va_list inargs;
 	va_start (inargs, numargs);
 	tad_command* command = command_create_val(handler_function, numargs, inargs);
 
-	int socket_id = socket_get_id(socket);
+	int fd = id_getter(obj);
 	fd_set* master = multiplexor_get_master(m);
 
-	FD_SET(socket_id, master);
-	m->max_fd = max(m->max_fd, socket_id);
+	FD_SET(fd, master);
+	m->max_fd = max(m->max_fd, fd);
 
 	alloc(p, phone);
-	p->socket = socket;
+	p->object = obj;
+	p->id_getter = id_getter;
+	p->destroyer = destroyer;
 	p->command = command;
 	list_add(m->phone_book, p);
 }
 
-//Cambia la funcion manejadora de un socket
-void multiplexor_rebind_socket(tad_multiplexor* m, tad_socket* socket, void* new_handler_function, int numargs, ...){
+//Cambia la funcion manejadora de un objeto
+void multiplexor_rebind(tad_multiplexor* m, void* obj, void* new_handler_function, int numargs, ...){
 	va_list inargs;
 	va_start (inargs, numargs);
 	tad_command* new_command = command_create_val(new_handler_function, numargs, inargs);
 
 	foreach(p, m->phone_book, phone*){
-		if(p->socket == socket){
+		if(p->object == obj){
 			command_dispose(p->command);
 			p->command = new_command;
 			return;
@@ -81,26 +88,27 @@ void multiplexor_rebind_socket(tad_multiplexor* m, tad_socket* socket, void* new
 
 //Itera en la lista de sockets y busca el mayor fd
 private void multiplexor_refresh_max_fd(tad_multiplexor* m){
-	int max = 0;
+	int max_fd = 0;
 	foreach(p, m->phone_book, phone*){
-		int socket_id = socket_get_id(p->socket);
-		max = max(max, socket_id);
+		int fd = p->id_getter(p->object);
+		max_fd = max(max_fd, fd);
 	}
-	m->max_fd = max;
+	m->max_fd = max_fd;
 }
 
 //Quita un socket de la lista de escucha del multiplexor
-void multiplexor_unbind_socket(tad_multiplexor* m, tad_socket* socket){
+void multiplexor_unbind(tad_multiplexor* m, void* obj){
 	t_list* phone_book = m->phone_book;
 
-	int socket_id = socket_get_id(socket);
-	FD_CLR(socket_id, multiplexor_get_master(m));
-
-	bool searched(void* p){ return ((phone*)p)->socket == socket; }
+	bool searched(void* p){ return ((phone*)p)->object == obj; }
 	phone* p = list_remove_by_condition(phone_book, searched);
+
+	int fd = p->id_getter(obj);
+	FD_CLR(fd, multiplexor_get_master(m));
+
 	multiplexor_dispose_phone(p);
 
-	if(socket_id == m->max_fd) multiplexor_refresh_max_fd(m);
+	if(fd == m->max_fd) multiplexor_refresh_max_fd(m);
 }
 
 //Ejecuta el select, dado el parametro de tiempo maximo
@@ -125,9 +133,9 @@ private void multiplexor_execute_select(tad_multiplexor* m, struct timeval* tv){
 	//iteramos sobre el array buscando los sockets que recibieron mensajes
 	for(i = 0; i < opbs; i++){
 		phone p = phones[i];
-		int socket_id = socket_get_id(p.socket);
+		int fd = p.id_getter(p.object);
 		//ejecutamos el manejador
-		if(FD_ISSET(socket_id, &read_set))
+		if(FD_ISSET(fd, &read_set))
 			command_execute(p.command);
 	}
 }
@@ -164,9 +172,9 @@ void multiplexor_dispose(tad_multiplexor* m){
 }
 
 //Libera los recursos del multiplexor y cierra todos sus sockets asociados
-void multiplexor_dispose_and_close_sockets(tad_multiplexor* m){
+void multiplexor_dispose_and_dispose_objects(tad_multiplexor* m){
 	foreach(p, m->phone_book, phone*)
-		socket_close(p->socket);
+		p->destroyer(p->object);
 
 	multiplexor_dispose(m);
 }

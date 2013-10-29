@@ -18,6 +18,8 @@
 #include "../socket/socket.h"
 #include "../command/command.h"
 
+#include "../overload.h"
+
 
 /***************************************************************
  * Class definition
@@ -32,7 +34,6 @@ class(tad_multiplexor){
 /***************************************************************
  * Overloads
  ***************************************************************/
-#include "../overload.h"
 #define multiplexor_wait_for_io(args...) overload(multiplexor_wait_for_io, args)
 
 
@@ -43,12 +44,14 @@ class(tad_multiplexor){
 //Crea una instancia multiplexor
 tad_multiplexor* multiplexor_create();
 
-//Asocia un socket y su funcion manejadora al multiplexor
-void multiplexor_bind_socket(tad_multiplexor* m, tad_socket* socket, void* handler_function, int numargs, ...);
-//Cambia la funcion manejadora de un socket ya asociado al multiplexor
-void multiplexor_rebind_socket(tad_multiplexor* m, tad_socket* socket, void* new_handler_function, int numargs, ...);
-//Quita un socket de la lista de asociados al multiplexor
-void multiplexor_unbind_socket(tad_multiplexor* m, tad_socket* socket);
+//Asocia un objeto y su funcion manejadora al multiplexor
+void multiplexor_bind(tad_multiplexor* m,
+		void* obj, int(*id_getter)(void*), void (*destroyer)(void*),
+		void* handler_function, int numargs, ...);
+//Cambia la funcion manejadora de un objeto ya asociado al multiplexor
+void multiplexor_rebind(tad_multiplexor* m, void* obj, void* new_handler_function, int numargs, ...);
+//Quita un objeto de la lista de asociados al multiplexor
+void multiplexor_unbind(tad_multiplexor* m, void* obj);
 
 //Espera paquetes entrantes en los sockets asociados al multiplexor
 void multiplexor_wait_for_io(tad_multiplexor* m);
@@ -60,7 +63,33 @@ void multiplexor_wait_for_io(tad_multiplexor* m, int ms, int as_out remaining_ms
 //Libera los recursos del multiplexor
 void multiplexor_dispose(tad_multiplexor* m);
 //Libera los recursos del multiplexor y de todos sus sockets asociados
-void multiplexor_dispose_and_close_sockets(tad_multiplexor* m);
+void multiplexor_dispose_and_dispose_objects(tad_multiplexor* m);
+
+
+/***************************************************************
+ * Socket methods
+ ***************************************************************/
+#define multiplexor_bind_socket(m, socket, handler, args...) \
+	multiplexor_bind(m, socket, __socket_get_id, __socket_close, handler, VA_NUM_ARGS(args), args)
+
+#define multiplexor_rebind_socket(m, socket, handler, args...) \
+	multiplexor_rebind(m, socket, handler, VA_NUM_ARGS(args), args)
+
+#define multiplexor_unbind_socket(m, socket) \
+	multiplexor_unbind(m, socket);
+
+
+/***************************************************************
+ * Notifier methods
+ ***************************************************************/
+#define multiplexor_bind_notifier(m, n, handler, args...) \
+	multiplexor_bind(m, n, __notifier_get_fd, __notifier_dispose, handler, VA_NUM_ARGS(args), args)
+
+#define multiplexor_rebind_notifier(m, n, handler, args...) \
+	multiplexor_rebind(m, n, handler, VA_NUM_ARGS(args), args)
+
+#define multiplexor_unbind_notifier(m, n) \
+	multiplexor_unbind(m, n);
 
 
 #endif /* MULTIPLEXOR_H_ */

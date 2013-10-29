@@ -36,7 +36,7 @@ int main(void){
 
 	printf("Inicializando socket...\n");
 	tad_socket* socket_escucha = socket_listen("7666");
-	multiplexor_bind_socket(multiplexor, socket_escucha, conexion_entrante, 2, multiplexor, socket_escucha);
+	multiplexor_bind_socket(multiplexor, socket_escucha, conexion_entrante, multiplexor, socket_escucha);
 
 	printf("Escuchando en el puerto 7666.\n");
 	printf("Esperando conexiones...\n");
@@ -57,7 +57,7 @@ private void conexion_entrante(PACKED_ARGS){
 	printf("Nuevo cliente conectado.\n");
 
 	//Bindeamos el socket al multiplexor
-	multiplexor_bind_socket(multiplexor, socket_conexion, paquete_entrante, 2, multiplexor, socket_conexion);
+	multiplexor_bind_socket(multiplexor, socket_conexion, paquete_entrante, multiplexor, socket_conexion);
 }
 
 private void paquete_entrante(PACKED_ARGS){
@@ -91,7 +91,7 @@ private void cerrar_programa(PACKED_ARGS){
 	UNPACK_ARG(tad_multiplexor* multiplexor);
 
 	//Cierro todas las conexiones y libero los recursos del multiplexor
-	multiplexor_dispose_and_close_sockets(multiplexor);
+	multiplexor_dispose_and_dispose_objects(multiplexor);
 	//Libero los recursos del logger
 	logger_dispose();
 	//Libero los recursos de las senales

@@ -14,15 +14,6 @@
 #include "../libs/vector/vector2.h"
 
 
-//para que quiero esta estructura de aca abajo¿
-//typedef struct {
-//	char* nombre;
-//	char  simbolo;
-//	int   instancias;
-//	vector2 posicion;
-//} t_caja_Nivel;
-
-
 typedef struct {
 	char* nombre;
 	t_round* objetivos; //round<char*>

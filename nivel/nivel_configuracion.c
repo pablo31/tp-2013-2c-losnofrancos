@@ -9,7 +9,7 @@
 #include "../libs/logger/logger.h"
 #include "../libs/common/string.h"
 #include "../libs/common/collections/list.h"
-#include "../libs/common.h"
+#include "nivel_configuracion.h"
 
 void destruir_nivel(nivel* nivel){
 	//tp_logger_info(logger, "Liberando recursos del nivel.");
@@ -51,6 +51,12 @@ static void crear_enemigos(nivel* nivel, uint cantidad){
 	}	
 }
 
+void cargar_configuracion_cambiante(nivel* nvl, t_config* config,
+		char* as_out algoritmo, int as_out quantum, int as_out retardo){
+	set algoritmo = string_duplicate(config_get_string_value(config,"algoritmo"));
+	set quantum = config_get_int_value(config,"quantum");
+	set retardo = config_get_int_value(config,"retardo");
+}
 
 static void cargar_configuracion_nivel(nivel* nvl, t_config* config){	
 	logger_info(nvl->logger, "Cargando configuracion del nivel");
@@ -70,18 +76,15 @@ static void cargar_configuracion_nivel(nivel* nvl, t_config* config){
 	nvl->sleep_enemigos = config_get_int_value(config,"Sleep_Enemigos");
 	logger_info(nvl->logger, "Sleep Enemigos:%i", nvl->sleep_enemigos);
 
-	nvl->algoritmo = string_duplicate(config_get_string_value(config,"algoritmo"));
-	logger_info(nvl->logger, "Algoritmo:%s", nvl->algoritmo);
-
-	nvl->retardo = config_get_int_value(config,"retardo");
-	logger_info(nvl->logger, "Retardo:%i", nvl->retardo);
-
-	nvl->quantum = config_get_int_value(config,"quantum");
-	logger_info(nvl->logger, "Quantum:%i", nvl->quantum);
-
 	nvl->plataforma = string_duplicate(config_get_string_value(config,"Plataforma"));
 	logger_info(nvl->logger, "Plataforma:%s", nvl->plataforma);
+
+	cargar_configuracion_cambiante(nvl, config, out nvl->algoritmo, out nvl->quantum, out nvl->retardo);
+	logger_info(nvl->logger, "Algoritmo:%s", nvl->algoritmo);
+	logger_info(nvl->logger, "Quantum:%i", nvl->quantum);
+	logger_info(nvl->logger, "Retardo:%i", nvl->retardo);
 	
+
 	uint  numero_caja = 1;
 	char* nombre_caja = string_from_format("Caja%i",numero_caja);
 	char* nombre =  "";

@@ -127,8 +127,13 @@ private void socket_initialize(tad_socket* socket, int socket_id){
 }
 
 //Devuelve el numero descriptor del socket
-int socket_get_id(tad_socket* socket){
+private int socket_get_id(tad_socket* socket){
 	return socket->socket_id;
+}
+
+//Devuelve el numero descriptor del socket (uso exclusivo del multiplexor)
+int __socket_get_id(void* socket){
+	return socket_get_id(socket);
 }
 
 tad_logger* socket_get_logger(tad_socket* socket){
@@ -268,6 +273,10 @@ void socket_close(tad_socket* socket){
 	logger_dispose_instance(socket_get_logger(socket));
 	dealloc(socket->error_manager);
 	dealloc(socket);
+}
+
+void __socket_close(void* socket){
+	socket_close(socket);
 }
 
 //Informa que se cerro la conexion inesperadamente y setea el error
