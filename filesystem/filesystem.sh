@@ -2,6 +2,12 @@
 clear
 
 #aca especificamos donde se va a montar el filesystem
-mount_point="/media/nagel/grasafs/fs" 
-echo "Montando grasa en $mount_point"
-./filesystem $mount_point 
+archivo="disco.bin" 
+directorio="grasa"
+echo "Montando grasa desde $archivo en $directorio"
+echo ""
+
+
+#debug
+#valgrind --tool=exp-sgcheck ./filesystem $archivo $directorio 
+./filesystem $archivo $directorio 
