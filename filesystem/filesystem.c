@@ -31,6 +31,7 @@ static int   file_descriptor; // file descriptor del archivo de grasa
 static uint  file_size;      // el tamaño del archivo
 struct grasa_header_t* header;
 char* mmaped_file = NULL;// el array de chars que contiene el archivo via mmaped_file
+uint grasa_bitmap_cantidad; // Tamaño archivo / blocksize / 8
 t_bitarray* grasa_bitmap;
 tad_logger* logger;
 
@@ -61,10 +62,27 @@ struct grasa_header_t* cargar_header(){
  	return header;
 }
 
-static t_bitarray* cargar_bitmap(uint32_t cantidad_bloques){
-	uint tamanio_total =  cantidad_bloques * TAMANIO_BLOQUE ;
-	logger_info(logger,"Tamaño total del bitmap:%i",tamanio_total);
-	t_bitarray* bitmap = malloc(sizeof(t_bitarray) * tamanio_total);
+static t_bitarray* cargar_bitmap(){
+	grasa_bitmap_cantidad =  file_size/ TAMANIO_BLOQUE / 8 ;
+	logger_info(logger,"Cantidad de bytes usados en bitmap :%i",grasa_bitmap_cantidad);
+	
+	t_bitarray* bitmap;
+	int i,j,offset;
+
+	for (i= 0; i < grasa_bitmap_cantidad; ++i)
+	{
+		//bitmap empieza en offset 4096 del archivo por definicion
+		offset = i*8;
+		char* temp = string_substring(mmaped_file, (4096 + offset), 8);
+		bitmap = bitarray_create(temp, 8);//creo un bitmap del byte leido
+
+		printf("%i) ",i);
+
+		for (j = 0; j < 8; ++j)//imprimo cada bit para verificar
+			printf("%i", bitarray_test_bit(bitmap, j));
+
+		printf("\n");
+	}
 
 	return bitmap;
 }
@@ -104,6 +122,7 @@ void cargar_configuracion_grasa(int argc, char *argv[]){
     fstat(file_descriptor, &status);
     file_size = status.st_size;
     
+    logger_info(logger, "Tamaño del archivo grasa: %i.", file_size);
  	mmaped_file = mmap(NULL, status.st_size, PROT_READ, MAP_SHARED, file_descriptor, 0);	
 
  	if (mmaped_file == MAP_FAILED){
@@ -124,7 +143,7 @@ int main(int argc, char *argv[]){
 
 	struct fuse_args args = FUSE_ARGS_INIT(argc,argv);
  	header = cargar_header(); 
- 	grasa_bitmap = cargar_bitmap(header->size_bitmap);
+ 	grasa_bitmap = cargar_bitmap();
     
 	int fuse_retorno = fuse_main(args.argc, args.argv, &grasa_operations, NULL);
 
