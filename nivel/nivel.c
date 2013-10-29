@@ -84,13 +84,13 @@ int main(int argc, char **argv){
 	//Le indicamos el algoritmo al planificador
 	socket_send_string(socket, ALGORITMO, nvl->algoritmo);
 
-//	//Inicializo la UI
-//	logger_info(logger, "Inicializando interfaz grafica");
-//	if (nivel_gui_inicializar() != EXIT_SUCCESS)
-//		return EXIT_FAILURE;
-//
-//	//Cargo los recursos en la pantalla
-//	cargar_recursos_nivel(nvl);
+	//Inicializo la UI
+	logger_info(logger, "Inicializando interfaz grafica");
+	if (nivel_gui_inicializar() != EXIT_SUCCESS)
+		return EXIT_FAILURE;
+
+	//Cargo los recursos en la pantalla
+	cargar_recursos_nivel(nvl);
 
 	tad_multiplexor* multiplexor = multiplexor_create();
 	tad_notifier* notifier = notifier_create(config_file);
