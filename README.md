@@ -1,6 +1,6 @@
 tp-2013-2c-losnofrancos
 =======================
-"Desarrollando desde hace mas de un año ;)"
+"Desarrollando para usted desde hace mas de un año ;D"
 
 Compilar todo con make
 
