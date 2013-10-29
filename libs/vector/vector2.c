@@ -48,32 +48,30 @@ vector2 vector2_direction_to(vector2 self, vector2 target){
 	return diff;
 }
 
-vector2 vector2_duplicate(vector2 posicion){
-	return posicion_create(posicion->x, posicion->y);
+vector2 vector2_duplicate(vector2 v){
+	return vector2_new(v.x, v.y);
 }
 
 //no lo termine...
 #define DISTANCIA_MOVIMIENTO_PERMITIDA 1
 vector2 posicion_desde_A_posicion_hacia(vector2 self, vector2 posicion_destino){
 
-	if(vector2_equals(self, posicion_destino)){
-		return vector2_duplicate(self);
-	}
+	if(vector2_equals(self, posicion_destino)) return vector2_duplicate(self);
 
 	int distancia_a_mover = DISTANCIA_MOVIMIENTO_PERMITIDA;
 
-	int x = self->x;
-	int y = self->y;
+	int x = self.x;
+	int y = self.y;
 
 	//Esto hay que probarlo bien
-	if (x != posicion_destino->x) {
-		if (x < posicion_destino->x) {
+	if (x != posicion_destino.x) {
+		if (x < posicion_destino.x) {
 			x += distancia_a_mover;
 		} else {
 			x -= distancia_a_mover;
 		}
-	} else if (y != posicion_destino->y) {
-		if (y < posicion_destino->y) {
+	} else if (y != posicion_destino.y) {
+		if (y < posicion_destino.y) {
 			y += distancia_a_mover;
 		} else {
 			y -= distancia_a_mover;

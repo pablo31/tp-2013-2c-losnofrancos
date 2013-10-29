@@ -25,7 +25,7 @@ vector2 vector2_add(vector2 a, vector2 b);
 vector2 vector2_subtract(vector2 a, vector2 b);
 vector2 vector2_direction_to(vector2 self, vector2 target);
 
-vector2 vector2_duplicate(vector2 posicion);
+vector2 vector2_duplicate(vector2 v);
 vector2 posicion_desde_A_posicion_hacia(vector2 self,vector2 posicion_destino);
 
 
