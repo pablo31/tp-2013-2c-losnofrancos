@@ -213,8 +213,8 @@ private void otorgar_turno(tad_planificador* self){
 	//seteamos el manejo de errores ante una desconexion del personaje
 	SOCKET_ON_ERROR(socket, error_socket_personaje(self, personaje));
 
-	var(quantum, self->quantum);
-	while(quantum--){
+	int quantum = self->quantum;
+	while(quantum){
 		socket_send_empty_package(socket, PLANIFICADOR_OTORGA_QUANTUM);
 
 		tad_package* paquete = socket_receive_one_of_this_packages(socket, 3,
@@ -225,11 +225,8 @@ private void otorgar_turno(tad_planificador* self){
 
 		//el personaje solicita la posicion de un recurso
 		if(tipo_mensaje == SOLICITUD_UBICACION_RECURSO){
-			//reenviamos la solicitud al nivel
 			socket_send_package(socket_nivel, paquete);
-			//esperamos su respuesta
 			tad_package* respuesta = esperar_ubicacion_recurso(self, socket_nivel);
-			//se la reenviamos al personaje
 			socket_send_package(socket, respuesta);
 			package_dispose(respuesta);
 
@@ -239,6 +236,7 @@ private void otorgar_turno(tad_planificador* self){
 			tad_package* reenvio = package_create_char_and_vector2(PERSONAJE_MOVIMIENTO, simbolo, direccion);
 			socket_send_package(socket_nivel, reenvio);
 			package_dispose(reenvio);
+			quantum--;
 
 		//el personaje solicita una instancia de un recurso
 		}else if(tipo_mensaje == PERSONAJE_SOLICITUD_RECURSO){
@@ -247,6 +245,7 @@ private void otorgar_turno(tad_planificador* self){
 			socket_send_package(socket_nivel, reenvio);
 			package_dispose(reenvio);
 			bloquear_personaje(self, personaje);
+			quantum = 0;
 		}
 
 		package_dispose(paquete);

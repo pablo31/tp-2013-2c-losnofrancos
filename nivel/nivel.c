@@ -183,20 +183,13 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 
 	var(socket, self->socket);
 
-	tad_package* paquete = socket_receive_one_of_this_packages(socket, 4,
-			AGREGAR_PERSONAJE,
+	tad_package* paquete = socket_receive_one_of_this_packages(socket, 3,
 			SOLICITUD_UBICACION_RECURSO,
 			PERSONAJE_MOVIMIENTO,
 			PERSONAJE_SOLICITUD_RECURSO);
 	var(tipo, package_get_data_type(paquete));
 
-	if(tipo == AGREGAR_PERSONAJE){
-		alloc(personaje, tad_personaje);
-		package_get_char_and_vector2(paquete, out personaje->simbolo, out personaje->pos);
-		list_add(self->personajes, personaje);
-		//TODO dibujarlo
-
-	}else if(tipo == SOLICITUD_UBICACION_RECURSO){
+	if(tipo == SOLICITUD_UBICACION_RECURSO){
 		char recurso = package_get_char(paquete);
 		vector2 ubicacion;
 		foreach(caja, self->cajas, tad_caja*)
@@ -206,11 +199,11 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 
 	}else if(tipo == PERSONAJE_MOVIMIENTO){
 		char simbolo;
-		vector2 movimiento;
-		package_get_char_and_vector2(paquete, out simbolo, out movimiento);
+		vector2 pos; //TODO ver quien da la posicion inicial del personaje
+		package_get_char_and_vector2(paquete, out simbolo, out pos);
 		foreach(personaje, self->personajes, tad_personaje*)
 			if(personaje->simbolo == simbolo)
-				personaje->pos = vector2_add(personaje->pos, movimiento);
+				personaje->pos = pos;
 		//TODO dibujarlo
 
 	}else if(tipo == PERSONAJE_SOLICITUD_RECURSO){
