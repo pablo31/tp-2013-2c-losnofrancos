@@ -31,6 +31,7 @@ typedef struct enemigo{
 typedef struct nivel {
 	char* nombre;
 	tad_socket* socket;
+	char* config_path;
 
 	t_list* cajas;
 	t_list* enemigos;
@@ -48,6 +49,7 @@ typedef struct nivel {
 
 
 tad_logger* get_logger(tad_nivel* self);
+char* get_config_path(tad_nivel* self);
 
 
 #endif

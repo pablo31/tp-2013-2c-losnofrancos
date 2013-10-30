@@ -5,6 +5,7 @@
 #include "../libs/socket/socket_utils.h"
 #include "../libs/multiplexor/multiplexor.h"
 #include "../libs/notifier/notifier.h"
+#include "../libs/signal/signal.h"
 
 #include "../libs/protocol/protocol.h"
 
@@ -13,13 +14,23 @@
 #include "nivel.h"
 
 
-private void nivel_finalizar(tad_nivel* self);
-private void manejar_error_planificador(tad_nivel* self, tad_socket* socket);
+private void nivel_conectar_a_plataforma(tad_nivel* self, char* ippuerto);
+private void nivel_iniciar_interfaz_grafica(tad_nivel* self);
+private void nivel_ejecutar_logica(tad_nivel* self);
+
+
+private void manejar_desconexion(tad_nivel* self);
+private void manejar_desconexion_multiplexor(tad_nivel* self, tad_multiplexor* m);
 private void manejar_paquete_planificador(PACKED_ARGS);
 private void config_file_modified(PACKED_ARGS);
 
+private void nivel_finalizar(tad_nivel* self);
+private void nivel_finalizar_cerrar_multiplexor(tad_nivel* self, tad_multiplexor* m);
 
 
+/***************************************************************
+ * Misc
+ ***************************************************************/
 
 private void verificar_argumentos(int argc, char* argv[]) {
 	if (argc < 2) {
@@ -28,37 +39,76 @@ private void verificar_argumentos(int argc, char* argv[]) {
 	}
 }
 
+/***************************************************************
+ * Getters
+ ***************************************************************/
+
 tad_logger* get_logger(tad_nivel* self){
 	return self->logger;
 }
 
-int main(int argc, char **argv){
-	
-	verificar_argumentos(argc, argv);
+char* get_config_path(tad_nivel* self){
+	return self->config_path;
+}
 
+
+
+/***************************************************************
+ * MAIN
+ ***************************************************************/
+
+int main(int argc, char **argv){
+
+	verificar_argumentos(argc, argv);
 	char* exe_name = argv[0];
-	char* config_file = argv[1];
+	char* config_path = argv[1];
 	char* log_file = argv[2];
-	
+
 	//inicializamos el singleton logger
 	logger_initialize_for_info(log_file, exe_name);
-	
-	//Inicializo el nivel
-	char* ippuerto_plataforma;
-	tad_nivel* self = crear_nivel(config_file, out ippuerto_plataforma);
+
+	//inicializo el nivel
+	char* ippuerto;
+	tad_nivel* self = crear_nivel(config_path, out ippuerto);
+
+	//declaro la funcion manejadora de sigint
+	signal_dynamic_handler(SIGINT, nivel_finalizar(self));
+
+	//nos conectamos al planificador
+	nivel_conectar_a_plataforma(self, ippuerto);
+	free(ippuerto);
+
+	//iniciamos la gui
+	nivel_iniciar_interfaz_grafica(self);
+
+	//ejecutamos la logica
+	nivel_ejecutar_logica(self);
+
+
+	//no deberia llegar hasta aca, pero por si las dudas...
+	nivel_finalizar(self);
+	return EXIT_FAILURE;
+}
+
+
+/***************************************************************
+ * Ejecucion y logica
+ ***************************************************************/
+
+private void nivel_conectar_a_plataforma(tad_nivel* self, char* ippuerto){
 	var(logger, get_logger(self));
 
 	//Me conecto con el orquestador
-	var(ip, string_get_ip(ippuerto_plataforma));
-	var(puerto, string_get_port(ippuerto_plataforma));
-	logger_info(logger, "Conectando a %s", ippuerto_plataforma);
+	var(ip, string_get_ip(ippuerto));
+	var(puerto, string_get_port(ippuerto));
+	logger_info(logger, "Conectando a %s", ippuerto);
 
 	tad_socket* socket = socket_connect(ip, puerto);
 	logger_info(logger, "Conectado con Plataforma");
-	free(ippuerto_plataforma);
+	self->socket = socket;
 
-	//Declaramos un bloque de manejo de errores por si el socket pierde la conexion
-	SOCKET_ON_ERROR_WRET(socket, manejar_error_planificador(self, socket), EXIT_FAILURE);
+	//Si el socket pierde la conexion...
+	SOCKET_ON_ERROR(socket, manejar_desconexion(self));
 
 	//Esperamos la presentacion del orquestador
 	socket_receive_expected_empty_package(socket, PRESENTACION_ORQUESTADOR);
@@ -75,72 +125,40 @@ int main(int argc, char **argv){
 	socket_send_int(socket, RETARDO, self->retardo);
 	//Le indicamos el algoritmo al planificador
 	socket_send_string(socket, ALGORITMO, self->algoritmo);
+}
 
-	//Inicializo la UI
-	logger_info(logger, "Inicializando interfaz grafica");
-	if (nivel_gui_inicializar() != EXIT_SUCCESS)
-		return EXIT_FAILURE;
 
+private void nivel_iniciar_interfaz_grafica(tad_nivel* self){
+	logger_info(get_logger(self), "Inicializando interfaz grafica");
+	//Intento iniciar la GUI
+	int something_is_wrong = nivel_gui_inicializar();
+	if(something_is_wrong) nivel_finalizar(self);
 	//Cargo los recursos en la pantalla
 	cargar_recursos_nivel(self);
+}
+
+private void nivel_ejecutar_logica(tad_nivel* self){
+	var(config_path, get_config_path(self));
+	var(socket, self->socket);
 
 	//Creamos un notificador de cambios sobre el archivo de configuracion
-	tad_notifier* notifier = notifier_create(config_file);
+	tad_notifier* notifier = notifier_create(config_path);
 
 	//Creamos un multiplexor y le asociamos el notificador y el socket del planificador
 	tad_multiplexor* multiplexor = multiplexor_create();
-	multiplexor_bind_notifier(multiplexor, notifier, config_file_modified, self, socket, config_file);
-	multiplexor_bind_socket(multiplexor, socket, manejar_paquete_planificador, self, socket);
+	multiplexor_bind_notifier(multiplexor, notifier, config_file_modified, self);
+	multiplexor_bind_socket(multiplexor, socket, manejar_paquete_planificador, self);
 
-	//Esperamos por mensajes entrantes
+	//Redeclaro la funcion manejadora de sigint, para que cierre el multiplexor
+	signal_dynamic_handler(SIGINT, nivel_finalizar_cerrar_multiplexor(self, multiplexor));
+
+	//Si el socket pierde la conexion...
+	SOCKET_ON_ERROR(socket, manejar_desconexion_multiplexor(self, multiplexor));
+
+	//Esperamos por paquetes entrantes (o cambios en el config file)
 	while(1)
 		multiplexor_wait_for_io(multiplexor);
-
-	logger_info(logger, "Fin del proceso Nivel");
-
-	//Liberamos recursos
-	nivel_gui_terminar(); 
-	destruir_nivel(self);
-
-	return EXIT_SUCCESS;
 }
-
-
-private void config_file_modified(PACKED_ARGS){
-	UNPACK_ARGS(tad_nivel* self, tad_socket* socket, char* config_file);
-
-	char* algoritmo = self->algoritmo;
-	int quantum = self->quantum;
-	int retardo = self->retardo;
-
-	char* nuevo_algoritmo;
-	int nuevo_quantum;
-	int nuevo_retardo;
-
-	t_config* config = config_create(config_file);
-
-	cargar_configuracion_cambiante(self, config,
-			out nuevo_algoritmo, out nuevo_quantum, out nuevo_retardo);
-
-	config_destroy(config);
-
-	if(quantum != nuevo_quantum){
-		self->quantum = nuevo_quantum;
-		socket_send_int(socket, QUANTUM, nuevo_quantum);
-	}
-	if(retardo != nuevo_retardo){
-		self->retardo = nuevo_retardo;
-		socket_send_int(socket, RETARDO, nuevo_retardo);
-	}
-	if(!string_equals(algoritmo, nuevo_algoritmo)){
-		self->algoritmo = nuevo_algoritmo;
-		free(algoritmo);
-		socket_send_string(socket, ALGORITMO, nuevo_algoritmo);
-	}else{
-		free(nuevo_algoritmo);
-	}
-}
-
 
 private void nivel_finalizar(tad_nivel* self){
 	logger_info(get_logger(self), "Fin del proceso Nivel");
@@ -150,15 +168,71 @@ private void nivel_finalizar(tad_nivel* self){
 	destruir_nivel(self);
 
 	logger_dispose();
+
+	exit(EXIT_SUCCESS);
 }
 
-private void manejar_error_planificador(tad_nivel* self, tad_socket* socket){
+
+/***************************************************************
+ * Manejo de paquetes entrantes
+ ***************************************************************/
+
+private void manejar_paquete_planificador(PACKED_ARGS){
+//	UNPACK_ARGS(tad_nivel* self, tad_socket* socket);
+	//TODO
+}
+
+private void config_file_modified(PACKED_ARGS){
+	UNPACK_ARGS(tad_nivel* self, tad_socket* socket, char* config_file);
+
+	char* algoritmo_actual = self->algoritmo;
+	int quantum_actual = self->quantum;
+	int retardo_actual = self->retardo;
+
+	char* nuevo_algoritmo;
+	int nuevo_quantum;
+	int nuevo_retardo;
+
+	t_config* config = config_create(config_file); //TODO llevar esto a nivel_configuracion.c
+
+	cargar_configuracion_cambiante(self, config,
+			out nuevo_algoritmo, out nuevo_quantum, out nuevo_retardo);
+
+	config_destroy(config);
+
+	if(quantum_actual != nuevo_quantum){
+		self->quantum = nuevo_quantum;
+		socket_send_int(socket, QUANTUM, nuevo_quantum);
+	}
+	if(retardo_actual != nuevo_retardo){
+		self->retardo = nuevo_retardo;
+		socket_send_int(socket, RETARDO, nuevo_retardo);
+	}
+	if(!string_equals(algoritmo_actual, nuevo_algoritmo)){
+		self->algoritmo = nuevo_algoritmo;
+		free(algoritmo_actual);
+		socket_send_string(socket, ALGORITMO, nuevo_algoritmo);
+	}else{
+		free(nuevo_algoritmo);
+	}
+}
+
+
+/***************************************************************
+ * Manejo de desconexiones
+ ***************************************************************/
+
+private void manejar_desconexion(tad_nivel* self){
 	logger_error(get_logger(self), "Se cierra la conexion con Plataforma de manera inesperada");
-	socket_close(socket);
 	nivel_finalizar(self);
 }
 
-private void manejar_paquete_planificador(PACKED_ARGS){
-	UNPACK_ARGS(tad_nivel* self, tad_socket* socket);
+private void manejar_desconexion_multiplexor(tad_nivel* self, tad_multiplexor* m){
+	logger_error(get_logger(self), "Se cierra la conexion con Plataforma de manera inesperada");
+	nivel_finalizar_cerrar_multiplexor(self, m);
+}
 
+private void nivel_finalizar_cerrar_multiplexor(tad_nivel* self, tad_multiplexor* m){
+	multiplexor_dispose_and_dispose_objects(m);
+	nivel_finalizar(self);
 }

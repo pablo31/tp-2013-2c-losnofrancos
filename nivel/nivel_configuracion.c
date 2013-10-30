@@ -56,11 +56,13 @@ void cargar_configuracion_cambiante(tad_nivel* nvl, t_config* config,
 }
 
 
-private void cargar_configuracion_nivel(tad_nivel* self, char* config_path, char* as_out ippuerto_plataforma){
-	t_config* config = config_create(config_path);
+private void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 	var(logger, get_logger(self));
-	
 	logger_info(logger, "Cargando configuracion del nivel");
+	
+	var(config_path, get_config_path(self));
+	var(config, config_create(config_path));
+
 
 	self->nombre = string_duplicate(config_get_string_value(config, "Nombre"));
 	logger_info(logger, "Nombre:%s", self->nombre);
@@ -79,7 +81,7 @@ private void cargar_configuracion_nivel(tad_nivel* self, char* config_path, char
 
 	char* plataforma = string_duplicate(config_get_string_value(config,"Plataforma"));
 	logger_info(logger, "Plataforma:%s", plataforma);
-	set ippuerto_plataforma = plataforma;
+	set ippuerto = plataforma;
 
 	cargar_configuracion_cambiante(self, config, out self->algoritmo, out self->quantum, out self->retardo);
 	logger_info(logger, "Algoritmo:%s", self->algoritmo);
@@ -127,17 +129,19 @@ private void cargar_configuracion_nivel(tad_nivel* self, char* config_path, char
 	config_destroy(config);
 }
 
-tad_nivel* crear_nivel(char* config_path, char* as_out ippuerto_plataforma) {
+tad_nivel* crear_nivel(char* config_path, char* as_out ippuerto) {
 	alloc(self, tad_nivel);
 	
 	self->logger = logger_new_instance("");
+
+	self->config_path = config_path;
 
 	self->cajas = list_create();
 	self->enemigos = list_create();
 
 	char* plataforma;
-	cargar_configuracion_nivel(self, config_path, out plataforma);
-	set ippuerto_plataforma = plataforma;
+	cargar_configuracion_nivel(self, out plataforma);
+	set ippuerto = plataforma;
 
 	return self;
 }
@@ -151,6 +155,10 @@ void destruir_nivel(tad_nivel* self){
 	//liberamos listas
 	list_destroy(self->cajas); //TODO destruir elementos
 	list_destroy(self->enemigos); //TODO destruir elementos
+
+	//liberamos el socket (si esta abierto)
+	var(socket, self->socket);
+	if(socket != null) socket_close(socket);
 
 	//liberamos el logger
 	logger_dispose_instance(self->logger);
