@@ -107,7 +107,7 @@ tad_planificador* plataforma_planificador_iniciado(tad_plataforma* self, char* n
 //Inicia el planificador para un numero de nivel dado
 void plataforma_iniciar_planificador(tad_plataforma* self, char* nombre_nivel, tad_socket* socket_nivel){
 	//creamos el planificador
-	tad_planificador* planificador = planificador_crear(nombre_nivel, socket_nivel);
+	tad_planificador* planificador = planificador_crear(nombre_nivel, socket_nivel, self);
 	//lo agregamos a la lista de planificadores
 	list_add(self->planificadores, planificador);
 	//ejecutamos el planificador en un nuevo thread
@@ -115,9 +115,7 @@ void plataforma_iniciar_planificador(tad_plataforma* self, char* nombre_nivel, t
 }
 
 //Quita de la lista de planificadores al planificador dado
-void plataforma_planificador_finalizado(tad_plataforma* self, tad_planificador* planificador){
-	bool planificador_buscado(void* item){
-		return item == planificador;
-	}
-	list_remove_by_condition(self->planificadores, planificador_buscado);
+void plataforma_finalizar_planificador(tad_plataforma* self, tad_planificador* planificador){
+	list_remove_where(self->planificadores, tad_planificador* elem, elem == planificador);
+	planificador_finalizar(planificador);
 }

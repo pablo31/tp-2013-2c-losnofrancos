@@ -34,7 +34,7 @@ void plataforma_finalizar(tad_plataforma* plataforma);
 
 tad_planificador* plataforma_planificador_iniciado(tad_plataforma* plataforma, char* nombre_nivel);
 void plataforma_iniciar_planificador(tad_plataforma* plataforma, char* nombre_nivel, tad_socket* socket_nivel);
-void plataforma_planificador_finalizado(tad_plataforma* plataforma, tad_planificador* planificador);
+void plataforma_finalizar_planificador(tad_plataforma* plataforma, tad_planificador* planificador);
 
 
 #endif /* PLATAFORMA_H_ */

@@ -61,9 +61,10 @@ char* planificador_nombre_nivel(tad_planificador* self){
  * CREACION ****************************
  ***************************************/
 
-tad_planificador* planificador_crear(char* nombre_nivel, tad_socket* socket_nivel){
+tad_planificador* planificador_crear(char* nombre_nivel, tad_socket* socket_nivel, tad_plataforma* plataforma){
 	//alojamos una estructura tad_planificador
 	alloc(self, tad_planificador);
+	self->plataforma = plataforma;
 	//obtenemos una instancia del logger
 	self->logger = logger_new_instance("Planificador %s", nombre_nivel);
 	//guardamos los datos del nivel
@@ -345,10 +346,8 @@ private void error_socket_personaje(tad_planificador* self, tad_personaje* perso
 
 private void error_socket_nivel(tad_planificador* self){
 	logger_info(get_logger(self), "El nivel asociado al planificador se desconecto inesperadamente");
-	//quitamos el planificador de la lista de plataforma
-	plataforma_planificador_finalizado(self->plataforma, self);
 	//finalizamos el planificador
-	planificador_finalizar(self);
+	plataforma_finalizar_planificador(self->plataforma, self);
 }
 
 
