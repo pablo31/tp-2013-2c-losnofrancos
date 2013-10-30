@@ -3,6 +3,7 @@
 	<name>tp-pruebas</name>
 	<comment></comment>
 	<projects>
+		<project>tp-libs</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

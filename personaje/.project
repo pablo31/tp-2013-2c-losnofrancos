@@ -3,6 +3,7 @@
 	<name>tp-personaje</name>
 	<comment></comment>
 	<projects>
+		<project>tp-libs</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
