@@ -14,27 +14,35 @@
 #include "../libs/common.h"
 
 
-typedef struct caja{
+class(tad_caja){
 	char* nombre;
 	char simbolo;
 	int instancias;
 	vector2 pos;
-} tad_caja;
+};
 
 
-typedef struct enemigo{
+class(tad_enemigo){
 	char simbolo;
 	vector2 pos;
-} tad_enemigo;
+};
 
 
-typedef struct nivel {
+class(tad_personaje){
+	char simbolo;
+	vector2 pos;
+};
+
+
+class(tad_nivel){
 	char* nombre;
 	tad_socket* socket;
 	char* config_path;
 
-	t_list* cajas;
-	t_list* enemigos;
+	t_list* personajes; //list<tad_personaje>
+
+	t_list* cajas; //list<tad_caja>
+	t_list* enemigos; //list<tad_enemigo>
 
 	char* algoritmo;
 	int retardo;
@@ -45,7 +53,7 @@ typedef struct nivel {
 	uint sleep_enemigos;
 
 	tad_logger* logger;
-} tad_nivel;
+};
 
 
 tad_logger* get_logger(tad_nivel* self);

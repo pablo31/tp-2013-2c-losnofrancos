@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "../libs/socket/socket_utils.h"
+#include "../libs/socket/package_serializers.h"
 #include "../libs/multiplexor/multiplexor.h"
 #include "../libs/notifier/notifier.h"
 #include "../libs/signal/signal.h"
@@ -178,8 +179,44 @@ private void nivel_finalizar(tad_nivel* self){
  ***************************************************************/
 
 private void manejar_paquete_planificador(PACKED_ARGS){
-//	UNPACK_ARGS(tad_nivel* self, tad_socket* socket);
-	//TODO
+	UNPACK_ARGS(tad_nivel* self);
+
+	var(socket, self->socket);
+
+	tad_package* paquete = socket_receive_one_of_this_packages(socket, 4,
+			AGREGAR_PERSONAJE,
+			SOLICITUD_UBICACION_RECURSO,
+			PERSONAJE_MOVIMIENTO,
+			PERSONAJE_SOLICITUD_RECURSO);
+	var(tipo, package_get_data_type(paquete));
+
+	if(tipo == AGREGAR_PERSONAJE){
+		alloc(personaje, tad_personaje);
+		package_get_char_and_vector2(paquete, out personaje->simbolo, out personaje->pos);
+		list_add(self->personajes, personaje);
+		//TODO dibujarlo
+
+	}else if(tipo == SOLICITUD_UBICACION_RECURSO){
+		char recurso = package_get_char(paquete);
+		vector2 ubicacion;
+		foreach(caja, self->cajas, tad_caja*)
+			if(caja->simbolo == recurso)
+				ubicacion = caja->pos;
+		socket_send_vector2(socket, UBICACION_RECURSO, ubicacion);
+
+	}else if(tipo == PERSONAJE_MOVIMIENTO){
+		char simbolo;
+		vector2 movimiento;
+		package_get_char_and_vector2(paquete, out simbolo, out movimiento);
+		foreach(personaje, self->personajes, tad_personaje*)
+			if(personaje->simbolo == simbolo)
+				personaje->pos = vector2_add(personaje->pos, movimiento);
+		//TODO dibujarlo
+
+	}else if(tipo == PERSONAJE_SOLICITUD_RECURSO){
+		//TODO
+
+	}
 }
 
 private void config_file_modified(PACKED_ARGS){

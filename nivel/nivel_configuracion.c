@@ -136,6 +136,7 @@ tad_nivel* crear_nivel(char* config_path, char* as_out ippuerto) {
 
 	self->config_path = config_path;
 
+	self->personajes = list_create();
 	self->cajas = list_create();
 	self->enemigos = list_create();
 

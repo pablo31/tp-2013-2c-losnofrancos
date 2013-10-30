@@ -20,23 +20,26 @@ enum DATA_TYPE_PROTOCOL {
 	PRESENTACION_PLANIFICADOR = 3,
 	PRESENTACION_NIVEL = 4,
 
-	//personaje - orquestador
+	//personaje a orquestador
 	PERSONAJE_OBJETIVOS_COMPLETADOS = 100,
 	PERSONAJE_SOLICITUD_NIVEL = 101,
 	PERSONAJE_NOMBRE = 102,
 	PERSONAJE_SIMBOLO = 103,
 
-	//personaje - planificador
+	//personaje a planificador
 	PERSONAJE_MOVIMIENTO = 105,
 	PERSONAJE_SOLICITUD_RECURSO = 106,
 
-	//nivel - planificador
+	//nivel a planificador
 	NIVEL_NUMERO = 150,
 	QUANTUM = 151,
 	RETARDO = 152,
 	ALGORITMO = 153,
 
-	//planificador - personaje
+	//planificador a nivel
+	AGREGAR_PERSONAJE = 199,
+
+	//planificador a personaje
 	PLANIFICADOR_OTORGA_QUANTUM = 200,
 
 	//mensajes compartidos entre planificador, nivel, y personaje
