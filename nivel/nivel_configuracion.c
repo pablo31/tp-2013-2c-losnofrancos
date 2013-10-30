@@ -154,6 +154,11 @@ void destruir_nivel(tad_nivel* self){
 	free(self->algoritmo);
 
 	//liberamos listas
+	void liberar_personaje(void* ptr_pj){
+		tad_personaje* pj = ptr_pj;
+		dealloc(pj);
+	}
+	list_destroy_and_destroy_elements(self->personajes, liberar_personaje);
 	list_destroy(self->cajas); //TODO destruir elementos
 	list_destroy(self->enemigos); //TODO destruir elementos
 
