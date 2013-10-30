@@ -5,9 +5,9 @@
 
 #include "../libs/common.h"
 
-void cargar_configuracion_cambiante(nivel* nvl, t_config* config,
+void cargar_configuracion_cambiante(tad_nivel* nvl, t_config* config,
 		char* as_out algoritmo, int as_out quantum, int as_out retardo);
-void cargar_recursos_nivel(nivel* nivel);
-nivel* crear_nivel();
-void destruir_nivel(nivel* nivel);
+void cargar_recursos_nivel(tad_nivel* nivel);
+tad_nivel* crear_nivel();
+void destruir_nivel(tad_nivel* nivel);
 #endif

@@ -1,28 +1,23 @@
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
+
+#include "../libs/common/collections/list.h"
+#include "../libs/common/config.h"
+#include "../libs/common/string.h"
+
+#include "../libs/logger/logger.h"
+
 #include "nivel.h"
 #include "nivel_ui.h"
-#include "../libs/common/config.h"
-#include "../libs/logger/logger.h"
-#include "../libs/common/string.h"
-#include "../libs/common/collections/list.h"
 #include "nivel_configuracion.h"
 
-void destruir_nivel(nivel* nivel){
-	//tp_logger_info(logger, "Liberando recursos del nivel.");
-	
-	//tp_logger_debug(logger, "Liberando lista de cajas");
-	list_destroy(nivel->cajas);
-	//free(nvl->nombre);
-	//free(nvl->orquestador);
-	free(nivel);
-}
 
-static caja* crear_caja(char* nombre,char simbolo, int instancias, int pos_x, int pos_y){
-	alloc(ret, caja);
+static tad_caja* crear_caja(char* nombre,char simbolo, int instancias, int pos_x, int pos_y){
+	alloc(ret, tad_caja);
 	
 	ret->nombre = "";
 	ret->nombre = strdup(nombre);
@@ -33,13 +28,13 @@ static caja* crear_caja(char* nombre,char simbolo, int instancias, int pos_x, in
 	return ret;
 }
 
-static void crear_enemigos(nivel* nivel, int cantidad){
+static void crear_enemigos(tad_nivel* nivel, int cantidad){
 	int i;
 	int seed = time(null);
 
 	for (i = 0; i < cantidad; ++i){
 
-		alloc(enem, enemigo);
+		alloc(enem, tad_enemigo);
 		enem->simbolo = '*';
 
 		srand (++seed); //le agrego una a la semilla para que no genere siempre lo mismo en cada iteracion
@@ -53,38 +48,43 @@ static void crear_enemigos(nivel* nivel, int cantidad){
 	}	
 }
 
-void cargar_configuracion_cambiante(nivel* nvl, t_config* config,
+void cargar_configuracion_cambiante(tad_nivel* nvl, t_config* config,
 		char* as_out algoritmo, int as_out quantum, int as_out retardo){
 	set algoritmo = string_duplicate(config_get_string_value(config,"algoritmo"));
 	set quantum = config_get_int_value(config,"quantum");
 	set retardo = config_get_int_value(config,"retardo");
 }
 
-static void cargar_configuracion_nivel(nivel* nvl, t_config* config){	
-	logger_info(nvl->logger, "Cargando configuracion del nivel");
 
-	nvl->nombre = string_duplicate(config_get_string_value(config, "Nombre"));
-	logger_info(nvl->logger, "Nombre:%s", nvl->nombre);
+private void cargar_configuracion_nivel(tad_nivel* self, char* config_path, char* as_out ippuerto_plataforma){
+	t_config* config = config_create(config_path);
+	var(logger, get_logger(self));
+	
+	logger_info(logger, "Cargando configuracion del nivel");
 
-	nvl->tiempo_deadlock = config_get_int_value(config,"TiempoChequeoDeadlock");
-	logger_info(nvl->logger, "Deadlock:%s", (nvl->tiempo_deadlock) ? "si" : "no" );
+	self->nombre = string_duplicate(config_get_string_value(config, "Nombre"));
+	logger_info(logger, "Nombre:%s", self->nombre);
 
-	nvl->recovery = (bool) config_get_int_value(config,"Recovery");
-	logger_info(nvl->logger, "Recovery:%i",nvl->tiempo_deadlock);
+	self->tiempo_deadlock = config_get_int_value(config,"TiempoChequeoDeadlock");
+	logger_info(logger, "Deadlock:%s", (self->tiempo_deadlock) ? "si" : "no" );
+
+	self->recovery = (bool) config_get_int_value(config,"Recovery");
+	logger_info(logger, "Recovery:%i", self->tiempo_deadlock);
 
 	int enemigos = config_get_int_value(config,"Enemigos");
-	logger_info(nvl->logger, "Enemigos:%i",enemigos);
+	logger_info(logger, "Enemigos:%i",enemigos);
 
-	nvl->sleep_enemigos = config_get_int_value(config,"Sleep_Enemigos");
-	logger_info(nvl->logger, "Sleep Enemigos:%i", nvl->sleep_enemigos);
+	self->sleep_enemigos = config_get_int_value(config,"Sleep_Enemigos");
+	logger_info(logger, "Sleep Enemigos:%i", self->sleep_enemigos);
 
-	nvl->plataforma = string_duplicate(config_get_string_value(config,"Plataforma"));
-	logger_info(nvl->logger, "Plataforma:%s", nvl->plataforma);
+	char* plataforma = string_duplicate(config_get_string_value(config,"Plataforma"));
+	logger_info(logger, "Plataforma:%s", plataforma);
+	set ippuerto_plataforma = plataforma;
 
-	cargar_configuracion_cambiante(nvl, config, out nvl->algoritmo, out nvl->quantum, out nvl->retardo);
-	logger_info(nvl->logger, "Algoritmo:%s", nvl->algoritmo);
-	logger_info(nvl->logger, "Quantum:%i", nvl->quantum);
-	logger_info(nvl->logger, "Retardo:%i", nvl->retardo);
+	cargar_configuracion_cambiante(self, config, out self->algoritmo, out self->quantum, out self->retardo);
+	logger_info(logger, "Algoritmo:%s", self->algoritmo);
+	logger_info(logger, "Quantum:%i", self->quantum);
+	logger_info(logger, "Retardo:%i", self->retardo);
 	
 
 	uint  numero_caja = 1;
@@ -93,28 +93,28 @@ static void cargar_configuracion_nivel(nivel* nvl, t_config* config){
 	char *p;
 	const int base = 10;
 
-	logger_info(nvl->logger ,"Cajas");
-	logger_info(nvl->logger ,"");
+	logger_info(logger ,"Cajas");
+	logger_info(logger ,"");
 	while(config_has_property(config, nombre_caja)){
 
-		logger_info(nvl->logger, "\t%s", nombre_caja);
+		logger_info(logger, "\t%s", nombre_caja);
 
 		char** valores = config_get_array_value(config, nombre_caja);
 		
 		char* nombre = valores[0];
-		logger_info(nvl->logger ,"\tNombre:%s",nombre);
+		logger_info(logger ,"\tNombre:%s",nombre);
 		char simbolo = valores[1][0];
-		logger_info(nvl->logger ,"\tSimbolo:%c",simbolo);
+		logger_info(logger ,"\tSimbolo:%c",simbolo);
 		int instancias = strtol(valores[2], &p, base); //TODO no se puede hacer algo mas lindo??
-		logger_info(nvl->logger ,"\tInstancias:%i",instancias);
+		logger_info(logger ,"\tInstancias:%i",instancias);
 		int pos_x = strtol(valores[3], &p, base);
 		int pos_y = strtol(valores[4], &p, base);
-		logger_info(nvl->logger ,"\tPosicion eje x:%i",pos_x);
-		logger_info(nvl->logger ,"\tPosicion eje y:%i",pos_y);
+		logger_info(logger ,"\tPosicion eje x:%i",pos_x);
+		logger_info(logger ,"\tPosicion eje y:%i",pos_y);
 		
-		logger_info(nvl->logger ,"");
-		caja* caja = crear_caja(nombre,simbolo,instancias,pos_x,pos_y);		
-		list_add(nvl->cajas, caja);
+		logger_info(logger ,"");
+		tad_caja* caja = crear_caja(nombre,simbolo,instancias,pos_x,pos_y);		
+		list_add(self->cajas, caja);
 		
 		numero_caja++;
 
@@ -122,25 +122,39 @@ static void cargar_configuracion_nivel(nivel* nvl, t_config* config){
 		nombre_caja = string_from_format("Caja%i", numero_caja);
 	}
 
-	crear_enemigos(nvl,enemigos);
+	crear_enemigos(self,enemigos);
+	
+	config_destroy(config);
 }
 
-nivel* crear_nivel(char* config_path) {
-	alloc(nvl, nivel);
+tad_nivel* crear_nivel(char* config_path, char* as_out ippuerto_plataforma) {
+	alloc(self, tad_nivel);
 	
-	nvl->logger = logger_new_instance("");
-	t_config* config = config_create(config_path);
+	self->logger = logger_new_instance("");
 
-	nvl->nombre = "";
-	nvl->plataforma = "";
-	nvl->tiempo_deadlock = 0;
-	nvl->recovery = false;
+	self->cajas = list_create();
+	self->enemigos = list_create();
 
-	nvl->cajas = list_create();
-	nvl->enemigos = list_create();
-	
-	cargar_configuracion_nivel(nvl,config);
-	config_destroy(config);
+	char* plataforma;
+	cargar_configuracion_nivel(self, config_path, out plataforma);
+	set ippuerto_plataforma = plataforma;
 
-	return nvl;
+	return self;
+}
+
+
+void destruir_nivel(tad_nivel* self){
+	//liberamos strings varios
+	free(self->nombre);
+	free(self->algoritmo);
+
+	//liberamos listas
+	list_destroy(self->cajas); //TODO destruir elementos
+	list_destroy(self->enemigos); //TODO destruir elementos
+
+	//liberamos el logger
+	logger_dispose_instance(self->logger);
+
+	//liberamos el espacio de memoria propio del nivel
+	dealloc(self);
 }

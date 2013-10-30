@@ -1,40 +1,54 @@
+#ifndef NIVEL
+#define NIVEL
+
 
 #include <stdbool.h>
 #include <stdlib.h>
 
 #include "../libs/common/collections/list.h"
 #include "../libs/common/config.h"
+
+#include "../libs/socket/socket.h"
 #include "../libs/logger/logger.h"
 #include "../libs/vector/vector2.h"
+#include "../libs/common.h"
 
-#ifndef NIVEL
-#define NIVEL
 
 typedef struct caja{
-	char*	nombre;
-	char	simbolo;
-	int 	instancias;
+	char* nombre;
+	char simbolo;
+	int instancias;
 	vector2 pos;
-} caja;
+} tad_caja;
+
 
 typedef struct enemigo{
-	char	simbolo;
+	char simbolo;
 	vector2 pos;
-} enemigo;
+} tad_enemigo;
+
 
 typedef struct nivel {
-	char*	 nombre;
-	char*	 plataforma;
-	uint 	 tiempo_deadlock;
-	bool 	 recovery; // que hace este valor?
-	t_list*     enemigos;
-	uint     sleep_enemigos;
-	char*	 algoritmo;
-	int 	 retardo;
-	int quantum;
-	tad_logger* logger;
+	char* nombre;
+	tad_socket* socket;
+
 	t_list* cajas;
-} nivel;
+	t_list* enemigos;
+
+	char* algoritmo;
+	int retardo;
+	int quantum;
+
+	uint tiempo_deadlock;
+	bool recovery; // que hace este valor?
+	uint sleep_enemigos;
+
+	tad_logger* logger;
+} tad_nivel;
+
+
+tad_logger* get_logger(tad_nivel* self);
+
 
 #endif
  

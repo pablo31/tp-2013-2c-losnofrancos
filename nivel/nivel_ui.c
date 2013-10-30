@@ -152,12 +152,12 @@ void nivel_gui_crear_personaje(ITEM_NIVEL** ListaItems, char id, int x , int y) 
         nivel_gui_crear_item(ListaItems, id, x, y, PERSONAJE_ITEM_TYPE, 0);
 }
 
-void nivel_gui_crear_caja(ITEM_NIVEL** ListaItems, caja* c) {
+void nivel_gui_crear_caja(ITEM_NIVEL** ListaItems, tad_caja* c) {
         nivel_gui_crear_item(ListaItems, c->simbolo, c->pos.x, c->pos.y, RECURSO_ITEM_TYPE, c->instancias);
 }
 
 
-void nivel_gui_crear_enemigo(ITEM_NIVEL** ListaItems, enemigo* enem, int seed) {
+void nivel_gui_crear_enemigo(ITEM_NIVEL** ListaItems, tad_enemigo* enem, int seed) {
 		//la seed o semilla es un numero para generar valores aleatorios. 
 		//Se lo paso por argumento asi lo modifico en el for anterior, sino me da siempre numeros iguales
 		// le sumo 1 al resultado porque no puede ser 0/0 la posicion.
@@ -219,7 +219,7 @@ void nivel_restar_recurso(ITEM_NIVEL* ListaItems, char id) {
         }
 }
 
-void cargar_recursos_nivel(nivel* nivel){	
+void cargar_recursos_nivel(tad_nivel* nivel){	
 	ITEM_NIVEL* ListaItems = NULL;
 
 	
@@ -237,14 +237,14 @@ void cargar_recursos_nivel(nivel* nivel){
 	int cantidad_niveles = list_size(nivel->cajas); 
 	int i;
 	for (i=0; i < cantidad_niveles ; i++){
-		caja* caja = list_get(nivel->cajas,i);
+		tad_caja* caja = list_get(nivel->cajas,i);
 		nivel_gui_crear_caja(&ListaItems, caja);
 	}
 
 	int cantidad_enemigos = list_size(nivel->enemigos);
 	int seed = time(null);
 	for (i=0; i < cantidad_enemigos; i++){
-		enemigo* enem = list_get(nivel->enemigos,i);
+		tad_enemigo* enem = list_get(nivel->enemigos,i);
 		nivel_gui_crear_enemigo(&ListaItems, enem, seed);
 		seed++;
 	}
