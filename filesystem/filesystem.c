@@ -30,9 +30,11 @@ static char* file_name   = NULL;
 static int   file_descriptor; // file descriptor del archivo de grasa
 static uint  file_size;      // el tamaño del archivo
 struct grasa_header_t* header;
+t_bitarray* bitmap;
+struct grasa_file_t* nodos;
 char* mmaped_file = NULL;// el array de chars que contiene el archivo via mmaped_file
-uint grasa_bitmap_cantidad; // Tamaño archivo / blocksize / 8
-t_bitarray* grasa_bitmap;
+uint bitmap_bytes_usados; // Tamaño archivo / blocksize / 8
+
 tad_logger* logger;
 
 static void iniciar_logger(char* exe_name){
@@ -52,41 +54,74 @@ void logear_header(struct grasa_header_t* header){
 	logger_info(logger, "Tamaño del Bitmap:\t%i bloque(s)", header->size_bitmap);
 	logger_info(logger, "Relleno lo leo pero no le doy pelota");
 }
+void logger_bitmap(t_bitarray* bitmap){
+	uint i,j;
 
-struct grasa_header_t* cargar_header(){
- 	struct grasa_header_t* header = malloc(sizeof(struct grasa_header_t));
-
-	memcpy(header, mmaped_file, sizeof(struct grasa_header_t));
-	logear_header(header);
-
- 	return header;
-}
-
-static t_bitarray* cargar_bitmap(){
-	grasa_bitmap_cantidad =  file_size/ TAMANIO_BLOQUE / 8 ;
-	logger_info(logger,"Cantidad de bytes usados en bitmap :%i",grasa_bitmap_cantidad);
-	
-	t_bitarray* bitmap;
-	int i,j,offset;
-
-	for (i= 0; i < grasa_bitmap_cantidad; ++i)
-	{
-		//bitmap empieza en offset 4096 del archivo por definicion
-		offset = i*8;
-		char* temp = string_substring(mmaped_file, (4096 + offset), 8);
-		bitmap = bitarray_create(temp, 8);//creo un bitmap del byte leido
-
+	for (i= 0; i < bitmap_bytes_usados; ++i){
 		printf("%i) ",i);
 
-		for (j = 0; j < 8; ++j)//imprimo cada bit para verificar
-			printf("%i", bitarray_test_bit(bitmap, j));
+		for (j = 0; j < 8; j++)//imprimo cada bit para verificar
+			printf("%i", bitarray_test_bit(bitmap, (i*8) + j));
 
 		printf("\n");
 	}
-
-	return bitmap;
 }
 
+void loggear_nodos(struct grasa_file_t* nodos){
+	int i;
+	struct grasa_file_t nodo;
+	logger_info(logger, "Tabla de nodos");
+
+	for (i = 0; i < GFILEBYTABLE; ++i)
+	{
+		nodo = nodos[i];
+		logger_info(logger, "Nodo %i)", i);
+		switch(nodo.state)
+			{
+				case 0:
+					logger_info(logger, "\tEstado: Borrado");
+					break;
+				case 1:
+					logger_info(logger, "\tEstado: Ocupado");
+					break;
+				case 2:
+					logger_info(logger, "\tEstado: Directorio");
+					break;
+				default:
+					//https://www.youtube.com/watch?v=iIs2iHvadzA
+					break;
+			}
+
+		logger_info(logger, "\tNombre:%s", nodo.fname);
+		logger_info(logger, "\tTamaño:%i", nodo.file_size);
+		logger_info(logger, "\tCreacion:%i", nodo.c_date);
+		logger_info(logger, "\tModificacion:%i", nodo.m_date);
+	}
+}
+
+void cargar_header(){
+ 	header = malloc(sizeof(struct grasa_header_t));
+
+	memcpy(header, mmaped_file, sizeof(struct grasa_header_t));
+	logear_header(header);
+}
+
+static void cargar_bitmap(){
+	bitmap_bytes_usados =  file_size/ TAMANIO_BLOQUE / 8 ;
+	logger_info(logger,"Cantidad de bytes usados en bitmap :%i",bitmap_bytes_usados);
+	
+	char* str_bitmap = string_substring(mmaped_file, TAMANIO_BLOQUE , 8 * bitmap_bytes_usados);
+	bitmap = bitarray_create(str_bitmap, sizeof(char*) * bitmap_bytes_usados) ;
+	logger_bitmap(bitmap);
+}
+
+static void cargar_nodos(){
+	uint inicio_nodos =	(header->size_bitmap + 1) * TAMANIO_BLOQUE;
+	nodos = malloc(sizeof(struct grasa_file_t)*GFILEBYTABLE);
+	char* str_nodos = string_substring(mmaped_file, inicio_nodos , sizeof(struct grasa_file_t)*GFILEBYTABLE);
+	memcpy(nodos, str_nodos, sizeof(struct grasa_file_t)*GFILEBYTABLE);
+	loggear_nodos(nodos);
+}
 
 void liberar_recursos(){
 	if(mmaped_file != NULL){
@@ -95,7 +130,7 @@ void liberar_recursos(){
 	}
 
 	free(file_name);
-	free(grasa_bitmap);
+	free(bitmap);
 
 	if(header != NULL){
     	free(header->padding);
@@ -142,9 +177,11 @@ int main(int argc, char *argv[]){
     argc--;
 
 	struct fuse_args args = FUSE_ARGS_INIT(argc,argv);
- 	header = cargar_header(); 
- 	grasa_bitmap = cargar_bitmap();
-    
+ 	cargar_header(); 
+ 	cargar_bitmap();
+    cargar_nodos();
+
+
 	int fuse_retorno = fuse_main(args.argc, args.argv, &grasa_operations, NULL);
 
 	logger_info(logger, "Fin de fuse_main - %s.", (fuse_retorno==0) ? "Finalizacion correcta":"Error");
