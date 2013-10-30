@@ -124,17 +124,13 @@ void planificador_finalizar(tad_planificador* self){
 	list_destroy_and_destroy_elements(self->personajes_listos, destroyer);
 	list_destroy_and_destroy_elements(self->personajes_bloqueados, destroyer);
 
+	//liberamos los recursos del multiplexor y el socket del nivel
+	multiplexor_dispose_and_dispose_objects(self->multiplexor);
+
 	//liberamos los recursos de los datos del nivel
-	var(m, self->multiplexor);
 	var(nivel, self->nivel);
-	var(socket_nivel, nivel->socket);
-	multiplexor_unbind_socket(m, socket_nivel);
-	socket_close(socket_nivel);
 	free(nivel->nombre);
 	dealloc(nivel);
-
-	//liberamos los recursos del multiplexor
-	multiplexor_dispose(m);
 
 	//liberamos los recursos propios del planificador
 	logger_dispose_instance(self->logger);
@@ -170,6 +166,7 @@ void planificador_ejecutar(PACKED_ARGS){
 		self->algoritmo = algoritmo_srdf;
 	else
 		self->algoritmo = algoritmo_rr;
+	free(algoritmo);
 
 	int retardo_faltante;
 
