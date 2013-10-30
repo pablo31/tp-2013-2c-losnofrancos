@@ -269,16 +269,13 @@ private tad_personaje* algoritmo_srdf(tad_planificador* self){
 
 
 private void bloquear_personaje(tad_planificador* self, tad_personaje* personaje){
-	bool personaje_buscado(void* ptr_pj){
-		return ptr_pj == personaje;
-	}
-	list_remove_by_condition(self->personajes_listos, personaje_buscado);
+	list_remove_where(self->personajes_listos, tad_personaje* elem, elem == personaje);
 	list_add(self->personajes_bloqueados, personaje);
 }
 
 private tad_personaje* buscar_personaje_bloqueado(tad_planificador* self, char simbolo){
-	bool personaje_buscado(void* personaje){
-		return ((tad_personaje*)personaje)->simbolo == simbolo;
+	bool personaje_buscado(void* elem){
+		return ((tad_personaje*)elem)->simbolo == simbolo;
 	}
 	return list_remove_by_condition(self->personajes_bloqueados, personaje_buscado);
 }

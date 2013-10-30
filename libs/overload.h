@@ -8,6 +8,8 @@
 #ifndef OVERLOAD_H_
 #define OVERLOAD_H_
 
+#include "common.h"
+
 /*
  * VARIADIC & FUNCTION OVERLOAD MACROS
  * Estos macros de aca abajo permiten implementar sobrecarga
@@ -23,9 +25,9 @@
 #define VA_HAS_ARGS(...) VA_NUM_ARGS_IMPL(0, ## __VA_ARGS__, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
 
 //concatena el nombre de una funcion con su cantidad de argumentos
-#define concat_numargs(func, ...) concat_indirection(func, VA_NUM_ARGS(__VA_ARGS__))
+#define concat_numargs(func, ...) _concat_indirection(func, VA_NUM_ARGS(__VA_ARGS__))
 //concatena el nombre de una funcion con un 0 o 1 dependiendo de si recibe argumentos o no
-#define concat_hasargs(func, ...) concat_indirection(func, VA_HAS_ARGS(__VA_ARGS__))
+#define concat_hasargs(func, ...) _concat_indirection(func, VA_HAS_ARGS(__VA_ARGS__))
 
 
 //permite implementar funciones con overload
@@ -49,8 +51,6 @@
 
 //private macros
 #define VA_NUM_ARGS_IMPL(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, N, ...) N
-#define concat_indirection(a, b) concat(a, b)
-#define concat(a, b) a ## b
 
 
 #endif /* OVERLOAD_H_ */
