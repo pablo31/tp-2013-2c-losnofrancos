@@ -61,9 +61,10 @@ char* planificador_nombre_nivel(tad_planificador* self){
  * CREACION ****************************
  ***************************************/
 
-tad_planificador* planificador_crear(char* nombre_nivel, tad_socket* socket_nivel){
+tad_planificador* planificador_crear(char* nombre_nivel, tad_socket* socket_nivel, tad_plataforma* plataforma){
 	//alojamos una estructura tad_planificador
 	alloc(self, tad_planificador);
+	self->plataforma = plataforma;
 	//obtenemos una instancia del logger
 	self->logger = logger_new_instance("Planificador %s", nombre_nivel);
 	//guardamos los datos del nivel
@@ -123,16 +124,13 @@ void planificador_finalizar(tad_planificador* self){
 	list_destroy_and_destroy_elements(self->personajes_listos, destroyer);
 	list_destroy_and_destroy_elements(self->personajes_bloqueados, destroyer);
 
-	//liberamos los recursos de los datos del nivel
-	var(m, self->multiplexor);
-	var(nivel, self->nivel);
-	var(socket_nivel, nivel->socket);
-	multiplexor_unbind_socket(m, socket_nivel);
-	socket_close(socket_nivel);
-	dealloc(nivel);
+	//liberamos los recursos del multiplexor y el socket del nivel
+	multiplexor_dispose_and_dispose_objects(self->multiplexor);
 
-	//liberamos los recursos del multiplexor
-	multiplexor_dispose(m);
+	//liberamos los recursos de los datos del nivel
+	var(nivel, self->nivel);
+	free(nivel->nombre);
+	dealloc(nivel);
 
 	//liberamos los recursos propios del planificador
 	logger_dispose_instance(self->logger);
@@ -168,6 +166,7 @@ void planificador_ejecutar(PACKED_ARGS){
 		self->algoritmo = algoritmo_srdf;
 	else
 		self->algoritmo = algoritmo_rr;
+	free(algoritmo);
 
 	int retardo_faltante;
 
@@ -269,16 +268,13 @@ private tad_personaje* algoritmo_srdf(tad_planificador* self){
 
 
 private void bloquear_personaje(tad_planificador* self, tad_personaje* personaje){
-	bool personaje_buscado(void* ptr_pj){
-		return ptr_pj == personaje;
-	}
-	list_remove_by_condition(self->personajes_listos, personaje_buscado);
+	list_remove_where(self->personajes_listos, tad_personaje* elem, elem == personaje);
 	list_add(self->personajes_bloqueados, personaje);
 }
 
 private tad_personaje* buscar_personaje_bloqueado(tad_planificador* self, char simbolo){
-	bool personaje_buscado(void* personaje){
-		return ((tad_personaje*)personaje)->simbolo == simbolo;
+	bool personaje_buscado(void* elem){
+		return ((tad_personaje*)elem)->simbolo == simbolo;
 	}
 	return list_remove_by_condition(self->personajes_bloqueados, personaje_buscado);
 }
@@ -348,10 +344,8 @@ private void error_socket_personaje(tad_planificador* self, tad_personaje* perso
 
 private void error_socket_nivel(tad_planificador* self){
 	logger_info(get_logger(self), "El nivel asociado al planificador se desconecto inesperadamente");
-	//quitamos el planificador de la lista de plataforma
-	plataforma_planificador_finalizado(self->plataforma, self);
 	//finalizamos el planificador
-	planificador_finalizar(self);
+	plataforma_finalizar_planificador(self->plataforma, self);
 }
 
 

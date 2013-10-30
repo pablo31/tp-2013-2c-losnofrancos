@@ -56,7 +56,7 @@ struct s_planificador{
  ****************************/
 
 //Crea una instancia de planificador
-tad_planificador* planificador_crear(char* nombre_nivel, tad_socket* socket_nivel);
+tad_planificador* planificador_crear(char* nombre_nivel, tad_socket* socket_nivel, tad_plataforma* plataforma);
 //Ejecuta el planificador (debe ser en un hilo exclusivo)
 void planificador_ejecutar(PACKED_ARGS);
 //Libera los recursos del planificador
