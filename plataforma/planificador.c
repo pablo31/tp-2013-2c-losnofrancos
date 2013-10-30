@@ -130,6 +130,7 @@ void planificador_finalizar(tad_planificador* self){
 	var(socket_nivel, nivel->socket);
 	multiplexor_unbind_socket(m, socket_nivel);
 	socket_close(socket_nivel);
+	free(nivel->nombre);
 	dealloc(nivel);
 
 	//liberamos los recursos del multiplexor
