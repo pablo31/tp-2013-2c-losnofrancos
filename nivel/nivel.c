@@ -156,8 +156,10 @@ private void nivel_ejecutar_logica(tad_nivel* self){
 	SOCKET_ON_ERROR(socket, manejar_desconexion_multiplexor(self, multiplexor));
 
 	//Esperamos por paquetes entrantes (o cambios en el config file)
-	while(1)
+	while(1){
+		nivel_gui_dibujar(); //TODO esto no sirve si los enemigos corren en un hilo aparte
 		multiplexor_wait_for_io(multiplexor);
+	}
 }
 
 private void nivel_finalizar(tad_nivel* self){
@@ -182,13 +184,27 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 
 	var(socket, self->socket);
 
-	tad_package* paquete = socket_receive_one_of_this_packages(socket, 3,
+	tad_package* paquete = socket_receive_one_of_this_packages(socket, 4,
+			PERSONAJE_CONECTADO,
 			SOLICITUD_UBICACION_RECURSO,
 			PERSONAJE_MOVIMIENTO,
 			PERSONAJE_SOLICITUD_RECURSO);
 	var(tipo, package_get_data_type(paquete));
 
-	if(tipo == SOLICITUD_UBICACION_RECURSO){
+
+	if(tipo == PERSONAJE_CONECTADO){
+		char simbolo;
+		vector2 pos;
+		package_get_char_and_vector2(paquete, out simbolo, out pos);
+
+		nivel_gui_crear_personaje(simbolo, pos);
+
+		alloc(personaje, tad_personaje);
+		personaje->simbolo = simbolo;
+		personaje->pos = pos;
+		list_add(self->personajes, personaje);
+
+	}else if(tipo == SOLICITUD_UBICACION_RECURSO){
 		char recurso = package_get_char(paquete);
 		vector2 ubicacion;
 		foreach(caja, self->cajas, tad_caja*)
@@ -203,7 +219,7 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		foreach(personaje, self->personajes, tad_personaje*)
 			if(personaje->simbolo == simbolo)
 				personaje->pos = pos;
-		//TODO dibujarlo
+		nivel_gui_mover_item(simbolo, pos);
 
 	}else if(tipo == PERSONAJE_SOLICITUD_RECURSO){
 		//TODO

@@ -29,6 +29,7 @@ enum DATA_TYPE_PROTOCOL {
 	//personaje a planificador
 	PERSONAJE_MOVIMIENTO = 105,
 	PERSONAJE_SOLICITUD_RECURSO = 106,
+	POSICION_INICIAL = 107,
 
 	//nivel a planificador
 	NIVEL_NUMERO = 150,
@@ -37,7 +38,7 @@ enum DATA_TYPE_PROTOCOL {
 	ALGORITMO = 153,
 
 	//planificador a nivel
-	AGREGAR_PERSONAJE = 199,
+	PERSONAJE_CONECTADO = 199,
 
 	//planificador a personaje
 	PLANIFICADOR_OTORGA_QUANTUM = 200,

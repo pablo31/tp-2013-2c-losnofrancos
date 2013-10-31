@@ -224,6 +224,8 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 	vector2 posicionPersonaje; //el personaje sabe donde esta parado en cada hilo
 	vector2_inicializar(posicionPersonaje);
 
+	socket_send_vector2(socket, POSICION_INICIAL, posicionPersonaje);
+
 //	var(simbolo, self->simbolo);
 
 	vector2 posicionDelProximoRecurso;
@@ -304,7 +306,7 @@ private t_personaje* personaje_crear(char* config_path){
 	//TODO levantar los niveles y objetivos del archivo de config
 	t_list* niveles = list_create();
 	int i;
-	for(i = 0; i < 3; i++){
+	for(i = 0; i < 1; i++){
 		alloc(nivel, t_nivel);
 		nivel->nombre = string_from_format("nivel%d", i + 1);
 
