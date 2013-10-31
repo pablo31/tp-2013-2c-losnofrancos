@@ -211,6 +211,7 @@ private void otorgar_turno(tad_planificador* self){
 	var(personaje, self->algoritmo(self));
 	if(!personaje) return;
 
+	var(nombre, personaje->nombre);
 	var(simbolo, personaje->simbolo);
 	var(socket, personaje->socket);
 	var(socket_nivel, self->nivel->socket);
@@ -230,6 +231,7 @@ private void otorgar_turno(tad_planificador* self){
 
 		//el personaje solicita la posicion de un recurso
 		if(tipo_mensaje == SOLICITUD_UBICACION_RECURSO){
+			logger_info(get_logger(self), "%s solicito la ubicacion de un recurso", nombre);
 			socket_send_package(socket_nivel, paquete);
 			tad_package* respuesta = esperar_ubicacion_recurso(self, socket_nivel);
 			socket_send_package(socket, respuesta);
@@ -238,6 +240,7 @@ private void otorgar_turno(tad_planificador* self){
 		//el personaje avisa que va a realizar un movimiento
 		}else if(tipo_mensaje == PERSONAJE_MOVIMIENTO){
 			vector2 direccion = package_get_vector2(paquete);
+			logger_info(get_logger(self), "%s se mueve a (%d,%d)", nombre, direccion.x, direccion.y);
 			tad_package* reenvio = package_create_char_and_vector2(PERSONAJE_MOVIMIENTO, simbolo, direccion);
 			socket_send_package(socket_nivel, reenvio);
 			package_dispose(reenvio);
@@ -246,6 +249,7 @@ private void otorgar_turno(tad_planificador* self){
 		//el personaje solicita una instancia de un recurso
 		}else if(tipo_mensaje == PERSONAJE_SOLICITUD_RECURSO){
 			char recurso = package_get_char(paquete);
+			logger_info(get_logger(self), "%s solicito una instancia del recurso %c", nombre, recurso);
 			tad_package* reenvio = package_create_two_chars(PERSONAJE_SOLICITUD_RECURSO, simbolo, recurso);
 			socket_send_package(socket_nivel, reenvio);
 			package_dispose(reenvio);

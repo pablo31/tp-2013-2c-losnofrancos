@@ -156,10 +156,8 @@ private void nivel_ejecutar_logica(tad_nivel* self){
 	SOCKET_ON_ERROR(socket, manejar_desconexion_multiplexor(self, multiplexor));
 
 	//Esperamos por paquetes entrantes (o cambios en el config file)
-	while(1){
-		nivel_gui_dibujar(); //TODO esto no sirve si los enemigos corren en un hilo aparte
+	while(1)
 		multiplexor_wait_for_io(multiplexor);
-	}
 }
 
 private void nivel_finalizar(tad_nivel* self){
@@ -204,6 +202,8 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		personaje->pos = pos;
 		list_add(self->personajes, personaje);
 
+		nivel_gui_dibujar(); //TODO esto no sirve si los enemigos corren en un hilo aparte
+
 	}else if(tipo == SOLICITUD_UBICACION_RECURSO){
 		char recurso = package_get_char(paquete);
 		vector2 ubicacion;
@@ -220,6 +220,7 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 			if(personaje->simbolo == simbolo)
 				personaje->pos = pos;
 		nivel_gui_mover_item(simbolo, pos);
+		nivel_gui_dibujar(); //TODO esto no sirve si los enemigos corren en un hilo aparte
 
 	}else if(tipo == PERSONAJE_SOLICITUD_RECURSO){
 		//TODO

@@ -222,42 +222,42 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 	}
 
 	vector2 posicionPersonaje; //el personaje sabe donde esta parado en cada hilo
-	vector2_inicializar(posicionPersonaje);
+	vector2_inicializar(&posicionPersonaje);
 
 	socket_send_vector2(socket, POSICION_INICIAL, posicionPersonaje);
-
-//	var(simbolo, self->simbolo);
+	logger_info(logger_nivel, "Posicion inicial seteada en (%d,%d)", posicionPersonaje.x, posicionPersonaje.y);
 
 	vector2 posicionDelProximoRecurso;
-	vector2_inicializar(posicionDelProximoRecurso);
+	vector2_inicializar(&posicionDelProximoRecurso);
 
 	vector2 posicion_de_comparacion;
-	vector2_inicializar(posicion_de_comparacion);
+	vector2_inicializar(&posicion_de_comparacion);
 
 
 	int objetivosConseguidos = 0;
 	int objetivosAconseguir  = list_size(self->niveles);
-	int i;
-	i=1;
+	int i = 0;
 
 	while(objetivosConseguidos<objetivosAconseguir){
 		socket_receive_expected_empty_package(socket, PLANIFICADOR_OTORGA_QUANTUM);
+		logger_info(logger_nivel, "Quantum otorgado");
 
-		char* ptr_objetivo = list_get(self->niveles,i);
+		char* ptr_objetivo = list_get(self->niveles, i);
 		char objetivoActual = *ptr_objetivo;  //esto para mi rompe...
 
 		if(vector2_equals(posicionDelProximoRecurso, posicion_de_comparacion)){
-
+			logger_info(logger_nivel, "Solicitando ubicacion del proximo recurso");
 			//se solicita la ubicacion de la caja de recursos proxima a obtener, no consume quamtum
 			socket_send_char(socket, SOLICITUD_UBICACION_RECURSO, objetivoActual);
 			posicionDelProximoRecurso = socket_receive_expected_vector2(socket, UBICACION_RECURSO);
+			logger_info(logger_nivel, "La ubicacion del recurso es (%d,%d)", posicionDelProximoRecurso.x, posicionDelProximoRecurso.y);
 
 
 		}else if(!vector2_equals(posicionPersonaje,posicionDelProximoRecurso)){
-
 			//se calcula en función de su posición actual (x,y), la dirección en la que debe
 			//realizar su próximo movimiento  para alcanzar la caja de recursos y 1avanzar
 			vector2 nuevaPosicion = posicion_desde_A_posicion_hacia(posicionPersonaje,posicionDelProximoRecurso);
+			logger_info(logger_nivel, "Moviendose a (%d,%d)", nuevaPosicion.x, nuevaPosicion.y);
 			socket_send_vector2(socket, PERSONAJE_MOVIMIENTO, nuevaPosicion);
 
 		}else if(vector2_equals(posicionPersonaje,posicionDelProximoRecurso)){
@@ -265,15 +265,16 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 			// se solicita una instancia del recurso en caso de estar en la posición de la caja correspondiente,
 			// envia un mensaje al Planificador.
 			// Luego de esto, deberá esperar a la confirmación de la asignación del mismo.
-
+			logger_info(logger_nivel, "Solicitando instancia de recurso");
 		     socket_send_char(socket, PERSONAJE_SOLICITUD_RECURSO, objetivoActual);
 		     //se queda esperando a que le otorguen el recurso
 		     socket_receive_expected_empty_package(socket, RECURSO_OTORGADO);
+		     logger_info(logger_nivel, "Recurso otorgado");
 			//si recibe recurso tiene hacer
 			objetivosConseguidos++;
 			i++;
-			vector2_inicializar(posicionDelProximoRecurso);
-			vector2_inicializar(posicion_de_comparacion);
+			vector2_inicializar(&posicionDelProximoRecurso);
+			vector2_inicializar(&posicion_de_comparacion);
 		}
 	}
 
@@ -315,7 +316,7 @@ private t_personaje* personaje_crear(char* config_path){
 		*objetivo = 'H';
 		round_add(objetivos, objetivo);
 		ralloc(objetivo);
-		*objetivo = 'F';
+		*objetivo = 'C';
 		round_add(objetivos, objetivo);
 		nivel->objetivos = objetivos;
 
