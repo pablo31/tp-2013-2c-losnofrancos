@@ -16,6 +16,11 @@ vector2 vector2_new(int x, int y){
 	return ret;
 }
 
+void vector2_inicializar(vector2 v){
+	v.x = 1;
+	v.y = 1;
+}
+
 int vector2_get_x(vector2 v){
 	return v.x;
 }
