@@ -221,46 +221,73 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 		return 0;
 	}
 
-	//Recibe mensajes del planificador
-	//a)SOLICITUD_UBICACION_RECURSO,solicita la ubicacion de la caja de recursos proxima a obtener, no consume quamtum
-	//b)
-	//c)
+	/*
+	Recibe mensajes del planificador
+	a)SOLICITUD_UBICACION_RECURSO,solicita la ubicacion de la caja de recursos proxima a obtener, no consume quamtum
 
-	//Hago tres if, porque me parece mejor que el if--else---if---else
-	while(1){
-	/*	tad_package* paquete = socket_receive_one_of_this_packages(socket, 3,
-							SOLICITUD_UBICACION_RECURSO,
+	b)PERSONAJE_MOVIMIENTO,calcular, en función de su posición actual (x,y), la dirección en la que debe
+    	realizar su próximo movimiento  para alcanzar la caja de recursos y avanzar
+
+	c)PERSONAJE_SOLICITUD_RECURSO, solicitar una instancia del recurso en caso de estar en la posición de la caja correspondiente,
+	 envia un mensaje al Planificador.
+	 Luego de esto, deberá esperar a la confirmación de la asignación del mismo.
+
+
+
+	vector2 posicion; //el personaje sabe donde esta parado en cada hilo
+	posicion.x=1;
+	posicion.y=1;
+	vector2 posicionDelProximoRecurso;
+	posicionDelProximoRecurso.x=1;
+	posicionDelProximoRecurso.y=1;
+
+	int objetivosConseguidos = 0;
+	int objetivosAconseguir  = list_size(self->niveles);
+	int i;
+	i=1;
+
+	while(objetivosConseguidos<objetivosAconseguir){
+
+		char objetivoActual =  list_get(self->niveles,i); //esto para mi rompe...
+
+		//Esto es horrible, despues lo mejoro... fue..
+		if(posicionDelProximoRecurso.x==1 && posicionDelProximoRecurso.y==1){ //esto se puede mejorar
+			socket_send_empty_package(socket, SOLICITUD_UBICACION_RECURSO);
+		}else if(!vector2_equals(posicion,posicionDelProximoRecurso)){
+		      	  socket_send_empty_package(socket, PERSONAJE_MOVIMIENTO);
+				}else if(vector2_equals(posicion,posicionDelProximoRecurso)){
+			      	  socket_send_empty_package(socket, PERSONAJE_SOLICITUD_RECURSO);
+					}
+
+		tad_package* paquete = socket_receive_one_of_this_packages(socket, 3,
+				             SOLICITUD_UBICACION_RECURSO,
 							PERSONAJE_MOVIMIENTO,
 							PERSONAJE_SOLICITUD_RECURSO);
 
 		var(tipo_mensaje, package_get_data_type(paquete));
-
+		vector2 contenidoPlanificador = package_get_vector2(paquete); //TODO
 
 		if(tipo_mensaje == SOLICITUD_UBICACION_RECURSO){
 			vector2 direccion = package_get_vector2(paquete);
-			self->posicionDelProximoRecurso.x = direccion.x;
-			self->posicionDelProximoRecurso.y = direccion.y;
+			posicionDelProximoRecurso.x = direccion.x;
+			posicionDelProximoRecurso.y = direccion.y;
 		}
 
-
 		if(tipo_mensaje == PERSONAJE_SOLICITUD_RECURSO){
-			if (vector2_equals(self->posicion,self->posicionDelProximoRecurso))
-							socket_send_empty_package(socket, PERSONAJE_SOLICITUD_RECURSO);
-			//avanza una posicion y le solicita al planificador un movimiento
-			 else{
-				 posicion_get_proxima_hacia(self->posicion,self->posicionDelProximoRecurso);
-				 socket_send_vector2(socket, PERSONAJE_MOVIMIENTO);
-			}
+			vector2 nuevaPosicion = posicion_desde_A_posicion_hacia(posicion,posicionDelProximoRecurso);
+			posicion.x= nuevaPosicion.x;
+			posicion.y= nuevaPosicion.y; //esto se tiene que hacer con un refactor...
+			socket_send_vector2(socket, PERSONAJE_MOVIMIENTO)
 		}
 
 
 		if(tipo_mensaje == PERSONAJE_SOLICITUD_RECURSO){
 
+
 		}
-	 	 */
 
 	}
-
+*/
 	return 1;
 
 }

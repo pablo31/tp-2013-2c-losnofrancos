@@ -29,8 +29,7 @@ typedef struct {
 
 	char* ippuerto_orquestador;
 	tad_logger* logger;
-	vector2 posicion; //el personaje sabe donde esta parado creo que por defecto entra en (1;1)
-	vector2 posicionDelProximoRecurso;
+
 } t_personaje;
 
 
