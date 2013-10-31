@@ -93,11 +93,7 @@ typedef char string;
 
 //foreach loop
 #define foreach(item, list, type) \
-	t_link_element* __r_le; \
-	type item; \
-	if(list->head != null) item = list->head->data; \
-	if(list->head != null) \
-	for(__r_le = list->head; __r_le != null; __r_le = __r_le->next, item = __r_le?__r_le->data:null)
+	_foreach(item, list, type, __LINE__)
 	/* ejemplo de uso de foreach ************
 	 * t_list* mi_lista;
 	 * foreach(item, mi_lista, char*){
@@ -122,6 +118,17 @@ typedef char string;
 
 #define _concat_indirection(a, b) _concat(a, b)
 #define _concat(a, b) a ## b
+
+
+#define _foreach(item, list, type, unique_id) \
+	__foreach(item, list, type, _concat_indirection(__r_le, unique_id))
+#define __foreach(item, list, type, elem_ptr) \
+	t_link_element* elem_ptr; \
+	type item; \
+	if(list->head != null) item = list->head->data; \
+	if(list->head != null) \
+	for(elem_ptr = list->head; elem_ptr != null; elem_ptr = elem_ptr->next, item = elem_ptr?elem_ptr->data:null)
+
 
 #define _list_condition(name, item, predicate) \
 	bool name (void* __r_md_ptr) { item = __r_md_ptr; return predicate; }

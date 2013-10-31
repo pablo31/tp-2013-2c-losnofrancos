@@ -132,8 +132,7 @@ private void nivel_conectar_a_plataforma(tad_nivel* self, char* ippuerto){
 private void nivel_iniciar_interfaz_grafica(tad_nivel* self){
 	logger_info(get_logger(self), "Inicializando interfaz grafica");
 	//Intento iniciar la GUI
-	int something_is_wrong = nivel_gui_inicializar();
-	if(something_is_wrong) nivel_finalizar(self);
+	nivel_gui_inicializar();
 	//Cargo los recursos en la pantalla
 	cargar_recursos_nivel(self);
 }
