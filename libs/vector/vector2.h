@@ -18,6 +18,7 @@ typedef struct s_vector2 vector2;
 
 
 vector2 vector2_new(int x, int y);
+void vector2_inicializar(vector2 v);
 int vector2_get_x(vector2 v);
 int vector2_get_y(vector2 v);
 int vector2_equals(vector2 a, vector2 b);
