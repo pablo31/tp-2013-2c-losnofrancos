@@ -9,6 +9,12 @@
 
 #include "vector2.h"
 
+
+/******************************
+ * Constructores
+ ******************************/
+
+
 vector2 vector2_new(int x, int y){
 	vector2 ret;
 	ret.x = x;
@@ -16,10 +22,14 @@ vector2 vector2_new(int x, int y){
 	return ret;
 }
 
-void vector2_inicializar(vector2* v){
-	v->x = 1;
-	v->y = 1;
+vector2 vector2_new(){
+	return vector2_new(1, 1);
 }
+
+
+/******************************
+ * Getters
+ ******************************/
 
 int vector2_get_x(vector2 v){
 	return v.x;
@@ -32,6 +42,11 @@ int vector2_get_y(vector2 v){
 int vector2_equals(vector2 a, vector2 b){
 	return (a.x == b.x) && (a.y == b.y);
 }
+
+
+/******************************
+ * Misc
+ ******************************/
 
 vector2 vector2_add(vector2 a, vector2 b){
 	vector2 ret;
@@ -55,33 +70,4 @@ vector2 vector2_direction_to(vector2 self, vector2 target){
 
 vector2 vector2_duplicate(vector2 v){
 	return vector2_new(v.x, v.y);
-}
-
-//no lo termine...
-#define DISTANCIA_MOVIMIENTO_PERMITIDA 1
-vector2 posicion_desde_A_posicion_hacia(vector2 self, vector2 posicion_destino){
-
-	if(vector2_equals(self, posicion_destino)) return vector2_duplicate(self);
-
-	int distancia_a_mover = DISTANCIA_MOVIMIENTO_PERMITIDA;
-
-	int x = self.x;
-	int y = self.y;
-
-	//Esto hay que probarlo bien
-	if (x != posicion_destino.x) {
-		if (x < posicion_destino.x) {
-			x += distancia_a_mover;
-		} else {
-			x -= distancia_a_mover;
-		}
-	} else if (y != posicion_destino.y) {
-		if (y < posicion_destino.y) {
-			y += distancia_a_mover;
-		} else {
-			y -= distancia_a_mover;
-		}
-	}
-
-	return vector2_new(x,y);
 }

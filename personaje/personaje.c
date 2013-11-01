@@ -76,6 +76,7 @@ private void comer_honguito_verde(t_personaje* self);
 private void inicio_nuevo_hilo(PACKED_ARGS);
 private int conectarse_al_orquestador(t_personaje* self, t_nivel* nivel, tad_logger* logger);
 private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, tad_logger* logger);
+private vector2 posicion_siguiente(vector2 posicion, vector2 destino);
 
 private void manejar_error_orquestador(tad_socket* socket, tad_logger* logger);
 private void manejar_error_planificador(tad_socket* socket, tad_logger* logger);
@@ -221,17 +222,13 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 		return 0;
 	}
 
-	vector2 posicionPersonaje; //el personaje sabe donde esta parado en cada hilo
-	vector2_inicializar(&posicionPersonaje);
+	vector2 posicionPersonaje = vector2_new();
 
 	socket_send_vector2(socket, POSICION_INICIAL, posicionPersonaje);
 	logger_info(logger_nivel, "Posicion inicial seteada en (%d,%d)", posicionPersonaje.x, posicionPersonaje.y);
 
-	vector2 posicionDelProximoRecurso;
-	vector2_inicializar(&posicionDelProximoRecurso);
-
-	vector2 posicion_de_comparacion;
-	vector2_inicializar(&posicion_de_comparacion);
+	vector2 posicionDelProximoRecurso = vector2_new();
+	vector2 posicion_de_comparacion = vector2_new();
 
 
 	int objetivosConseguidos = 0;
@@ -256,9 +253,10 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 		}else if(!vector2_equals(posicionPersonaje,posicionDelProximoRecurso)){
 			//se calcula en función de su posición actual (x,y), la dirección en la que debe
 			//realizar su próximo movimiento  para alcanzar la caja de recursos y 1avanzar
-			vector2 nuevaPosicion = posicion_desde_A_posicion_hacia(posicionPersonaje,posicionDelProximoRecurso);
+			vector2 nuevaPosicion = posicion_siguiente(posicionPersonaje, posicionDelProximoRecurso);
 			logger_info(logger_nivel, "Moviendose a (%d,%d)", nuevaPosicion.x, nuevaPosicion.y);
 			socket_send_vector2(socket, PERSONAJE_MOVIMIENTO, nuevaPosicion);
+			posicionPersonaje = nuevaPosicion;
 
 		}else if(vector2_equals(posicionPersonaje,posicionDelProximoRecurso)){
 
@@ -273,8 +271,8 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 			//si recibe recurso tiene hacer
 			objetivosConseguidos++;
 			i++;
-			vector2_inicializar(&posicionDelProximoRecurso);
-			vector2_inicializar(&posicion_de_comparacion);
+			posicionDelProximoRecurso = vector2_new();
+			posicion_de_comparacion = vector2_new();
 		}
 	}
 
@@ -398,4 +396,29 @@ private void personaje_destruir(t_personaje* self){
 	free(self->nombre);
 	free(self->ippuerto_orquestador);
 	dealloc(self);
+}
+
+
+
+
+
+private vector2 posicion_siguiente(vector2 posicion, vector2 destino){
+	if(vector2_equals(posicion, destino)) return vector2_duplicate(posicion);
+
+	//conocimientos adquiridos en tgc, no me fallen!!
+
+	vector2 delta = vector2_subtract(destino, posicion);
+	int abs_x = abs(delta.x);
+	int abs_y = abs(delta.y);
+
+	vector2 movimiento;
+
+	if(abs_x > abs_y)
+		//hay mas distancia en x, nos movemos en x
+		movimiento = vector2_new(delta.x / abs_x, 0);
+	else
+		//hay mas distancia en y, nos movemos en y
+		movimiento = vector2_new(0, delta.y / abs_y);
+
+	return vector2_add(posicion, movimiento);
 }
