@@ -245,6 +245,7 @@ private void otorgar_turno(tad_planificador* self){
 			socket_send_package(socket_nivel, reenvio);
 			package_dispose(reenvio);
 			quantum--;
+			if(!quantum) list_add(self->personajes_listos, personaje);
 
 		//el personaje solicita una instancia de un recurso
 		}else if(tipo_mensaje == PERSONAJE_SOLICITUD_RECURSO){
@@ -276,7 +277,7 @@ private tad_personaje* algoritmo_srdf(tad_planificador* self){
 
 
 private void bloquear_personaje(tad_planificador* self, tad_personaje* personaje){
-	list_remove_where(self->personajes_listos, tad_personaje* elem, elem == personaje);
+//	list_remove_where(self->personajes_listos, tad_personaje* elem, elem == personaje);
 	list_add(self->personajes_bloqueados, personaje);
 }
 
