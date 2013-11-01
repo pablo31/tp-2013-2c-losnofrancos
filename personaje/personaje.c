@@ -235,14 +235,14 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 
 
 	int objetivosConseguidos = 0;
-	int objetivosAconseguir  = list_size(self->niveles);
+	int objetivosAconseguir  = list_size(nivel->objetivos);
 	int i = 0;
 
 	while(objetivosConseguidos<objetivosAconseguir){
 		socket_receive_expected_empty_package(socket, PLANIFICADOR_OTORGA_QUANTUM);
 		logger_info(logger_nivel, "Quantum otorgado");
 
-		char* ptr_objetivo = list_get(self->niveles, i);
+		char* ptr_objetivo = list_get(nivel->objetivos, i);
 		char objetivoActual = *ptr_objetivo;  //esto para mi rompe...
 
 		if(vector2_equals(posicionDelProximoRecurso, posicion_de_comparacion)){
@@ -311,13 +311,22 @@ private t_personaje* personaje_crear(char* config_path){
 		alloc(nivel, t_nivel);
 		nivel->nombre = string_from_format("nivel%d", i + 1);
 
-		var(objetivos, round_create());
+		// var(objetivos, round_create());
+		// alloc(objetivo, char);
+		// *objetivo = 'H';
+		// round_add(objetivos, objetivo);
+		// ralloc(objetivo);
+		// *objetivo = 'C';
+		// round_add(objetivos, objetivo);
+		// nivel->objetivos = objetivos;
+
+		var(objetivos, list_create());
 		alloc(objetivo, char);
 		*objetivo = 'H';
-		round_add(objetivos, objetivo);
+		list_add(objetivos, objetivo);
 		ralloc(objetivo);
 		*objetivo = 'C';
-		round_add(objetivos, objetivo);
+		list_add(objetivos, objetivo);
 		nivel->objetivos = objetivos;
 
 		list_add(niveles, nivel);
@@ -365,13 +374,20 @@ private void personaje_destruir(t_personaje* self){
 	void liberar_nivel(void* ptr_nivel){
 		 t_nivel* nivel = ptr_nivel;
 
-		 t_round* objetivos = nivel->objetivos;
-		 round_restart(objetivos);
-		 while(!round_has_ended(objetivos)){
-			 char* objetivo = round_remove(objetivos);
-			 free(objetivo);
+		 var(objetivos, nivel->objetivos);
+		 void liberar_objetivo(void* ptr_objetivo){
+		 	char* objetivo = ptr_objetivo;
+		 	free(objetivo);
 		 }
-		 round_dispose(objetivos);
+		 list_destroy_and_destroy_elements(objetivos, liberar_objetivo);
+
+		 // t_round* objetivos = nivel->objetivos;
+		 // round_restart(objetivos);
+		 // while(!round_has_ended(objetivos)){
+			//  char* objetivo = round_remove(objetivos);
+			//  free(objetivo);
+		 // }
+		 // round_dispose(objetivos);
 
 		dealloc(nivel);
 	}

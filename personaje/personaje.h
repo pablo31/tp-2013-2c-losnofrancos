@@ -16,7 +16,8 @@
 
 typedef struct {
 	char* nombre;
-	t_round* objetivos; //round<char*>
+	// t_round* objetivos; //round<char*>
+	t_list* objetivos; //list<char*>
 } t_nivel;
 
 typedef struct {
