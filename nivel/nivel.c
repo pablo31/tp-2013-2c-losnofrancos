@@ -214,7 +214,7 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 
 	}else if(tipo == PERSONAJE_MOVIMIENTO){
 		char simbolo;
-		vector2 pos; //TODO ver quien da la posicion inicial del personaje
+		vector2 pos;
 		package_get_char_and_vector2(paquete, out simbolo, out pos);
 		foreach(personaje, self->personajes, tad_personaje*)
 			if(personaje->simbolo == simbolo)
@@ -223,7 +223,14 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		nivel_gui_dibujar(); //TODO esto no sirve si los enemigos corren en un hilo aparte
 
 	}else if(tipo == PERSONAJE_SOLICITUD_RECURSO){
+		char simbolo;
+		char recurso;
+		package_get_two_chars(paquete, out simbolo, out recurso);
+		//TODO validar que el personaje este en el lugar
+		//TODO verificar que halla instancias de ese recurso
+		//TODO descontar una instancia a esa caja
 		//TODO
+		socket_send_char(socket, RECURSO_OTORGADO, simbolo); //hardcod
 
 	}
 }
