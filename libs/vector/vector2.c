@@ -67,6 +67,12 @@ vector2 vector2_multiply(vector2 v, int s){
 	ret.y = v.y * s;
 	return ret;
 }
+vector2 vector2_divide(vector2 v, int s){
+	vector2 ret;
+	ret.x = v.x / s;
+	ret.y = v.y / s;
+	return ret;
+}
 
 vector2 vector2_add_x(vector2 v, int x){
 	vector2 ret = v;

@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h> //usleep
+#include <string.h>
 
 #include <curses.h>
 #include <sys/ioctl.h>
@@ -37,9 +38,9 @@ private vector2 gui_get_bounds(){
 private void gotoxy(int x, int y){
 	wmove(mainwin, y, x);
 }
-//private void gotopos(vector2 pos){
-//	gotoxy(pos.x, pos.y);
-//}
+private void gotopos(vector2 pos){
+	gotoxy(pos.x, pos.y);
+}
 private void add_char(char c){
 	waddch(mainwin, c);
 }
@@ -54,57 +55,56 @@ enum DIRECTIONS {
 };
 int direction;
 
-vector2 win_pos;
 vector2 win_bounds;
 
 
-vector2 get_next_pos(vector2 pos, vector2 min, vector2 max, int as_out up_collision){
+vector2 get_next_block(vector2 block, vector2 min, vector2 max, int as_out up_collision){
 	set up_collision = 0;
 	//horrible
 	switch(direction){
 	case UP:
-		if(pos.y == min.y + 1){
+		if(block.y == min.y + 1){
 			set up_collision = 1;
 			direction = RIGHT;
-			return vector2_add_x(pos, 1);
+			return vector2_add_x(block, 1);
 		}else{
-			return vector2_add_y(pos, -1);
+			return vector2_add_y(block, -1);
 		}
 		break;
 	case DOWN:
-		if(pos.y == max.y){
+		if(block.y == max.y){
 			direction = LEFT;
-			return vector2_add_x(pos, -1);
+			return vector2_add_x(block, -1);
 		}else{
-			return vector2_add_y(pos, 1);
+			return vector2_add_y(block, 1);
 		}
 		break;
 	case RIGHT:
-		if(pos.x == max.x){
+		if(block.x == max.x){
 			direction = DOWN;
-			return vector2_add_y(pos, 1);
+			return vector2_add_y(block, 1);
 		}else{
-			return vector2_add_x(pos, 1);
+			return vector2_add_x(block, 1);
 		}
 		break;
 	case LEFT:
-		if(pos.x == min.x){
+		if(block.x == min.x){
 			direction = UP;
-			return vector2_add_y(pos, -1);
+			return vector2_add_y(block, -1);
 		}else{
-			return vector2_add_x(pos, -1);
+			return vector2_add_x(block, -1);
 		}
 		break;
 	}
-	return pos;
+	return block;
 }
 
 
-void draw_block(vector2 pos, int block_width, int block_height){
+void draw_block(vector2 screen_pos, int block_width, int block_height){
 	int x; int y;
 	for(x = 0; x < block_width; x++){
 		for(y = 0; y < block_height; y++){
-			gotoxy(pos.x + x, pos.y + y);
+			gotoxy(screen_pos.x + x, screen_pos.y + y);
 			add_char('0');
 		}
 	}
@@ -114,7 +114,6 @@ void draw_block(vector2 pos, int block_width, int block_height){
 
 
 void draw(){
-	win_pos = vector2_new(0, 0);
 	direction = RIGHT;
 
 	int blocks = 20; //grid
@@ -125,35 +124,24 @@ void draw(){
 	int block_height = height / blocks;
 	int block_width = width / blocks;
 
-	vector2 min = vector2_new(0, 0);
-	vector2 max = vector2_new(blocks, blocks);
+	vector2 min = vector2_new(1, 1);
+	vector2 max = vector2_new(blocks - 1, blocks - 1);
+	vector2 block = min;
 	int collision;
 
-
 	int area = blocks * blocks;
-//	int elapsed_time = 0;
-	int interval = (total_time * 1000000) / area;
+	int u_total_time = total_time * 1000000;
+	int interval = u_total_time / area;
 
-//	int color = 1;
-
-	while(1){
-		if(win_pos.x > max.x || win_pos.x < min.x || win_pos.y > max.y || win_pos.y < min.y) break;
-
+	while(block.x >= min.x && block.x <= max.x && block.y >= min.y && block.y <= max.y){
 		vector2 real_pos;
-		real_pos.x = block_width * win_pos.x;
-		real_pos.y = block_height * win_pos.y;
+		real_pos.x = block_width * block.x;
+		real_pos.y = block_height * block.y;
 		draw_block(real_pos, block_width, block_height);
 
 		usleep(interval);
-//		elapsed_time += interval;
 
-//		if(total_time / 10 < elapsed_time){
-//			wbkgd(mainwin, COLOR_PAIR(color++));
-//			if(color == 3) color = 1;
-//			elapsed_time = 0;
-//		}
-
-		win_pos = get_next_pos(win_pos, min, max, out collision);
+		block = get_next_block(block, min, max, out collision);
 		if(collision){
 			min.x++;
 			min.y++;
@@ -169,6 +157,13 @@ void draw(){
 }
 
 
+void print_on_center(const char* text){
+	vector2 pos = vector2_divide(win_bounds, 2);
+	pos.x -= strlen(text) / 2;
+	gotopos(pos);
+	wprintw(mainwin, text);
+}
+
 
 
 int main(){
@@ -181,7 +176,8 @@ int main(){
 	werase(mainwin);
 
 	win_bounds = gui_get_bounds();
-	win_bounds.x -= 10; //TODO ver por que se sale del margen
+
+	print_on_center("LosNoFrancos 2013");
 
 	draw();
 
