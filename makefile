@@ -73,6 +73,9 @@ all:
 
 	@echo "   >>> COMPILANDO PRUEBA DE VARIABLES"
 	gcc -Wall -g -ggdb pruebas/variables.c -o prueba_variables.sh
+
+	@echo "   >>> COMPILANDO PRUEBA X"
+	gcc -Wall -g -ggdb pruebas/intro.c libcommon.a -o prueba_x.sh -lncurses
 	
 	@echo ""
 	@echo "# PROCESOS"

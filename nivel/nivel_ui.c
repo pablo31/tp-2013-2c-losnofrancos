@@ -2,6 +2,7 @@
 #include <sys/ioctl.h>
 #include <curses.h>
 #include <time.h>
+#include <unistd.h> //usleep
 #include "nivel.h"
 #include "nivel_ui.h"
 #include "../libs/logger/logger.h"
@@ -48,6 +49,21 @@ void nivel_gui_inicializar(){
 	wrefresh(secwin);
 
 	items = list_create();
+
+	//pokemon-style intro
+	werase(secwin);
+	box(secwin, 0, 0);
+	wbkgd(secwin, COLOR_PAIR(1));
+	int col; int row;
+	for(col = 0; col < cols; col++){
+		for(row = 0; row < rows; row++){
+			wmove(secwin, row, col);
+			waddch(secwin, 'a' | COLOR_PAIR(3));
+			wrefresh(secwin);
+			wrefresh(mainwin);
+			usleep(500);
+		}
+	}
 }
 
 

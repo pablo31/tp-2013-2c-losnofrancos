@@ -61,6 +61,17 @@ vector2 vector2_subtract(vector2 a, vector2 b){
 	return ret;
 }
 
+vector2 vector2_add_x(vector2 v, int x){
+	vector2 ret = v;
+	ret.x += x;
+	return ret;
+}
+vector2 vector2_add_y(vector2 v, int y){
+	vector2 ret = v;
+	ret.y += y;
+	return ret;
+}
+
 vector2 vector2_direction_to(vector2 self, vector2 target){
 	vector2 diff = vector2_subtract(target, self);
 	diff.x /= abs(diff.x);
