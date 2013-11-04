@@ -37,9 +37,9 @@ private vector2 gui_get_bounds(){
 private void gotoxy(int x, int y){
 	wmove(mainwin, y, x);
 }
-private void gotopos(vector2 pos){
-	gotoxy(pos.x, pos.y);
-}
+//private void gotopos(vector2 pos){
+//	gotoxy(pos.x, pos.y);
+//}
 private void add_char(char c){
 	waddch(mainwin, c);
 }
@@ -99,36 +99,59 @@ vector2 get_next_pos(vector2 pos, vector2 min, vector2 max, int as_out up_collis
 	return pos;
 }
 
+
+void draw_block(vector2 pos, int block_width, int block_height){
+	int x; int y;
+	for(x = 0; x < block_width; x++){
+		for(y = 0; y < block_height; y++){
+			gotoxy(pos.x + x, pos.y + y);
+			add_char('0');
+		}
+	}
+	wrefresh(mainwin);
+}
+
+
+
 void draw(){
 	win_pos = vector2_new(0, 0);
 	direction = RIGHT;
 
+	int blocks = 20; //grid
+	int total_time = 3; //seconds
+
+	int height = win_bounds.y;
+	int width = win_bounds.x;
+	int block_height = height / blocks;
+	int block_width = width / blocks;
+
 	vector2 min = vector2_new(0, 0);
-	vector2 max = win_bounds;
+	vector2 max = vector2_new(blocks, blocks);
 	int collision;
 
-	int area = win_bounds.x * win_bounds.y;
-	int total_time = 3500000;
-	int elapsed_time = 0;
-	int interval = total_time / area;
 
-	int color = 1;
+	int area = blocks * blocks;
+//	int elapsed_time = 0;
+	int interval = (total_time * 1000000) / area;
+
+//	int color = 1;
 
 	while(1){
 		if(win_pos.x > max.x || win_pos.x < min.x || win_pos.y > max.y || win_pos.y < min.y) break;
 
-		gotopos(win_pos);
-		add_char('O');
-		wrefresh(mainwin);
+		vector2 real_pos;
+		real_pos.x = block_width * win_pos.x;
+		real_pos.y = block_height * win_pos.y;
+		draw_block(real_pos, block_width, block_height);
 
 		usleep(interval);
-		elapsed_time += interval;
+//		elapsed_time += interval;
 
-		if(total_time / 15 < elapsed_time){
-			wbkgd(mainwin, COLOR_PAIR(color++));
-			if(color == 3) color = 1;
-			elapsed_time = 0;
-		}
+//		if(total_time / 10 < elapsed_time){
+//			wbkgd(mainwin, COLOR_PAIR(color++));
+//			if(color == 3) color = 1;
+//			elapsed_time = 0;
+//		}
 
 		win_pos = get_next_pos(win_pos, min, max, out collision);
 		if(collision){
@@ -139,10 +162,10 @@ void draw(){
 		}
 	}
 
-	gotoxy(0, 0);
-	wprintw(mainwin, "Cols: %d Rows: %d Interval: %d\n", win_bounds.x, win_bounds.y, interval);
-	wrefresh(mainwin);
-	sleep(2);
+//	gotoxy(0, 0);
+//	wprintw(mainwin, "Cols: %d Rows: %d Interval: %d\n", win_bounds.x, win_bounds.y, interval);
+//	wrefresh(mainwin);
+//	sleep(2);
 }
 
 
@@ -158,18 +181,8 @@ int main(){
 	werase(mainwin);
 
 	win_bounds = gui_get_bounds();
+	win_bounds.x -= 10; //TODO ver por que se sale del margen
 
-//	int x;
-//	int y;
-
-//	for(x = 0; x < win_bounds.x; x++){
-//		for(y = 0; y < win_bounds.y; y++){
-//			gotoxy(x, y);
-//			add_char('a');
-//			wrefresh(mainwin);
-//			usleep(500);
-//		}
-//	}
 	draw();
 
 	delwin(mainwin);
