@@ -177,18 +177,14 @@ private void nivel_mover_enemigos(tad_nivel* self){
 	logger_info(get_logger(self), "Los enemigos, se mueven en forma de L");
 
 	//Buscar en la lista de enemigos, por cada uno moverlo
-	//foreach(enemigo, self->enemigos, tad_enemigo*){
+	foreach(enemigo, self->enemigos, tad_enemigo*){
 		//teniendo en cuenta que no:
 		       //salga del mapa
 		      //pase por arriba de una caja
-		//movimiento_permitido_enemigo(enemigo);
-
-
-	//}
+		movimiento_permitido_enemigo(self, enemigo);
+	}
 
 	//luego hacer que cuando este cerca de un personale le descuente una vida
-
-	exit(EXIT_SUCCESS);
 }
 
 /***************************************************************
@@ -253,7 +249,7 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 	}
 
 	//por el momento dejo aca, luego lo saco y me fijo donde corresponde
-	//nivel_mover_enemigos(self);
+	nivel_mover_enemigos(self);
 }
 
 private void config_file_modified(PACKED_ARGS){
