@@ -13,7 +13,7 @@
 #include "nivel_ui.h"
 #include "nivel_configuracion.h"
 #include "nivel.h"
-
+#include "enemigo.h"
 
 private void nivel_conectar_a_plataforma(tad_nivel* self, char* ippuerto);
 private void nivel_iniciar_interfaz_grafica(tad_nivel* self);
@@ -28,7 +28,7 @@ private void config_file_modified(PACKED_ARGS);
 private void nivel_finalizar(tad_nivel* self);
 private void nivel_finalizar_cerrar_multiplexor(tad_nivel* self, tad_multiplexor* m);
 
-//private void nivel_mover_enemigos(tad_nivel* self);
+private void nivel_mover_enemigos(tad_nivel* self);
 
 /***************************************************************
  * Misc
@@ -172,23 +172,24 @@ private void nivel_finalizar(tad_nivel* self){
 
 	exit(EXIT_SUCCESS);
 }
-/*
+
 private void nivel_mover_enemigos(tad_nivel* self){
 	logger_info(get_logger(self), "Los enemigos, se mueven en forma de L");
-	vector2 pos;
+
 	//Buscar en la lista de enemigos, por cada uno moverlo
-	foreach(enemigo, self->enemigos, tad_enemigo*)
-				enemigo->pos = pos;
-			nivel_gui_mover_item(enemigo, pos);
-			nivel_gui_dibujar();
-	//teniendo en cuenta que no:
-	         //salga del mapa
-	         //pase por arriba de una caja
+	//foreach(enemigo, self->enemigos, tad_enemigo*){
+		//teniendo en cuenta que no:
+		       //salga del mapa
+		      //pase por arriba de una caja
+		//movimiento_permitido_enemigo(enemigo);
+
+
+	//}
 
 	//luego hacer que cuando este cerca de un personale le descuente una vida
 
 	exit(EXIT_SUCCESS);
-}*/
+}
 
 /***************************************************************
  * Manejo de paquetes entrantes
@@ -198,9 +199,6 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 	UNPACK_ARGS(tad_nivel* self);
 
 	var(socket, self->socket);
-
-	//por el momento dejo aca, luego lo saco y me fijo donde corresponde
-	//nivel_mover_enemigos(self);
 
 	tad_package* paquete = socket_receive_one_of_this_packages(socket, 4,
 			PERSONAJE_CONECTADO,
@@ -253,6 +251,9 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		socket_send_char(socket, RECURSO_OTORGADO, simbolo); //hardcod
 
 	}
+
+	//por el momento dejo aca, luego lo saco y me fijo donde corresponde
+	//nivel_mover_enemigos(self);
 }
 
 private void config_file_modified(PACKED_ARGS){

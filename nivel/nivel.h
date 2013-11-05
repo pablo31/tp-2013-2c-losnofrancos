@@ -25,6 +25,8 @@ class(tad_caja){
 class(tad_enemigo){
 	char simbolo;
 	vector2 pos;
+	int detecta_personaje;
+	vector2 posicion_personaje;
 };
 
 
