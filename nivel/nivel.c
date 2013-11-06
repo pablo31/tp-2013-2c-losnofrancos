@@ -18,6 +18,7 @@
 private void nivel_conectar_a_plataforma(tad_nivel* self, char* ippuerto);
 private void nivel_iniciar_interfaz_grafica(tad_nivel* self);
 //private void nivel_move_enemigos(tad_nivel* self);
+//private void nuevo_hilo_enemigo(PACKED_ARGS);
 private void nivel_ejecutar_logica(tad_nivel* self);
 
 
@@ -141,24 +142,34 @@ private void nivel_iniciar_interfaz_grafica(tad_nivel* self){
 	//Cargo los recursos en la pantalla
 	cargar_recursos_nivel(self);
 }
+
 /*
 private void nivel_move_enemigos(tad_nivel* self){
-		logger_info(get_logger(self), "Los enemigos, se mueven en forma de L");
 
-		//Buscar en la lista de enemigos, por cada uno moverlo
+		//Por cada enemigo del nivel se crea un hilo
+		//luego es responsabilidad de cada hilo mover a los enemigos
 		foreach(enemigo, self->enemigos, tad_enemigo*){
-			//teniendo en cuenta que no:
-			       //salga del mapa
-			      //pase por arriba de una caja
-			movimiento_permitido_enemigo(self, enemigo);
+
+			thread_begin(nuevo_hilo_enemigo, 2,self,enemigo);
+
 		}
 
-		//luego hacer que cuando este cerca de un personale le descuente una vida
+
+}
+
+
+private void nuevo_hilo_enemigo(PACKED_ARGS){
+	UNPACK_ARGS(t_nivel* self,tad_enemigo* enemigo);
+
+	logger_info(get_logger(self), "Los enemigos, se mueven en forma de L");
+
+	//teniendo en cuenta que no:
+	     //salga del mapa
+	     //pase por arriba de una caja
+	movimiento_permitido_enemigo(self, enemigo);
+
 }
 */
-
-
-
 
 
 private void nivel_ejecutar_logica(tad_nivel* self){
