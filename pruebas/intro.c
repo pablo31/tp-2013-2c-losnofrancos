@@ -26,8 +26,8 @@ private void gui_get_size(int as_out rows, int as_out cols){
     if(ioctl(0, TIOCGWINSZ, &ws) < 0)
     	perror("couldn't get window size");
 
-    set rows = ws.ws_row;
-    set cols = ws.ws_col;
+    set rows = ws.ws_row - 1;
+    set cols = ws.ws_col - 1;
 }
 private vector2 gui_get_bounds(){
 	int rows; int cols;
@@ -124,22 +124,25 @@ void draw(){
 	int block_height = height / blocks;
 	int block_width = width / blocks;
 
-	vector2 min = vector2_new(1, 1);
-	vector2 max = vector2_new(blocks - 1, blocks - 1);
+	vector2 min = vector2_new(0, 0);
+	vector2 max = vector2_new(blocks, blocks);
 	vector2 block = min;
 	int collision;
 
 	int area = blocks * blocks;
 	int u_total_time = total_time * 1000000;
 	int interval = u_total_time / area;
+	int round_interval = interval;
 
 	while(block.x >= min.x && block.x <= max.x && block.y >= min.y && block.y <= max.y){
+//		round_interval = (interval / (max.x - min.x)) * blocks;
+
 		vector2 real_pos;
 		real_pos.x = block_width * block.x;
 		real_pos.y = block_height * block.y;
 		draw_block(real_pos, block_width, block_height);
 
-		usleep(interval);
+		usleep(round_interval);
 
 		block = get_next_block(block, min, max, out collision);
 		if(collision){
@@ -167,6 +170,8 @@ void print_on_center(const char* text){
 
 
 int main(){
+	win_bounds = gui_get_bounds();
+
 	mainwin = initscr();
 	start_color();
 	noecho();
@@ -174,8 +179,6 @@ int main(){
 	init_pair(2, COLOR_BLACK, COLOR_RED);
 
 	werase(mainwin);
-
-	win_bounds = gui_get_bounds();
 
 	print_on_center("LosNoFrancos 2013");
 
