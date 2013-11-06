@@ -25,6 +25,8 @@ class(tad_caja){
 class(tad_enemigo){
 	char simbolo;
 	vector2 pos;
+	int detecta_personaje;
+	vector2 posicion_personaje;
 };
 
 
@@ -39,17 +41,17 @@ class(tad_nivel){
 	tad_socket* socket;
 	char* config_path;
 
-	t_list* personajes; //list<tad_personaje>
+	t_list* personajes;
 
-	t_list* cajas; //list<tad_caja>
-	t_list* enemigos; //list<tad_enemigo>
+	t_list* cajas;
+	t_list* enemigos;
 
 	char* algoritmo;
 	int retardo;
 	int quantum;
 
 	uint tiempo_deadlock;
-	bool recovery; // que hace este valor?
+	bool recovery;
 	uint sleep_enemigos;
 
 	tad_logger* logger;
