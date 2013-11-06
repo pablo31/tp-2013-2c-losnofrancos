@@ -148,7 +148,7 @@ private void inicio_nuevo_hilo(PACKED_ARGS){
 	UNPACK_ARGS(t_personaje* self, t_nivel* nivel);
 
 	//obtenemos una instancia del logger para el nivel
-	tad_logger* logger_nivel = logger_new_instance("Thread nivel %s", nivel->nombre);
+	tad_logger* logger_nivel = logger_new_instance("Thread %s", nivel->nombre);
 
 	int status = 0;
 	while(!status)
@@ -240,7 +240,7 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 		logger_info(logger_nivel, "Quantum otorgado");
 
 		char* ptr_objetivo = list_get(nivel->objetivos, i);
-		char objetivoActual = *ptr_objetivo;  //esto para mi rompe...
+		char objetivoActual = *ptr_objetivo;
 
 		if(vector2_equals(posicionDelProximoRecurso, posicion_de_comparacion)){
 			logger_info(logger_nivel, "Solicitando ubicacion del proximo recurso");
@@ -259,20 +259,17 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 			posicionPersonaje = nuevaPosicion;
 
 		}else if(vector2_equals(posicionPersonaje,posicionDelProximoRecurso)){
-
-			// se solicita una instancia del recurso en caso de estar en la posición de la caja correspondiente,
-			// envia un mensaje al Planificador.
-			// Luego de esto, deberá esperar a la confirmación de la asignación del mismo.
+			//se solicita una instancia del recurso en caso de estar en la posicion de la caja correspondiente
 			logger_info(logger_nivel, "Solicitando instancia de recurso");
-		     socket_send_char(socket, PERSONAJE_SOLICITUD_RECURSO, objetivoActual);
-		     //se queda esperando a que le otorguen el recurso
-		     socket_receive_expected_empty_package(socket, RECURSO_OTORGADO);
-		     logger_info(logger_nivel, "Recurso otorgado");
+			 socket_send_char(socket, PERSONAJE_SOLICITUD_RECURSO, objetivoActual);
+			 //se queda esperando a que le otorguen el recurso
+			 socket_receive_expected_empty_package(socket, RECURSO_OTORGADO);
+			 logger_info(logger_nivel, "Recurso otorgado");
 			//si recibe recurso tiene hacer
 			objetivosConseguidos++;
 			i++;
 			posicionDelProximoRecurso = vector2_new();
-			posicion_de_comparacion = vector2_new();
+			posicion_de_comparacion = vector2_new(); //TODO que pasaria si la proxima caja esta en 1,1????
 		}
 	}
 
@@ -320,6 +317,9 @@ private t_personaje* personaje_crear(char* config_path){
 
 		var(objetivos, list_create());
 		alloc(objetivo, char);
+		*objetivo = 'H';
+		list_add(objetivos, objetivo);
+		ralloc(objetivo);
 		*objetivo = 'C';
 		list_add(objetivos, objetivo);
 		nivel->objetivos = objetivos;

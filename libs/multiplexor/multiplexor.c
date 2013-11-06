@@ -159,7 +159,7 @@ void multiplexor_wait_for_io(tad_multiplexor* m, int ms, int as_out remaining_ms
 	tv.tv_sec = 0;
 	tv.tv_usec = ms * 1000;
 	multiplexor_execute_select(m, &tv);
-	set remaining_ms = tv.tv_usec;
+	set remaining_ms = tv.tv_usec / 1000;
 }
 
 //Libera los recursos del multiplexor
