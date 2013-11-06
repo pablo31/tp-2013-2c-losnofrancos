@@ -320,9 +320,6 @@ private t_personaje* personaje_crear(char* config_path){
 
 		var(objetivos, list_create());
 		alloc(objetivo, char);
-		*objetivo = 'H';
-		list_add(objetivos, objetivo);
-		ralloc(objetivo);
 		*objetivo = 'C';
 		list_add(objetivos, objetivo);
 		nivel->objetivos = objetivos;

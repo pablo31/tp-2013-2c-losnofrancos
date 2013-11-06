@@ -50,20 +50,7 @@ void nivel_gui_inicializar(){
 
 	items = list_create();
 
-	//pokemon-style intro
-	werase(secwin);
-	box(secwin, 0, 0);
-	wbkgd(secwin, COLOR_PAIR(1));
-	int col; int row;
-	for(col = 0; col < cols; col++){
-		for(row = 0; row < rows; row++){
-			wmove(secwin, row, col);
-			waddch(secwin, 'a' | COLOR_PAIR(3));
-			wrefresh(secwin);
-			wrefresh(mainwin);
-			usleep(500);
-		}
-	}
+	//TODO pokemon-style intro (see ../pruebas/intro.c)
 }
 
 
