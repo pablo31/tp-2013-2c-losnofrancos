@@ -49,8 +49,8 @@ private void add_char(char c){
 
 enum DIRECTIONS {
 	UP = 0,
-	DOWN = 1,
-	RIGHT = 2,
+	RIGHT = 1,
+	DOWN = 2,
 	LEFT = 3
 };
 int direction;
@@ -67,34 +67,26 @@ vector2 get_next_block(vector2 block, vector2 min, vector2 max, int as_out up_co
 			set up_collision = 1;
 			direction = RIGHT;
 			return vector2_add_x(block, 1);
-		}else{
+		}else
 			return vector2_add_y(block, -1);
-		}
-		break;
 	case DOWN:
 		if(block.y == max.y){
 			direction = LEFT;
 			return vector2_add_x(block, -1);
-		}else{
+		}else
 			return vector2_add_y(block, 1);
-		}
-		break;
 	case RIGHT:
 		if(block.x == max.x){
 			direction = DOWN;
 			return vector2_add_y(block, 1);
-		}else{
+		}else
 			return vector2_add_x(block, 1);
-		}
-		break;
 	case LEFT:
 		if(block.x == min.x){
 			direction = UP;
 			return vector2_add_y(block, -1);
-		}else{
+		}else
 			return vector2_add_x(block, -1);
-		}
-		break;
 	}
 	return block;
 }
@@ -114,35 +106,36 @@ void draw_block(vector2 screen_pos, int block_width, int block_height){
 
 
 void draw(){
-	direction = RIGHT;
 
+	//user-def constants
 	int blocks = 20; //grid
 	int total_time = 3; //seconds
 
+	//constants
 	int height = win_bounds.y;
 	int width = win_bounds.x;
 	int block_height = height / blocks;
 	int block_width = width / blocks;
 
+	int area = blocks * blocks;
+	int u_total_time = total_time * 1000000;
+	int interval = u_total_time / area;
+
+	//initial pos & direction
+	direction = RIGHT;
 	vector2 min = vector2_new(0, 0);
 	vector2 max = vector2_new(blocks, blocks);
 	vector2 block = min;
 	int collision;
 
-	int area = blocks * blocks;
-	int u_total_time = total_time * 1000000;
-	int interval = u_total_time / area;
-	int round_interval = interval;
 
 	while(block.x >= min.x && block.x <= max.x && block.y >= min.y && block.y <= max.y){
-//		round_interval = (interval / (max.x - min.x)) * blocks;
-
 		vector2 real_pos;
 		real_pos.x = block_width * block.x;
 		real_pos.y = block_height * block.y;
 		draw_block(real_pos, block_width, block_height);
 
-		usleep(round_interval);
+		usleep(interval);
 
 		block = get_next_block(block, min, max, out collision);
 		if(collision){
@@ -152,11 +145,6 @@ void draw(){
 			max.y--;
 		}
 	}
-
-//	gotoxy(0, 0);
-//	wprintw(mainwin, "Cols: %d Rows: %d Interval: %d\n", win_bounds.x, win_bounds.y, interval);
-//	wrefresh(mainwin);
-//	sleep(2);
 }
 
 
