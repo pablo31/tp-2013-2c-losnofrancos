@@ -11,6 +11,7 @@
 #include "../libs/logger/logger.h"
 #include "../libs/common/bitarray.h"
 #include "../libs/common/string.h"
+#include "../libs/common/collections/list.h"
 
 #define TAMANIO_BLOQUE 		  4096
 #define LOG_FILE              "grasa.log" //el archivo donde se va a guardar el log.
@@ -31,7 +32,7 @@ static int   file_descriptor; // file descriptor del archivo de grasa
 static uint  file_size;      // el tamaño del archivo
 struct grasa_header_t* header;
 t_bitarray* bitmap;
-struct grasa_file_t* nodos;
+t_list* nodos;
 char* mmaped_file = NULL;// el array de chars que contiene el archivo via mmaped_file
 uint bitmap_bytes_usados; // Tamaño archivo / blocksize / 8
 
@@ -67,16 +68,20 @@ void logger_bitmap(t_bitarray* bitmap){
 	}
 }
 
-void loggear_nodos(struct grasa_file_t* nodos){
+void loggear_nodos(t_list* nodos){
 	int i;
-	struct grasa_file_t nodo;
+	//struct grasa_file_t nodo;
+	GFile* nodo;
 	logger_info(logger, "Tabla de nodos");
 
-	for (i = 0; i < GFILEBYTABLE; ++i)
+	//for (i = 0; i < GFILEBYTABLE; ++i)
+	for (i = 0; i < nodos->elements_count; ++i)
+
 	{
-		nodo = nodos[i];
+		//nodo = nodos[i];
+		nodo = (GFile*)list_get(nodos,i);
 		logger_info(logger, "Nodo %i)", i);
-		switch(nodo.state)
+		switch(nodo->state)
 			{
 				case 0:
 					logger_info(logger, "\tEstado: Borrado");
@@ -92,10 +97,10 @@ void loggear_nodos(struct grasa_file_t* nodos){
 					break;
 			}
 
-		logger_info(logger, "\tNombre:%s", nodo.fname);
-		logger_info(logger, "\tTamaño:%i", nodo.file_size);
-		logger_info(logger, "\tCreacion:%i", nodo.c_date);
-		logger_info(logger, "\tModificacion:%i", nodo.m_date);
+		logger_info(logger, "\tNombre:%s", nodo->fname);
+		logger_info(logger, "\tTamaño:%i", nodo->file_size);
+		logger_info(logger, "\tCreacion:%i", nodo->c_date);
+		logger_info(logger, "\tModificacion:%i", nodo->m_date);
 	}
 }
 
@@ -116,10 +121,23 @@ static void cargar_bitmap(){
 }
 
 static void cargar_nodos(){
+	int i;
+	uint continuar = 1;
+	GFile* nodo;
 	uint inicio_nodos =	(header->size_bitmap + 1) * TAMANIO_BLOQUE;
-	nodos = malloc(sizeof(struct grasa_file_t)*GFILEBYTABLE);
+	//nodos = malloc(sizeof(struct grasa_file_t)*GFILEBYTABLE);
+	nodos = list_create();
 	char* str_nodos = string_substring(mmaped_file, inicio_nodos , sizeof(struct grasa_file_t)*GFILEBYTABLE);
-	memcpy(nodos, str_nodos, sizeof(struct grasa_file_t)*GFILEBYTABLE);
+	//memcpy(nodos, str_nodos, sizeof(struct grasa_file_t)*GFILEBYTABLE);
+	for(i=0;i<GFILEBYTABLE && continuar;i++){
+		nodo = (GFile*)malloc(sizeof(GFile));
+		nodo = (GFile*)string_substring(str_nodos,i*sizeof(GFile),sizeof(GFile));
+		if(nodo->state == 1 || nodo->state == 2){
+			list_add(nodos,(void *)nodo);
+		}
+		//else{continuar = 0;};
+
+	}
 	loggear_nodos(nodos);
 }
 
@@ -137,7 +155,10 @@ void liberar_recursos(){
     	free(header->grasa);
     	free(header);
 	}
-
+	if (nodos != NULL){
+		list_destroy(nodos);
+		free(nodos);
+	}
 	cerrar_logger();
 }
 
@@ -181,11 +202,10 @@ int main(int argc, char *argv[]){
  	cargar_bitmap();
     cargar_nodos();
 
-
 	int fuse_retorno = fuse_main(args.argc, args.argv, &grasa_operations, NULL);
 
 	logger_info(logger, "Fin de fuse_main - %s.", (fuse_retorno==0) ? "Finalizacion correcta":"Error");
     liberar_recursos();
 	
 	return EXIT_SUCCESS;
-}
+};
