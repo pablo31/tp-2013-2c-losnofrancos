@@ -104,6 +104,7 @@ void planificador_agregar_personaje(tad_planificador* self, char* nombre, char s
 	vector2 pos = socket_receive_expected_vector2(socket, POSICION_INICIAL);
 	tad_package* paquete = package_create_char_and_vector2(PERSONAJE_CONECTADO, simbolo, pos);
 	socket_send_package(self->nivel->socket, paquete);
+	free(package_get_data(paquete)); //TODO metodo package_dispose_and_dispose_data
 	package_dispose(paquete);
 }
 
@@ -238,6 +239,7 @@ private void otorgar_turno(tad_planificador* self){
 			socket_send_package(socket_nivel, paquete);
 			tad_package* respuesta = esperar_ubicacion_recurso(self, socket_nivel);
 			socket_send_package(socket, respuesta);
+			free(package_get_data(respuesta)); //TODO metodo package_dispose_and_dispose_data
 			package_dispose(respuesta);
 
 		//el personaje avisa que va a realizar un movimiento
@@ -246,6 +248,7 @@ private void otorgar_turno(tad_planificador* self){
 			logger_info(logger, "%s se mueve a (%d,%d)", nombre, direccion.x, direccion.y);
 			tad_package* reenvio = package_create_char_and_vector2(PERSONAJE_MOVIMIENTO, simbolo, direccion);
 			socket_send_package(socket_nivel, reenvio);
+			free(package_get_data(reenvio)); //TODO metodo package_dispose_and_dispose_data
 			package_dispose(reenvio);
 			quantum--;
 			if(!quantum) list_add(self->personajes_listos, personaje);
@@ -256,11 +259,13 @@ private void otorgar_turno(tad_planificador* self){
 			logger_info(logger, "%s solicito una instancia del recurso %c", nombre, recurso);
 			tad_package* reenvio = package_create_two_chars(PERSONAJE_SOLICITUD_RECURSO, simbolo, recurso);
 			socket_send_package(socket_nivel, reenvio);
+			free(package_get_data(reenvio)); //TODO metodo package_dispose_and_dispose_data
 			package_dispose(reenvio);
 			bloquear_personaje(self, personaje);
 			quantum = 0;
 		}
 
+		free(package_get_data(paquete)); //TODO metodo package_dispose_and_dispose_data
 		package_dispose(paquete);
 	}
 }
@@ -302,11 +307,13 @@ private void manejar_paquete_nivel(tad_planificador* self, tad_package* paquete)
 		int quantum = package_get_int(paquete);
 		logger_info(logger, "La cantidad de quantums cambio a %d", quantum);
 		self->quantum = quantum;
+		free(package_get_data(paquete)); //TODO metodo package_dispose_and_dispose_data
 
 	}else if(tipo == RETARDO){
 		int retardo = package_get_int(paquete);
 		logger_info(logger, "El retardo entre cambio de turno cambio a %dms", retardo);
 		self->retardo = retardo;
+		free(package_get_data(paquete)); //TODO metodo package_dispose_and_dispose_data
 
 	}else if (tipo == ALGORITMO){
 		char* algoritmo = package_get_string(paquete);
@@ -320,6 +327,7 @@ private void manejar_paquete_nivel(tad_planificador* self, tad_package* paquete)
 
 	}else if(tipo == RECURSO_OTORGADO){
 		var(simbolo, package_get_char(paquete));
+		free(package_get_data(paquete)); //TODO metodo package_dispose_and_dispose_data
 		var(personaje, buscar_personaje_bloqueado(self, simbolo));
 		logger_info(logger, "El recurso que solicito %s le fue otorgado", personaje->nombre);
 		list_add(self->personajes_listos, personaje);

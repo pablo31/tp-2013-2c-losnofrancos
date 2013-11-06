@@ -183,6 +183,8 @@ private int conectarse_al_orquestador(t_personaje* self, t_nivel* nivel, tad_log
 
 	//conectamos con el orquestador
 	tad_socket* socket = socket_connect(ip, puerto);
+	free(ip);
+	free(puerto);
 
 	//establecemos la funcion manejadora de errores y desconexion
 	SOCKET_ERROR_MANAGER(socket){
@@ -261,10 +263,10 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 		}else if(vector2_equals(posicionPersonaje,posicionDelProximoRecurso)){
 			//se solicita una instancia del recurso en caso de estar en la posicion de la caja correspondiente
 			logger_info(logger_nivel, "Solicitando instancia de recurso");
-			 socket_send_char(socket, PERSONAJE_SOLICITUD_RECURSO, objetivoActual);
-			 //se queda esperando a que le otorguen el recurso
-			 socket_receive_expected_empty_package(socket, RECURSO_OTORGADO);
-			 logger_info(logger_nivel, "Recurso otorgado");
+			socket_send_char(socket, PERSONAJE_SOLICITUD_RECURSO, objetivoActual);
+			//se queda esperando a que le otorguen el recurso
+			socket_receive_expected_empty_package(socket, RECURSO_OTORGADO);
+			logger_info(logger_nivel, "Recurso otorgado");
 			//si recibe recurso tiene hacer
 			objetivosConseguidos++;
 			i++;
@@ -272,6 +274,10 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 			posicion_de_comparacion = vector2_new(); //TODO que pasaria si la proxima caja esta en 1,1????
 		}
 	}
+
+	socket_close(socket);
+	logger_info(logger_nivel, "Nivel completado con exito");
+	logger_dispose_instance(logger_nivel);
 
 	return 1;
 
@@ -384,7 +390,8 @@ private void personaje_destruir(t_personaje* self){
 		 // }
 		 // round_dispose(objetivos);
 
-		dealloc(nivel);
+		 free(nivel->nombre);
+		 dealloc(nivel);
 	}
 	list_destroy_and_destroy_elements(niveles, liberar_nivel);
 

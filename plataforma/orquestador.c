@@ -198,6 +198,7 @@ void orquestador_personaje_solicita_nivel(tad_orquestador* orquestador, tad_sock
 
 	//nos fijamos si el planificador del nivel que pidio se encuentra iniciado
 	var(planificador, plataforma_planificador_iniciado(orquestador->plataforma, nombre_nivel));
+	free(nombre_nivel);
 	if(planificador){
 		//derivamos el personaje al planificador
 		planificador_agregar_personaje(planificador, nombre, simbolo, socket);
