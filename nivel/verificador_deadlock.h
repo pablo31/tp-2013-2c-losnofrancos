@@ -4,25 +4,9 @@
 #include "nivel.h"
 #include "../libs/common/collections/list.h"
 
-class(t_personaje){
-	char simbolo;
-    _Bool blocked;
-    char recurso_esperado;
-    t_list* recursos_asignados;
-    vector2 posicion;
-};
-
-class(t_recurso){
-	char simbolo;
-	int cantidad;
-};
-
 void* verificador_deadlock(void* nivel);
-
 t_list* clonar_recursos(tad_nivel* nivel);
-
 t_list* clonar_personajes(tad_nivel* nivel);
-
 void liberar_recursos_del_personaje(t_list* personajes,	t_list* recursos_disponibles);
 
 #endif

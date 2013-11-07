@@ -71,8 +71,8 @@ void* verificador_deadlock(void* level) {
 			while (!hay_deadlock && !list_is_empty(personajes_bloqueados)) {
 					hay_deadlock = true;
 					list_remove_and_destroy_by_condition(personajes_bloqueados,
-							(void*) personaje_puede_ejecutar,
-							(void*) nivel_destroy_personaje);
+						(void*) personaje_puede_ejecutar,
+						(void*) nivel_destroy_personaje);
 			}
 
 			if (hay_deadlock) {
@@ -116,13 +116,11 @@ void avisar_deadlock_al_planificador(tad_nivel* nivel,
 		t_list* personajes_bloqueados) {
 
 
-	char* ids_personajes = personajes_as_string_ids(personajes_bloqueados);
+	 char* ids_personajes = personajes_as_string_ids(personajes_bloqueados);
 
-	/*
-	Avisar al planificador y cargar en el archivo log
-	*/
+	//Avisar al planificador y cargar en el archivo log
 
-	free(ids_personajes);
+	 free(ids_personajes);
 }
 
 
@@ -181,7 +179,7 @@ t_list* clonar_personajes(tad_nivel* nivel) {
 		return new;
 	}
 
-	list_iterate(nivel->personajes, (void*) clonar_personaje_bloqueado);
+	//list_iterate(nivel->personajes, (void*) clonar_personaje_bloqueado);
 	return personajes_bloqueados;
 
 	return list_clone_and_clone_elements(nivel-> personajes,
