@@ -227,10 +227,11 @@ private void otorgar_turno(tad_planificador* self){
 	while(quantum){
 		socket_send_empty_package(socket, PLANIFICADOR_OTORGA_QUANTUM);
 
-		tad_package* paquete = socket_receive_one_of_this_packages(socket, 3,
+		tad_package* paquete = socket_receive_one_of_this_packages(socket, 4,
 				SOLICITUD_UBICACION_RECURSO,
 				PERSONAJE_MOVIMIENTO,
-				PERSONAJE_SOLICITUD_RECURSO);
+				PERSONAJE_SOLICITUD_RECURSO,
+				PERSONAJE_FINALIZO_NIVEL);
 		var(tipo_mensaje, package_get_data_type(paquete));
 
 		//el personaje solicita la posicion de un recurso
@@ -262,6 +263,12 @@ private void otorgar_turno(tad_planificador* self){
 			free(package_get_data(reenvio)); //TODO metodo package_dispose_and_dispose_data
 			package_dispose(reenvio);
 			bloquear_personaje(self, personaje);
+			quantum = 0;
+		//el personaje finalizo el nivel y se desconecta
+		}else if(tipo_mensaje == PERSONAJE_FINALIZO_NIVEL){
+			logger_info(logger, "El personaje %s completo el nivel", nombre);
+			socket_send_char(socket_nivel, PERSONAJE_FINALIZO_NIVEL, simbolo);
+			planificador_liberar_personaje(self, personaje);
 			quantum = 0;
 		}
 
@@ -365,7 +372,7 @@ private void error_socket_personaje(tad_planificador* self, tad_personaje* perso
 }
 
 private void error_socket_nivel(tad_planificador* self){
-	logger_info(get_logger(self), "El nivel asociado al planificador se desconecto inesperadamente");
+	logger_info(get_logger(self), "El nivel se desconecto inesperadamente");
 	//finalizamos el planificador
 	plataforma_finalizar_planificador(self->plataforma, self);
 }

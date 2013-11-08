@@ -216,11 +216,12 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 
 	var(socket, self->socket);
 
-	tad_package* paquete = socket_receive_one_of_this_packages(socket, 4,
+	tad_package* paquete = socket_receive_one_of_this_packages(socket, 5,
 			PERSONAJE_CONECTADO,
 			SOLICITUD_UBICACION_RECURSO,
 			PERSONAJE_MOVIMIENTO,
-			PERSONAJE_SOLICITUD_RECURSO);
+			PERSONAJE_SOLICITUD_RECURSO,
+			PERSONAJE_FINALIZO_NIVEL);
 	var(tipo, package_get_data_type(paquete));
 
 
@@ -265,6 +266,10 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		//TODO descontar una instancia a esa caja
 		//TODO
 		socket_send_char(socket, RECURSO_OTORGADO, simbolo); //hardcod
+
+	}else if(tipo == PERSONAJE_FINALIZO_NIVEL){
+		char simbolo = package_get_char(paquete);
+		nivel_gui_quitar_personaje(simbolo);
 
 	}
 

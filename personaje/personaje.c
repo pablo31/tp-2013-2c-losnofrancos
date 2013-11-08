@@ -275,6 +275,8 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 		}
 	}
 
+	socket_send_empty_package(socket, PERSONAJE_FINALIZO_NIVEL);
+
 	socket_close(socket);
 	logger_info(logger_nivel, "Nivel completado con exito");
 	logger_dispose_instance(logger_nivel);

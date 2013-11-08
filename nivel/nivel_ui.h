@@ -19,18 +19,6 @@ class(gui_item){
 };
 
 
-
-//struct item {
-//	char id;
-//	int posx;
-//	int posy;
-//	char item_type; //PERSONAJE o CAJA_DE_RECURSOS
-//	int quantity;
-//	struct item *next;
-//};
-//
-//typedef struct item ITEM_NIVEL;
-
 /*
  *  Inicializacion y Destruccion del nivel
  */
@@ -45,6 +33,7 @@ void nivel_gui_dibujar();
 void nivel_borrar_item(char id);
 void nivel_restar_recurso(char id);
 void nivel_gui_mover_item(char id, vector2 new_pos);
-void nivel_gui_crear_personaje(char id, vector2 pos);
+void nivel_gui_crear_personaje(char simbolo, vector2 pos);
+void nivel_gui_quitar_personaje(char simbolo);
 void nivel_gui_crear_caja(tad_caja* c);
 #endif

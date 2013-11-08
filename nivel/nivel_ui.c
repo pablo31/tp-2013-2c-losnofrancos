@@ -89,7 +89,7 @@ void nivel_gui_terminar(){
 	refresh();
 }
 
-static void nivel_gui_crear_item(char id, vector2 pos, char tipo, int cant_rec) {
+private void nivel_gui_crear_item(char id, vector2 pos, char tipo, int cant_rec) {
         alloc(item, gui_item);
 
         item->id = id;
@@ -100,8 +100,24 @@ static void nivel_gui_crear_item(char id, vector2 pos, char tipo, int cant_rec) 
         list_add(items, item);
 }
 
-void nivel_gui_crear_personaje(char id, vector2 pos) {
-	nivel_gui_crear_item(id, pos, PERSONAJE_ITEM_TYPE, 0);
+private void nivel_gui_quitar_item(char id){
+	int i;
+	for(i = 0; i < list_size(items); i++){
+		gui_item* item = list_get(items, i);
+		if(item->id == id){
+			list_remove(items, i);
+			dealloc(item);
+			return;
+		}
+	}
+}
+
+void nivel_gui_crear_personaje(char simbolo, vector2 pos) {
+	nivel_gui_crear_item(simbolo, pos, PERSONAJE_ITEM_TYPE, 0);
+}
+
+void nivel_gui_quitar_personaje(char simbolo){
+	nivel_gui_quitar_item(simbolo);
 }
 
 void nivel_gui_crear_caja(tad_caja* c) {
