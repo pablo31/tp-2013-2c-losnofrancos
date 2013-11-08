@@ -22,18 +22,16 @@ void avisar_deadlock_al_planificador(tad_nivel* nivel,t_list* personajes_bloquea
 
 char* personajes_as_string_ids(t_list* personajes);
 
-void* verificador_deadlock(void* level) {
+void* verificador_deadlock(tad_nivel* nivel) {
 
-	tad_nivel* nivel = (tad_nivel*) level;
-
-	nivel_loguear(nivel->logger, nivel,
+	logger_info(get_logger(nivel),
 			"Verificador de Deadlock creado, tiempo de checkeo: %.2f segundos",
 			nivel->tiempo_deadlock / 1000000.0);
 
 	while (true) {
 		//cada cierto tiempo tiene que verificar si el nivel tiene deadlock
 
-		nivel_loguear(nivel->logger, nivel,
+		logger_info(get_logger(nivel),
 			"Verificador de Deadlock esperando %d segundos para realizar el checkeo.",
 			nivel->tiempo_deadlock);
 
@@ -83,7 +81,7 @@ void* verificador_deadlock(void* level) {
 					}
 
 			} else {
-					nivel_loguear(nivel->logger, nivel,
+					logger_info(get_logger(self), nivel,
 							"Verificador deadlock: NO HAY DEADLOCK");
 			}
 
@@ -104,7 +102,8 @@ void loguear_deadlock_detectado(tad_nivel* nivel,
 	char* ids_personajes_en_deadlock = personajes_as_string_ids(
 			personajes_bloqueados);
 
-	nivel_loguear(nivel->logger, nivel,
+
+	logger_info(get_logger(nivel),
 			"Verificador deadlock: DEADLOCK DETECTADO, personajes involucrados: %s",
 			ids_personajes_en_deadlock);
 
@@ -159,17 +158,16 @@ void liberar_recursos_del_personaje(t_personaje* personaje,
 }
 
 t_list* clonar_personajes(tad_nivel* nivel) {
-//	t_list* personajes_bloqueados = list_create();
+	t_list* personajes_bloqueados = list_create();
 
 	t_personaje* clonar_personaje(t_personaje* personaje) {
-		t_personaje* new = malloc(sizeof(t_personaje));
+		alloc(new, t_personaje);
 		new->simbolo = personaje->simbolo;
 
 		if (personaje->recurso_esperado == NULL ) {
 			new->recurso_esperado = NULL;
 		} else {
-			new->recurso_esperado = string_duplicate(
-				personaje->recurso_esperado);
+			new->recurso_esperado = string_duplicate(personaje->recurso_esperado);
 		}
 
 		//new->recursos_asignados = list_clone_and_clone_elements(

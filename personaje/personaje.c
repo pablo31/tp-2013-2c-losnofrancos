@@ -18,8 +18,6 @@
 #include "../libs/common.h"
 #include "personaje.h"
 
-
-//porqueee..
 private bool verificar_argumentos(int argc, char* argv[]) {
 	if (argc < 1) {
 		printf("Error: Debe ingresar el nombre del archivo de configuracion\n");
