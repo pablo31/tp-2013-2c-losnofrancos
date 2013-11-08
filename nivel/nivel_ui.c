@@ -65,7 +65,7 @@ void nivel_gui_dibujar() {
 	printw("Recursos: ");
 
 	foreach(item, items, gui_item*){
-		wmove (secwin, item->pos.x, item->pos.y);
+		wmove (secwin, item->pos.y, item->pos.x); //TODO coordenadas cruzadas, pero anda bien S:
 
 		if (item->item_type)
 			waddch(secwin, item->id | COLOR_PAIR(3));
@@ -91,14 +91,14 @@ void nivel_gui_terminar(){
 }
 
 private void nivel_gui_crear_item(char id, vector2 pos, char tipo, int cantidad) {
-        alloc(item, gui_item);
+	alloc(item, gui_item);
 
-        item->id = id;
-        item->pos = pos;
-        item->item_type = tipo;
-        item->quantity = cantidad;
+	item->id = id;
+	item->pos = pos;
+	item->item_type = tipo;
+	item->quantity = cantidad;
 
-        list_add(items, item);
+	list_add(items, item);
 }
 
 private void nivel_gui_quitar_item(char id){
