@@ -21,8 +21,8 @@
 
 //porqueee..
 private bool verificar_argumentos(int argc, char* argv[]) {
-	if (argc < 2) {
-		printf("Error: Debe ingresar los nombres de los archivos log y configuracion.\n");
+	if (argc < 1) {
+		printf("Error: Debe ingresar el nombre del archivo de configuracion\n");
 		return false;
 	}
 	return true;
@@ -67,7 +67,7 @@ private char* get_ippuerto_orquestador(t_personaje* self){
 
 
 //inicializacion y destruccion
-private t_personaje* personaje_crear(char* config_path);
+private t_personaje* personaje_crear(char* config_path, char* exe_name);
 private void personaje_destruir(t_personaje* self);
 //logica y ejecucion
 private void morir(t_personaje* self);
@@ -100,13 +100,9 @@ int main(int argc, char* argv[]) {
 
 	char* exe_name = argv[0];
 	char* config_file = argv[1];
-	char* log_file = argv[2];
-
-	//inicializamos el singleton logger
-	logger_initialize_for_info(log_file, exe_name);
 
 	//levantamos el archivo de configuracion
-	t_personaje* self = personaje_crear(config_file);
+	t_personaje* self = personaje_crear(config_file, exe_name);
 	if(self == null) return EXIT_FAILURE; //TODO liberar logger
 
 	logger_info(get_logger(self), "Personaje %s creado", get_nombre(self));
@@ -289,17 +285,23 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 
 
 
-private t_personaje* personaje_crear(char* config_path){
+private t_personaje* personaje_crear(char* config_path, char* exe_name){
 	//creamos una instancia de personaje
 	alloc(self, t_personaje);
-	//obtenemos una instancia del logger
-	self->logger = logger_new_instance("");
 
-	//Creamos una instancia del lector de archivos de config
+	//creamos una instancia del lector de archivos de config
 	t_config* config = config_create(config_path);
 
 	self->nombre = string_duplicate(config_get_string_value(config, "nombre"));
 	self->simbolo = *config_get_string_value(config, "simbolo");
+
+	//cargamos los datos del logger
+	char* log_file = config_get_string_value(config, "logFile");
+	char* log_level = config_get_string_value(config, "logLevel");
+	logger_initialize(log_file, exe_name, log_level);
+
+	//obtenemos una instancia del logger
+	self->logger = logger_new_instance("");
 
 	int vidas = config_get_int_value(config, "vidas");
 	self->vidas_iniciales = vidas;

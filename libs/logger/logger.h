@@ -17,6 +17,12 @@ typedef struct s_logger tad_logger;
 
 
 //Singleton initialization & disposal
+
+#include "../overload.h"
+#define logger_initialize(args...) overload(logger_initialize, args)
+
+void logger_initialize(char* file, char* exe_name, char* log_level);
+void logger_initialize(char* file, char* exe_name, char* log_level, int console);
 void logger_initialize_for_debug(char* file, char* exe_name);
 void logger_initialize_for_info(char* file, char* exe_name);
 void logger_dispose();
@@ -38,10 +44,6 @@ logger_implement_log_level_h(warning);
 logger_implement_log_level_h(error);
 
 #undef logger_implement_log_level_h
-
-//Another way to log
-#define logger_log(logger, level_name, ...) \
-		logger_##level_name(logger, __VA_ARGS__)
 
 
 #endif /* NEWLOGGER_H_ */
