@@ -17,24 +17,28 @@
 #include "logger.h"
 
 
-
-
-private const bool LOGEAR_EN_CONSOLA = true; //Si el log se muestra o no por pantalla.
-//private const t_log_level NIVEL_MINIMO_LOG = LOG_LEVEL_DEBUG; //El nivel minimo de importancia que se guarda en el log.
+private t_log* instance = null;
 
 
 /**********************************************
  * SINGLETON **********************************
  **********************************************/
 
-private t_log* instance = null;
+void logger_initialize(char* file, char* exe_name, char* log_level){
+	t_log_level elv = log_level_from_string(log_level);
+	instance = log_create(file, exe_name, 1, elv);
+}
+void logger_initialize(char* file, char* exe_name, char* log_level, int console){
+	t_log_level elv = log_level_from_string(log_level);
+	instance = log_create(file, exe_name, console, elv);
+}
 
 void logger_initialize_for_debug(char* file, char* exe_name){
-	instance = log_create(file, exe_name, LOGEAR_EN_CONSOLA, LOG_LEVEL_DEBUG);
+	instance = log_create(file, exe_name, 1, LOG_LEVEL_DEBUG);
 }
 
 void logger_initialize_for_info(char* file, char* exe_name){
-	instance = log_create(file, exe_name, LOGEAR_EN_CONSOLA, LOG_LEVEL_INFO);
+	instance = log_create(file, exe_name, 1, LOG_LEVEL_INFO);
 }
 
 void logger_dispose(){
@@ -61,11 +65,20 @@ tad_logger* logger_new_instance(const char* header, ...){
 		free(formatted_header);
 	}
 
+	ret->needs_dealloc = 1;
+
+	return ret;
+}
+
+tad_logger* logger_new_instance(){
+	alloc(ret, tad_logger);
+	ret->header = "";
+	ret->needs_dealloc = 0;
 	return ret;
 }
 
 void logger_dispose_instance(tad_logger* logger){
-	free(logger->header);
+	if(logger->needs_dealloc) free(logger->header);
 	dealloc(logger);
 }
 

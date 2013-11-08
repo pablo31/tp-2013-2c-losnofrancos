@@ -38,10 +38,9 @@ private void nivel_finalizar_cerrar_multiplexor(tad_nivel* self, tad_multiplexor
  ***************************************************************/
 
 private void verificar_argumentos(int argc, char* argv[]) {
-	if (argc < 2) {
-		printf("Error: Debe ingresar los nombres de los archivos log y configuracion.\n");
-		exit(EXIT_FAILURE);
-	}
+	if(argc >= 1) return;
+	printf("Error: Debe ingresar el nombre del archivo de configuracion\n");
+	exit(EXIT_FAILURE);
 }
 
 /***************************************************************
@@ -65,12 +64,7 @@ char* get_config_path(tad_nivel* self){
 int main(int argc, char **argv){
 
 	verificar_argumentos(argc, argv);
-	char* exe_name = argv[0];
 	char* config_path = argv[1];
-	char* log_file = argv[2];
-
-	//inicializamos el singleton logger
-	logger_initialize_for_info(log_file, exe_name);
 
 	//inicializo el nivel
 	char* ippuerto;
@@ -251,7 +245,7 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		personaje->pos = pos;
 		list_add(self->personajes, personaje);
 
-		nivel_gui_dibujar(); //TODO esto no sirve si los enemigos corren en un hilo aparte
+		nivel_gui_dibujar();
 
 	}else if(tipo == SOLICITUD_UBICACION_RECURSO){
 		char recurso = package_get_char(paquete);
@@ -269,7 +263,7 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 			if(personaje->simbolo == simbolo)
 				personaje->pos = pos;
 		nivel_gui_mover_item(simbolo, pos);
-		nivel_gui_dibujar(); //TODO esto no sirve si los enemigos corren en un hilo aparte
+		nivel_gui_dibujar();
 
 	}else if(tipo == PERSONAJE_SOLICITUD_RECURSO){
 		char simbolo;
@@ -284,6 +278,7 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 	}else if(tipo == PERSONAJE_FINALIZO_NIVEL){
 		char simbolo = package_get_char(paquete);
 		nivel_gui_quitar_personaje(simbolo);
+		nivel_gui_dibujar();
 
 	}
 

@@ -10,19 +10,33 @@
 
 #include <stdarg.h>
 
+
+
 struct s_logger{
 	char* header;
+	int needs_dealloc;
 };
 typedef struct s_logger tad_logger;
 
 
+//overloads
+#include "../overload.h"
+#define logger_initialize(args...) overload(logger_initialize, args)
+#define logger_new_instance(args...) overload_hasargs(logger_new_instance, args)
+
+
 //Singleton initialization & disposal
+
+
+void logger_initialize(char* file, char* exe_name, char* log_level);
+void logger_initialize(char* file, char* exe_name, char* log_level, int console);
 void logger_initialize_for_debug(char* file, char* exe_name);
 void logger_initialize_for_info(char* file, char* exe_name);
 void logger_dispose();
 
 //Instance initialization & disposal
 tad_logger* logger_new_instance(const char* header, ...);
+tad_logger* logger_new_instance();
 void logger_dispose_instance(tad_logger* logger);
 
 //Log level implementation
@@ -38,10 +52,6 @@ logger_implement_log_level_h(warning);
 logger_implement_log_level_h(error);
 
 #undef logger_implement_log_level_h
-
-//Another way to log
-#define logger_log(logger, level_name, ...) \
-		logger_##level_name(logger, __VA_ARGS__)
 
 
 #endif /* NEWLOGGER_H_ */
