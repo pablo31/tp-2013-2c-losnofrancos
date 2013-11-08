@@ -37,10 +37,9 @@ private void nivel_finalizar_cerrar_multiplexor(tad_nivel* self, tad_multiplexor
  ***************************************************************/
 
 private void verificar_argumentos(int argc, char* argv[]) {
-	if (argc < 2) {
-		printf("Error: Debe ingresar los nombres de los archivos log y configuracion.\n");
-		exit(EXIT_FAILURE);
-	}
+	if(argc >= 1) return;
+	printf("Error: Debe ingresar el nombre del archivo de configuracion\n");
+	exit(EXIT_FAILURE);
 }
 
 /***************************************************************
@@ -64,12 +63,7 @@ char* get_config_path(tad_nivel* self){
 int main(int argc, char **argv){
 
 	verificar_argumentos(argc, argv);
-	char* exe_name = argv[0];
 	char* config_path = argv[1];
-	char* log_file = argv[2];
-
-	//inicializamos el singleton logger
-	logger_initialize_for_info(log_file, exe_name);
 
 	//inicializo el nivel
 	char* ippuerto;

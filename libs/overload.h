@@ -47,6 +47,8 @@
  */
 
 
+#define overload_hasargs(func, args...) concat_hasargs(func, args) (args)
+
 
 
 //private macros

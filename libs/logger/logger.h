@@ -10,16 +10,23 @@
 
 #include <stdarg.h>
 
+
+
 struct s_logger{
 	char* header;
+	int needs_dealloc;
 };
 typedef struct s_logger tad_logger;
 
 
-//Singleton initialization & disposal
-
+//overloads
 #include "../overload.h"
 #define logger_initialize(args...) overload(logger_initialize, args)
+#define logger_new_instance(args...) overload_hasargs(logger_new_instance, args)
+
+
+//Singleton initialization & disposal
+
 
 void logger_initialize(char* file, char* exe_name, char* log_level);
 void logger_initialize(char* file, char* exe_name, char* log_level, int console);
@@ -29,6 +36,7 @@ void logger_dispose();
 
 //Instance initialization & disposal
 tad_logger* logger_new_instance(const char* header, ...);
+tad_logger* logger_new_instance();
 void logger_dispose_instance(tad_logger* logger);
 
 //Log level implementation

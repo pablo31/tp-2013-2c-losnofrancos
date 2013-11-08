@@ -65,11 +65,20 @@ tad_logger* logger_new_instance(const char* header, ...){
 		free(formatted_header);
 	}
 
+	ret->needs_dealloc = 1;
+
+	return ret;
+}
+
+tad_logger* logger_new_instance(){
+	alloc(ret, tad_logger);
+	ret->header = "";
+	ret->needs_dealloc = 0;
 	return ret;
 }
 
 void logger_dispose_instance(tad_logger* logger){
-	free(logger->header);
+	if(logger->needs_dealloc) free(logger->header);
 	dealloc(logger);
 }
 

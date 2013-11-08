@@ -301,7 +301,7 @@ private t_personaje* personaje_crear(char* config_path, char* exe_name){
 	logger_initialize(log_file, exe_name, log_level);
 
 	//obtenemos una instancia del logger
-	self->logger = logger_new_instance("");
+	self->logger = logger_new_instance();
 
 	int vidas = config_get_int_value(config, "vidas");
 	self->vidas_iniciales = vidas;

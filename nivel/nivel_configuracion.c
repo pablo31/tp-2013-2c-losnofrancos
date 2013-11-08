@@ -57,11 +57,17 @@ void cargar_configuracion_cambiante(tad_nivel* nvl, t_config* config,
 
 
 private void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
-	var(logger, get_logger(self));
-	logger_info(logger, "Cargando configuracion del nivel");
-	
 	var(config_path, get_config_path(self));
 	var(config, config_create(config_path));
+
+	char* log_file = config_get_string_value(config, "logFile");
+	char* log_level = config_get_string_value(config, "logLevel");
+	logger_initialize(log_file, "nivel.sh", log_level, 0); //no logea en consola
+	var(logger, logger_new_instance());
+	self->logger = logger;
+
+	logger_info(logger, "Cargando configuracion del nivel");
+	
 
 
 	self->nombre = string_duplicate(config_get_string_value(config, "Nombre"));
@@ -129,11 +135,9 @@ private void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 	config_destroy(config);
 }
 
-tad_nivel* crear_nivel(char* config_path, char* as_out ippuerto) {
+tad_nivel* crear_nivel(char* config_path, char* as_out ippuerto){
 	alloc(self, tad_nivel);
 	
-	self->logger = logger_new_instance("");
-
 	self->config_path = config_path;
 
 	self->personajes = list_create();
