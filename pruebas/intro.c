@@ -92,10 +92,28 @@ vector2 get_next_block(vector2 block, vector2 min, vector2 max, int as_out up_co
 }
 
 
-void draw_block(vector2 screen_pos, int block_width, int block_height){
+int wacum = 0;
+int hacum = 0;
+void draw_block(vector2 screen_pos, float block_width, float block_height){
+	wacum = block_width - (int)block_width;
+	int deltaw;
+	if(wacum >= 1){
+		deltaw = 1;
+		wacum--;
+	}else
+		deltaw = 0;
+
+	hacum = block_width - (int)block_width;
+	int deltah;
+	if(hacum >= 1){
+		deltah = 1;
+		hacum--;
+	}else
+		deltah = 0;
+
 	int x; int y;
-	for(x = 0; x < block_width; x++){
-		for(y = 0; y < block_height; y++){
+	for(x = 0; x < block_width + deltaw; x++){
+		for(y = 0; y < block_height + deltah; y++){
 			gotoxy(screen_pos.x + x, screen_pos.y + y);
 			add_char('0');
 		}
@@ -112,10 +130,10 @@ void draw(){
 	int total_time = 3; //seconds
 
 	//constants
-	int height = win_bounds.y;
-	int width = win_bounds.x;
-	int block_height = height / blocks;
-	int block_width = width / blocks;
+	int height = win_bounds.y - 1;
+	int width = win_bounds.x - 1;
+	float block_height = (float)height / blocks;
+	float block_width = (float)width / blocks;
 
 	int area = blocks * blocks;
 	int u_total_time = total_time * 1000000;
