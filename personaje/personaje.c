@@ -309,30 +309,32 @@ private t_personaje* personaje_crear(char* config_path, char* exe_name){
 
 	self->ippuerto_orquestador = string_duplicate(config_get_string_value(config, "orquestador"));
 
-	//TODO levantar los niveles y objetivos del archivo de config
+
+	int cantidad_niveles = config_get_int_value(config, "niveles");
+	char** nombres_niveles = config_get_array_value(config, "planDeNiveles");
+
 	t_list* niveles = list_create();
 	int i;
-	for(i = 0; i < 1; i++){
+	for(i = 0; i < cantidad_niveles; i++){
 		alloc(nivel, t_nivel);
-		nivel->nombre = string_from_format("nivel%d", i + 1);
+		char* nombre_nivel = nombres_niveles[i];
+		nivel->nombre = nombre_nivel;
+		nivel->objetivos = list_create();
 
-		// var(objetivos, round_create());
-		// alloc(objetivo, char);
-		// *objetivo = 'H';
-		// round_add(objetivos, objetivo);
-		// ralloc(objetivo);
-		// *objetivo = 'C';
-		// round_add(objetivos, objetivo);
-		// nivel->objetivos = objetivos;
+		char* key_cantidad_objetivos = string_from_format("objs[%s]", nombre_nivel);
+		char* key_objetivos = string_from_format("obj[%s]", nombre_nivel);
 
-		var(objetivos, list_create());
-		alloc(objetivo, char);
-		*objetivo = 'H';
-		list_add(objetivos, objetivo);
-		ralloc(objetivo);
-		*objetivo = 'C';
-		list_add(objetivos, objetivo);
-		nivel->objetivos = objetivos;
+		int cantidad_objetivos = config_get_int_value(config, key_cantidad_objetivos);
+		char** objetivos = config_get_array_value(config, key_objetivos);
+
+		int ii;
+		for(ii = 0; ii < cantidad_objetivos; ii++){
+			char* objetivo = objetivos[ii];
+			list_add(nivel->objetivos, objetivo);
+		}
+
+		free(key_cantidad_objetivos);
+		free(key_objetivos);
 
 		list_add(niveles, nivel);
 	}
