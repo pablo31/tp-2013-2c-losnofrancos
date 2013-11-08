@@ -231,7 +231,7 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		personaje->pos = pos;
 		list_add(self->personajes, personaje);
 
-		nivel_gui_dibujar(); //TODO esto no sirve si los enemigos corren en un hilo aparte
+		nivel_gui_dibujar();
 
 	}else if(tipo == SOLICITUD_UBICACION_RECURSO){
 		char recurso = package_get_char(paquete);
@@ -249,7 +249,7 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 			if(personaje->simbolo == simbolo)
 				personaje->pos = pos;
 		nivel_gui_mover_item(simbolo, pos);
-		nivel_gui_dibujar(); //TODO esto no sirve si los enemigos corren en un hilo aparte
+		nivel_gui_dibujar();
 
 	}else if(tipo == PERSONAJE_SOLICITUD_RECURSO){
 		char simbolo;
@@ -264,6 +264,7 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 	}else if(tipo == PERSONAJE_FINALIZO_NIVEL){
 		char simbolo = package_get_char(paquete);
 		nivel_gui_quitar_personaje(simbolo);
+		nivel_gui_dibujar();
 
 	}
 
