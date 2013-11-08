@@ -24,7 +24,9 @@ char* string_get_ip(const char* ipport){
 	char copy[strlen(ipport)];
 	strcpy(copy, ipport);
 
-	char* ip = string_split(copy, ":")[0];
+	char** split = string_split(copy, ":");
+	char* ip = split[0];
+	free(split[1]);
 
 	return ip;
 }
@@ -34,7 +36,9 @@ char* string_get_port(const char* ipport){
 	char copy[strlen(ipport)];
 	strcpy(copy, ipport);
 
-	char* puerto = string_split(copy, ":")[1];
+	char** split = string_split(copy, ":");
+	char* puerto = split[1];
+	free(split[0]);
 
 	return puerto;
 }
