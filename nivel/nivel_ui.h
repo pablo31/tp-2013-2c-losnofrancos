@@ -30,7 +30,7 @@ void nivel_gui_dibujar();
 /*
  *  Acciones sobre recursos y personajes
  */
-void nivel_borrar_item(char id);
+void nivel_gui_borrar_item(char id);
 void nivel_restar_recurso(char id);
 void nivel_gui_mover_item(char id, vector2 new_pos);
 void nivel_gui_crear_personaje(char simbolo, vector2 pos);

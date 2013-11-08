@@ -7,10 +7,11 @@
 #include "nivel_ui.h"
 #include "../libs/logger/logger.h"
 
-static WINDOW * secwin;
-static WINDOW * mainwin;
-static int rows, cols;
+private WINDOW * secwin;
+private WINDOW * mainwin;
+private int rows, cols;
 private t_list* items; //list<gui_item>
+private tad_logger* logger;
 
 
 private void nivel_gui_get_term_size(int as_out rows, int as_out cols){
@@ -33,6 +34,8 @@ void nivel_gui_get_area_nivel(int as_out rows, int as_out cols){
 
 
 void nivel_gui_inicializar(){
+	logger = logger_new_instance("GUI");
+
 	mainwin = initscr();
 	keypad(stdscr, TRUE);
 	noecho();
@@ -43,12 +46,16 @@ void nivel_gui_inicializar(){
 	box(stdscr, 0, 0);
 	refresh();
 
-	nivel_gui_get_term_size(&rows, &cols);
+	nivel_gui_get_term_size(out rows, out cols);
+	logger_info(logger, "Consola de %d filas y %d columnas", rows, cols);
+
 	secwin = newwin(rows - 2, cols, 0, 0);
 	box(secwin, 0, 0);
 	wrefresh(secwin);
 
 	items = list_create();
+
+	logger_info(logger, "Inicializada");
 
 	//TODO pokemon-style intro (see ../pruebas/intro.c)
 }
@@ -88,6 +95,8 @@ void nivel_gui_terminar(){
 	delwin(secwin);
 	endwin();
 	refresh();
+	logger_info(logger, "Finalizada");
+	logger_dispose_instance(logger);
 }
 
 private void nivel_gui_crear_item(char id, vector2 pos, char tipo, int cantidad) {
@@ -99,18 +108,8 @@ private void nivel_gui_crear_item(char id, vector2 pos, char tipo, int cantidad)
 	item->quantity = cantidad;
 
 	list_add(items, item);
-}
 
-private void nivel_gui_quitar_item(char id){
-	int i;
-	for(i = 0; i < list_size(items); i++){
-		gui_item* item = list_get(items, i);
-		if(item->id == id){
-			list_remove(items, i);
-			dealloc(item);
-			return;
-		}
-	}
+	logger_info(logger, "Agregado item %c", id);
 }
 
 void nivel_gui_crear_personaje(char simbolo, vector2 pos) {
@@ -118,7 +117,7 @@ void nivel_gui_crear_personaje(char simbolo, vector2 pos) {
 }
 
 void nivel_gui_quitar_personaje(char simbolo){
-	nivel_gui_quitar_item(simbolo);
+	nivel_gui_borrar_item(simbolo);
 }
 
 void nivel_gui_crear_caja(tad_caja* c) {
@@ -129,11 +128,12 @@ void nivel_gui_crear_enemigo(tad_enemigo* enem) {
 	nivel_gui_crear_item(enem->simbolo, enem->pos, ENEMIGO_ITEM_TYPE, 1);
 }
 
-void nivel_borrar_item(char id) {
+void nivel_gui_borrar_item(char id) {
 	bool item_buscado(void* ptr_item){
 		return ((gui_item*)ptr_item)->id == id;
 	}
 	list_remove_by_condition(items, item_buscado);
+	logger_info(logger, "Borrado item %c", id);
 }
 
 
@@ -165,6 +165,7 @@ void cargar_recursos_nivel(tad_nivel* nivel){
 		enemigo->pos = vector2_new(x, y); //TODO esto deberia estar en otro lado
 
 		nivel_gui_crear_enemigo(enemigo);
+		logger_info(logger, "Enemigo agregado en (%d,%d)", x, y);
 
 		seed++;
 	}
