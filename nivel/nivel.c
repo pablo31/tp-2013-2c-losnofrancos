@@ -66,6 +66,8 @@ int main(int argc, char **argv){
 	verificar_argumentos(argc, argv);
 	char* config_path = argv[1];
 
+	srand(time(NULL)); //seed para random
+
 	//inicializo el nivel
 	char* ippuerto;
 	tad_nivel* self = crear_nivel(config_path, out ippuerto);
