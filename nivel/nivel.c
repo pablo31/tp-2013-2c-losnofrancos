@@ -337,5 +337,6 @@ private void manejar_desconexion_multiplexor(tad_nivel* self, tad_multiplexor* m
 
 private void nivel_finalizar_cerrar_multiplexor(tad_nivel* self, tad_multiplexor* m){
 	multiplexor_dispose_and_dispose_objects(m);
+	self->socket = null;
 	nivel_finalizar(self);
 }
