@@ -8,49 +8,49 @@ all:
 	clear
 
 	@echo "Los No Francos 2013"
-	@echo "Desarrollando para usted desde hace más de un año"
+	@echo "'Desarrollando para usted desde hace más de un año'"
 	@echo ""
 	@sleep 1
 
-	@echo "# LIBRERIAS"
+	@echo "# BIBLIOTECAS"
 	@echo ""
 
-	@echo "   >>> COMPILANDO LIBRERIA COMMON"
+	@echo "   >>> COMPILANDO BIBLIOTECA COMMON"
 	@gcc -Wall -g -ggdb -c libs/common/*.c libs/common/collections/*.c libs/vector/vector2.c
 	@ar rcs libcommon.a bitarray.o  config.o  dictionary.o  error.o  list.o  log.o  process.o  queue.o  string.o  temporal.o  txt.o vector2.o
 	
 	@echo ""
-	@echo "   >>> COMPILANDO LIBRERIA LOG"
+	@echo "   >>> COMPILANDO BIBLIOTECA LOG"
 	@gcc -Wall -g -ggdb -c libs/logger/logger.c
 	@ar rcs liblog.a logger.o string.o log.o error.o temporal.o  txt.o process.o
 	
 	@echo ""
-	@echo "   >>> COMPILANDO LIBRERIA SOCKET"
+	@echo "   >>> COMPILANDO BIBLIOTECA SOCKET"
 	@gcc -Wall -g -ggdb -c libs/socket/socket.c libs/socket/socket_utils.c libs/socket/package_serializers.c
 	@ar rcs libsck.a socket.o socket_utils.o package_serializers.o logger.o string.o log.o error.o temporal.o  txt.o process.o vector2.o
 	
 	@echo ""
-	@echo "   >>> COMPILANDO LIBRERIA THREAD Y MUTEX"
+	@echo "   >>> COMPILANDO BIBLIOTECA THREAD Y MUTEX"
 	@gcc -Wall -g -ggdb -c libs/thread/thread.c libs/thread/mutex.c libs/command/command.c libs/command/arguments.c -lpthread
 	@ar rcs libth.a mutex.o thread.o command.o arguments.o list.o
 	
 	@echo ""
-	@echo "   >>> COMPILANDO LIBRERIA MULTIPLEXOR"
+	@echo "   >>> COMPILANDO BIBLIOTECA MULTIPLEXOR"
 	@gcc -Wall -g -ggdb -c libs/multiplexor/multiplexor.c libs/command/command.c libs/command/arguments.c
 	@ar rcs libmpx.a multiplexor.o command.o arguments.o list.o
 	
 	@echo ""
-	@echo "   >>> COMPILANDO LIBRERIA NOTIFIER"
+	@echo "   >>> COMPILANDO BIBLIOTECA NOTIFIER"
 	@gcc -Wall -g -ggdb -c libs/notifier/notifier.c
 	@ar rcs libntf.a notifier.o
 	
 	@echo ""
-	@echo "   >>> COMPILANDO LIBRERIA SIGNAL"
+	@echo "   >>> COMPILANDO BIBLIOTECA SIGNAL"
 	@gcc -Wall -g -ggdb -c libs/signal/signal.c libs/command/command.c libs/command/arguments.c
 	@ar rcs libsgn.a signal.o command.o arguments.o list.o
 	
 	@echo ""
-	@echo "   >>> COMPILANDO LIBRERIA COLLECTION"
+	@echo "   >>> COMPILANDO BIBLIOTECA COLLECTION"
 	@gcc -Wall -g -ggdb -c libs/collection/round.c
 	@ar rcs libctn.a round.o list.o
 	
