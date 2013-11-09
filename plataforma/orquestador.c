@@ -21,7 +21,7 @@ private tad_logger* get_logger(tad_orquestador* orquestador){
 }
 
 
-tad_orquestador* orquestador_crear(tad_plataforma* plataforma){
+tad_orquestador* orquestador_crear(tad_plataforma* plataforma, char* puerto){
 	//alojamos una estructura tad_orquestador
 	alloc(ret, tad_orquestador);
 	//seteamos la referencia a plataforma
@@ -29,7 +29,7 @@ tad_orquestador* orquestador_crear(tad_plataforma* plataforma){
 	//creamos una instancia del logger para el orquestador
 	ret->logger = logger_new_instance("Orquestador");
 	//seteamos el puerto donde escucha el orquestador
-	ret->puerto = "27015"; //TODO cargar desde archivo
+	ret->puerto = puerto;
 
 	logger_info(get_logger(ret), "Orquestador inicializado");
 	return ret;
@@ -62,6 +62,7 @@ void orquestador_finalizar(tad_orquestador* self){
 	logger_info(get_logger(self), "Finalizando");
 	logger_dispose_instance(self->logger);
 	//liberamos memoria
+	free(self->puerto);
 	dealloc(self);
 }
 

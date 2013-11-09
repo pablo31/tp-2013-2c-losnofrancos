@@ -38,7 +38,7 @@ private void nivel_finalizar_cerrar_multiplexor(tad_nivel* self, tad_multiplexor
  ***************************************************************/
 
 private void verificar_argumentos(int argc, char* argv[]) {
-	if(argc >= 1) return;
+	if(argc > 1) return;
 	printf("Error: Debe ingresar el nombre del archivo de configuracion\n");
 	exit(EXIT_FAILURE);
 }

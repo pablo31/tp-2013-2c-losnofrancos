@@ -39,7 +39,7 @@ struct s_orquestador{
 //tad_logger* get_logger(tad_orquestador* orquestador);
 
 //Inicializacion, ejecucion y destruccion
-tad_orquestador* orquestador_crear(tad_plataforma* plataforma);
+tad_orquestador* orquestador_crear(tad_plataforma* plataforma, char* puerto);
 void orquestador_ejecutar(tad_orquestador* orquestador);
 void orquestador_finalizar(tad_orquestador* orquestador);
 

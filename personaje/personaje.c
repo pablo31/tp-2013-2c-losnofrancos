@@ -18,12 +18,10 @@
 #include "../libs/common.h"
 #include "personaje.h"
 
-private bool verificar_argumentos(int argc, char* argv[]) {
-	if (argc < 1) {
-		printf("Error: Debe ingresar el nombre del archivo de configuracion\n");
-		return false;
-	}
-	return true;
+private void verificar_argumentos(int argc, char* argv[]) {
+	if(argc > 1) return;
+	printf("Error: Debe ingresar el nombre del archivo de configuracion\n");
+	exit(EXIT_FAILURE);
 }
 
 
@@ -65,7 +63,7 @@ private char* get_ippuerto_orquestador(t_personaje* self){
 
 
 //inicializacion y destruccion
-private t_personaje* personaje_crear(char* config_path, char* exe_name);
+private t_personaje* personaje_crear(char* config_path);
 private void personaje_destruir(t_personaje* self);
 //logica y ejecucion
 private void morir(t_personaje* self);
@@ -94,13 +92,11 @@ conexión del socket y se destruye el hilo.
 
 int main(int argc, char* argv[]) {
 
-	if (!verificar_argumentos(argc, argv)) return EXIT_FAILURE;
-
-	char* exe_name = argv[0];
+	verificar_argumentos(argc, argv);
 	char* config_file = argv[1];
 
 	//levantamos el archivo de configuracion
-	t_personaje* self = personaje_crear(config_file, exe_name);
+	t_personaje* self = personaje_crear(config_file);
 	if(self == null) return EXIT_FAILURE; //TODO liberar logger
 
 	logger_info(get_logger(self), "Personaje %s creado", get_nombre(self));
@@ -283,7 +279,7 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 
 
 
-private t_personaje* personaje_crear(char* config_path, char* exe_name){
+private t_personaje* personaje_crear(char* config_path){
 	//creamos una instancia de personaje
 	alloc(self, t_personaje);
 
@@ -296,7 +292,7 @@ private t_personaje* personaje_crear(char* config_path, char* exe_name){
 	//cargamos los datos del logger
 	char* log_file = config_get_string_value(config, "logFile");
 	char* log_level = config_get_string_value(config, "logLevel");
-	logger_initialize(log_file, exe_name, log_level);
+	logger_initialize(log_file, "personaje.sh", log_level);
 
 	//obtenemos una instancia del logger
 	self->logger = logger_new_instance();

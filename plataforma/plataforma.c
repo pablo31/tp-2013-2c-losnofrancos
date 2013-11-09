@@ -10,6 +10,8 @@
 #include <string.h>
 
 #include "../libs/common/collections/list.h"
+#include "../libs/common/config.h"
+#include "../libs/common/string.h"
 
 #include "../libs/logger/logger.h"
 #include "../libs/signal/signal.h"
@@ -25,30 +27,21 @@
 private tad_logger* get_logger(tad_plataforma* self){
 	return self->logger;
 }
-private tad_orquestador* get_orquestador(tad_plataforma* self){
-	return self->orquestador;
+
+private void verificar_argumentos(int argc, char* argv[]) {
+	if(argc > 1) return;
+	printf("Error: Debe ingresar el nombre del archivo de configuracion\n");
+	exit(EXIT_FAILURE);
 }
 
 
 
-
-
 int main(int argc, char **argv){
-	//char* puerto_orquestador = argv[1];
-	char* nombre_ejecutable = argv[0];
 
-	if (argc < 1){
-		printf("\tDebe especificar el archivo de configuracion de los planificadores.\n");
-		printf("\tej: plataforma.sh planfificador.conf\n");
-		return EXIT_FAILURE;
-	}
+	verificar_argumentos(argc, argv);
+	char* config_file = argv[1];
 
-	//char* configuracion = argv[1];
-	//TODO levantar archivo de config
-
-	logger_initialize_for_info("plataforma.log", nombre_ejecutable);
-
-	tad_plataforma* self = plataforma_crear();
+	tad_plataforma* self = plataforma_crear(config_file);
 
 	logger_info(get_logger(self), "Proceso Plataforma iniciado");
 
@@ -57,17 +50,28 @@ int main(int argc, char **argv){
 	logger_info(get_logger(self), "Signals establecidas");
 
 	//Ejecutamos el orquestador en el hilo principal
-	orquestador_ejecutar(get_orquestador(self));
+	orquestador_ejecutar(self->orquestador);
 
 	//Dado que hay un ciclo infinito en el orquestador, no deberia llegar hasta aca
 	return EXIT_FAILURE;
 }
 
-tad_plataforma* plataforma_crear(){
+tad_plataforma* plataforma_crear(char* config_file){
 	//alojamos la estructura tad_plataforma
 	alloc(ret, tad_plataforma);
+
+	t_config* config = config_create(config_file);
+	char* puerto_orquestador = string_duplicate(config_get_string_value(config, "puerto"));
+
+	//cargamos los datos del logger
+	char* log_file = config_get_string_value(config, "logFile");
+	char* log_level = config_get_string_value(config, "logLevel");
+	logger_initialize(log_file, "plataforma.sh", log_level);
+
+	config_destroy(config);
+
 	//creamos el orquestador
-	ret->orquestador = orquestador_crear(ret);
+	ret->orquestador = orquestador_crear(ret, puerto_orquestador);
 	//creamos la lista de planificadores
 	ret->planificadores = list_create();
 	//creamos una instancia del logger
