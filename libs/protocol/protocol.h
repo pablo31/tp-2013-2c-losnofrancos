@@ -41,7 +41,7 @@ enum DATA_TYPE_PROTOCOL {
 	PERSONAJE_CONECTADO = 199,
 
 	//planificador a personaje
-	PLANIFICADOR_OTORGA_QUANTUM = 200,
+	PLANIFICADOR_OTORGA_TURNO = 200,
 
 	//mensajes compartidos entre planificador, nivel, y personaje
 	SOLICITUD_UBICACION_RECURSO = 218,

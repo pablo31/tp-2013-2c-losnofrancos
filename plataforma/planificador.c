@@ -225,7 +225,7 @@ private void otorgar_turno(tad_planificador* self){
 
 	int quantum = self->quantum;
 	while(quantum){
-		socket_send_empty_package(socket, PLANIFICADOR_OTORGA_QUANTUM);
+		socket_send_empty_package(socket, PLANIFICADOR_OTORGA_TURNO);
 
 		tad_package* paquete = socket_receive_one_of_this_packages(socket, 4,
 				SOLICITUD_UBICACION_RECURSO,

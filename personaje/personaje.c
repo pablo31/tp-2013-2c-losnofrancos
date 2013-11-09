@@ -232,8 +232,8 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 	int i = 0;
 
 	while(objetivosConseguidos<objetivosAconseguir){
-		socket_receive_expected_empty_package(socket, PLANIFICADOR_OTORGA_QUANTUM);
-		logger_info(logger_nivel, "Quantum otorgado");
+		socket_receive_expected_empty_package(socket, PLANIFICADOR_OTORGA_TURNO);
+		logger_info(logger_nivel, "Turno otorgado");
 
 		char* ptr_objetivo = list_get(nivel->objetivos, i);
 		char objetivoActual = *ptr_objetivo;
