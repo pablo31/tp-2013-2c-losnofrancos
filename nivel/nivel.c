@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "../libs/socket/socket_utils.h"
 #include "../libs/socket/package_serializers.h"
