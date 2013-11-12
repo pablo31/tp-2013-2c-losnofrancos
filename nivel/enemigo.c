@@ -42,7 +42,7 @@ void mover_en_L(tad_enemigo* self){
 	nivel_gui_get_area_nivel(out rows, out cols);
 	vector2 limites = vector2_new(cols, rows);
 
-	int random = 1; //TODO random 0,8
+	int random = rand()%9; //TODO random 0,8
 
 	vector2 nueva_pos = vector2_add(pos, movimientos[random]);
 	while(nueva_pos.x < 0 || nueva_pos.y < 0 || nueva_pos.x > limites.x || nueva_pos.y > limites.y){

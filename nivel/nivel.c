@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "../libs/socket/socket_utils.h"
 #include "../libs/socket/package_serializers.h"
@@ -65,6 +66,8 @@ int main(int argc, char **argv){
 
 	verificar_argumentos(argc, argv);
 	char* config_path = argv[1];
+
+	srand(time(NULL)); //seed para random
 
 	//inicializo el nivel
 	char* ippuerto;
