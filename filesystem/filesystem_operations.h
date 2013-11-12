@@ -16,12 +16,13 @@ int fs_unlink(const char *path);
 int fs_rmdir (const char *path);
 int fs_open(const char *path, struct fuse_file_info *fi);
 int fs_readdir(const char *path, void *buffer, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi);
-int fs_getattr(const char * path, struct stat * nose);
+int fs_getattr(const char *path, struct stat * nose);
 
 int agregar_nodo(const GFile nodo);
 int borrar_nodo(const uint32_t bloque);
-int buscar_bloque_nodo(const char* path, uint32_t *bloque);
+int buscar_bloque_nodo(char* path, uint32_t *bloque);
 int buscar_bloque_por_padre(char *padre, uint32_t bloque_padre, uint32_t *bloque);
-int buscar_nodos_por_padre(uint32_t bloque_padre,t_list *contenido);
+int buscar_nodos_por_padre(uint32_t bloque_padre, void * buffer, fuse_fill_dir_t filler);
+		//t_list *contenido);
 
 #endif

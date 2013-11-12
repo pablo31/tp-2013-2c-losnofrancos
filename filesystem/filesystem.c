@@ -160,14 +160,14 @@ void liberar_recursos() {
 }
 
 void cargar_configuracion_grasa(int argc, char *argv[]) {
-	if ((argc < 3) || (argv[argc - 2][0] == '-')
+	/*if ((argc < 3) || (argv[argc - 2][0] == '-')
 			|| (argv[argc - 1][0] == '-')) {
 		logger_error(logger,
 				"uso:\n\t./filesystem.sh [opciones de FUSE] archivo_grasa directorio_donde_montar");
 		liberar_recursos();
 		exit(EXIT_FAILURE);
 	}
-
+*/
 	file_name = string_new();
 	strcpy(file_name, argv[1]);
 
@@ -191,22 +191,27 @@ void cargar_configuracion_grasa(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
+	//int argc_fuse = argc - 1;
+	//char* argv_fuse[] = argv[2];
+	int i;
 	iniciar_logger(argv[0]);
 	cargar_configuracion_grasa(argc, argv);
 
 	// saco el archivo de grasa de la lista de argumentos
-	argv[argc - 2] = argv[argc - 1];
+	for(i=2;i<argc;i++){
+		argv[i-1] = argv[i];
+	}
+	//argv[argc - 2] = argv[argc - 1];
 	argv[argc - 1] = NULL;
-
 	argc--;
 
 	// En vez de sacar el primer elemento envio los valores modificados a fuse
-	struct fuse_args args = FUSE_ARGS_INIT(argc,argv);
+	//struct fuse_args args = FUSE_ARGS_INIT(argc,argv);
 	cargar_header();
 	cargar_bitmap();
 	cargar_nodos();
 
-	int fuse_retorno = fuse_main(args.argc, args.argv, &grasa_operations,
+	int fuse_retorno = fuse_main(argc, argv, &grasa_operations,
 			NULL );
 
 	logger_info(logger, "Fin de fuse_main - %s.",
