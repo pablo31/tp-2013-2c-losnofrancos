@@ -22,7 +22,7 @@ void logear_path(const char* funcion, const char* path) {
 	logger_info(logger, "\tFuncion:'%s'", funcion);
 	//logger_info(logger, "");
 	logger_info(logger, "\tpath:'%s'", path);
-	logger_info(logger,"-----------------");
+	logger_info(logger, "-----------------");
 }
 
 /*
@@ -36,6 +36,8 @@ int fs_read(const char *path, char *buf, size_t size, off_t offset,
 		struct fuse_file_info *fi) {
 	//logger_info(logger, "Abro archivo:");
 	logear_path("fs_read", path);
+
+	//leer archivo desde offset hasta size y guardar en buff
 	return 0;
 }
 
@@ -60,18 +62,19 @@ int fs_mkdir(const char *path, mode_t mode) {
 	while (subpath[i] != NULL ) {
 		bloque_padre = nodo.parent_dir_block;
 		directorio = subpath[i];
-		err = buscar_bloque_por_padre(directorio, bloque_padre,&nodo.parent_dir_block);
+		err = buscar_bloque_por_padre(directorio, bloque_padre,
+				&nodo.parent_dir_block);
 		if (err && subpath[i + 1] != NULL ) {
 			return EXIT_FAILURE;
 		};
 		i++;
 	};
 
-	nodo.c_date = time(NULL );
-	nodo.m_date = nodo.c_date;
+	//nodo.c_date = time(NULL );
+	//nodo.m_date = nodo.c_date;
 	nodo.file_size = 0;
 	//nodo.fname = strdup(directorio);
-	strcpy(nodo.fname, directorio);
+	//strcpy(nodo.fname, directorio);
 	nodo.state = 2;
 
 	return agregar_nodo(nodo);
@@ -100,22 +103,29 @@ int fs_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
  */
 int fs_opendir(const char *path, struct fuse_file_info *fi) {
 	logear_path("fs_opendir", path);
-
-	/*
-	 logger_info(logger,"");
-	 logger_info(logger,"\tFile info flags:'%s'",fi->flags);
-	 logger_info(logger,"\tFile info fh_old:'%lu'",fi->fh_old);
-	 logger_info(logger,"\tFile info writepage:'%i'",fi->writepage);
-	 logger_info(logger,"\tFile info direct_io:'%u'",fi->direct_io);
-	 logger_info(logger,"\tFile info keep_cache:'%u'",fi->keep_cache);
-	 logger_info(logger,"\tFile info flush:'%u'",fi->flush);
-	 logger_info(logger,"\tFile info nonseekable:'%u'",fi->nonseekable);
-	 logger_info(logger,"\tFile info padding:'%u'",fi->padding);
-	 logger_info(logger,"\tFile info fh:'%u'",fi->fh);
-	 logger_info(logger,"\tFile info lock_owner:'%u'",fi->lock_owner);
-	 */
-
+	int err = 0;
+	uint32_t bloque;
+	err = buscar_bloque_nodo(path, bloque);
+	if (!err) {
 	return 0;
+} else {
+	return -ENOENT;
+}
+/*
+ logger_info(logger,"");
+ logger_info(logger,"\tFile info flags:'%s'",fi->flags);
+ logger_info(logger,"\tFile info fh_old:'%lu'",fi->fh_old);
+ logger_info(logger,"\tFile info writepage:'%i'",fi->writepage);
+ logger_info(logger,"\tFile info direct_io:'%u'",fi->direct_io);
+ logger_info(logger,"\tFile info keep_cache:'%u'",fi->keep_cache);
+ logger_info(logger,"\tFile info flush:'%u'",fi->flush);
+ logger_info(logger,"\tFile info nonseekable:'%u'",fi->nonseekable);
+ logger_info(logger,"\tFile info padding:'%u'",fi->padding);
+ logger_info(logger,"\tFile info fh:'%u'",fi->fh);
+ logger_info(logger,"\tFile info lock_owner:'%u'",fi->lock_owner);
+ */
+
+return 0;
 }
 /*
  Write data to an open file
@@ -123,118 +133,155 @@ int fs_opendir(const char *path, struct fuse_file_info *fi) {
  Write should return exactly the number of bytes requested except on error. An exception to this is when the 'direct_io' mount option is specified (see read operation).
  */
 int fs_write(const char *path, const char *buf, size_t size, off_t offset,
-		struct fuse_file_info *fi) {
-	//logger_info(logger, "Escribo archivo:");
-	logear_path("fs_write", path);
-	return 0;
+	struct fuse_file_info *fi) {
+//logger_info(logger, "Escribo archivo:");
+logear_path("fs_write", path);
+return 0;
 }
 
 /*
  Remove a file
  */
 int fs_unlink(const char *path) {
-	//logger_info(logger, "Elimino archivo:");
-	logear_path("fs_unlink", path);
+//logger_info(logger, "Elimino archivo:");
+logear_path("fs_unlink", path);
 
-	return 0;
+return 0;
 }
 
 /*
  Remove a directory
  */
 int fs_rmdir(const char *path) {
-	int err = 0;
-	uint32_t bloque = 0;
+int err = 0;
+uint32_t bloque = 0;
 
-	//logger_info(logger, "Elimino directorio");
-	logear_path("fs_rmdir", path);
+//logger_info(logger, "Elimino directorio");
+logear_path("fs_rmdir", path);
 
-	err = buscar_bloque_nodo(path,&bloque);
+err = buscar_bloque_nodo(path, &bloque);
 
-	return borrar_nodo(bloque);
+return borrar_nodo(bloque);
 
-	//actualizar nodos en archivo?
+//actualizar nodos en archivo?
 
 }
 
 int fs_getattr(const char * path, struct stat *stat) {
-	//logger_info(logger, "get attributes");
-	logear_path("fs_getattr", path);
+//logger_info(logger, "get attributes");
+logear_path("fs_getattr", path);
 
-	stat->st_size = 5;
-	stat->st_atim.tv_sec = stat->st_ctim.tv_sec = stat->st_mtim.tv_sec = time(NULL);
-	stat->st_uid = "utnso";
-	stat->st_gid = "utnso";
-	stat->st_mode = 511;
+memset(stat, 0, sizeof(struct stat));
+stat->st_size = 5;
+//stat->st_atim.tv_sec = stat->st_ctim.tv_sec = stat->st_mtim.tv_sec = time(NULL);
+stat->st_uid = "utnso";
+stat->st_gid = "utnso";
+stat->st_mode = S_IFDIR;
+stat->st_nlink = 2;
 
-	return 0;
+return 0;
 }
 
-int fs_open(const char *path, struct fuse_file_info *fi){
-	//logger_info(logger, "Abrir");
-	logear_path("fs_open", path);
+int fs_open(const char *path, struct fuse_file_info *fi) {
+//logger_info(logger, "Abrir");
+logear_path("fs_open", path);
 
-	return 0;
+if ((fi->flags & 3) != O_RDONLY)
+	return -EACCES;
+
+return 0;
 }
 
-int fs_readdir(const char *path, void *buffer, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi){
-	//logger_info(logger, "Leer directorio");
-	logear_path("fs_readdir", path);
+int fs_readdir(const char *path, void *buffer, fuse_fill_dir_t filler,
+	off_t offset, struct fuse_file_info *fi) {
+int i = 0;
+t_list *contenido;
+uint32_t bloque_padre;
+int err = 0;
+char *nombre;
+//logger_info(logger, "Leer directorio");
+logear_path("fs_readdir", path);
 
-	return 0;
+//Agrego las opciones . y .. por defecto
+filler(buffer, ".", NULL, 0);
+filler(buffer, "..", NULL, 0);
+
+// Busco todo el contenido del directorio
+contenido = list_create;
+err = buscar_bloque_nodo(path, bloque_padre);
+if (!err) {
+	buscar_nodos_por_padre(bloque_padre, contenido);
+	if (!err) {
+		for (i = 0; i < (*contenido).elements_count; i++) {
+			nombre = (char*) list_get(contenido, 1);
+			filler(buffer, nombre, NULL, 0);
+		};
+	} else {
+		return -ENOENT;
+	}
+} else {
+	return -ENOENT;
+}
+
+//busco los demas directorio y los agrego a buffer con filler
+
+return 0;
 }
 //--------------------------
 // Funciones auxiliares:   |
 //--------------------------
 int agregar_nodo(const GFile nodo) {
-	int fin = 0;
-	int i = 0;
+int fin = 0;
+int i = 0;
 
-	while (!fin && i < 1024) {
-		if (nodos[i].state == 0) {
-			nodos[i] = nodo;
-			fin = 1;
-		}
-		i++;
-
+while (!fin && i < GFILEBYTABLE) {
+	if (nodos[i].state == 0) {
+		nodos[i] = nodo;
+		fin = 1;
 	}
+	i++;
 
-	if (fin) {
-		return EXIT_SUCCESS;
-	} else {
-		return EXIT_FAILURE;
-	}
+}
+
+if (fin) {
+	return EXIT_SUCCESS;
+} else {
+	return EXIT_FAILURE;
+}
 }
 
 int borrar_nodo(const uint32_t bloque) {
-	if (nodos[bloque].state != 0) {
-		nodos[bloque].state = 0;
-		return EXIT_SUCCESS;
-	} else {
-		return EXIT_FAILURE;
-	}
+if (nodos[bloque].state != 0) {
+	nodos[bloque].state = 0;
+	return EXIT_SUCCESS;
+} else {
+	return EXIT_FAILURE;
 }
+}
+/* Busco el nodo con nombre "fname" y cuyo padre es el bloque "bloque_padre"
+ * y lo devuelvo en "bloque"
+ */
+int buscar_bloque_por_padre(char *fname, uint32_t bloque_padre,
+	uint32_t *bloque) {
+int encontrado = 0;
+uint32_t i = 0;
 
-int buscar_bloque_por_padre(char *padre, uint32_t bloque_padre, uint32_t *bloque) {
-	int encontrado = 0;
-	uint32_t i = 0;
-
-	while (!encontrado && i < GFILEBYTABLE) {
-		if (strcmp(nodos[i].fname, padre)
-				&& nodos[i].parent_dir_block == padre) {
-			*bloque = i;
-			encontrado = 1;
-		}
-		i++;
+while (!encontrado && i < GFILEBYTABLE) {
+	if (strncmp(nodos[i].fname, fname, GFILENAMELENGTH)
+			&& nodos[i].parent_dir_block == fname) {
+		*bloque = i;
+		encontrado = 1;
 	}
-	if (encontrado)
-		return EXIT_SUCCESS;
-	else
-		return EXIT_FAILURE;
+	i++;
+}
+if (encontrado)
+	return EXIT_SUCCESS;
+else
+	return EXIT_FAILURE;
 
 }
-
-int buscar_bloque_nodo(const char* path, uint32_t *bloque){
+// con el path completo busco el bloque en donde esta guardado ese nodo y lo devuelvo
+int buscar_bloque_nodo(const char* path, uint32_t *bloque) {
 char** subpath;
 int i = 0;
 int err = 0;
@@ -243,7 +290,7 @@ subpath = string_split(path, "/");
 while (subpath[i] != NULL ) {
 	bloque_padre = bloque;
 	err = buscar_bloque_por_padre(subpath[i], bloque_padre, bloque);
-	if (err){
+	if (err) {
 		free(subpath);
 		return EXIT_FAILURE;
 
@@ -254,3 +301,19 @@ while (subpath[i] != NULL ) {
 free(subpath);
 return EXIT_SUCCESS;
 }
+
+// Busca todos los nodos que tienen como padre al bloque "bloque_padre"
+int buscar_nodos_por_padre(uint32_t bloque_padre, t_list *contenido) {
+int i;
+char * nombre;
+for (i = 0; i < GFILEBYTABLE; i++) {
+	if (nodos[i].parent_dir_block == bloque_padre) {
+		nombre = malloc(sizeof(nodos[i].fname));
+		nombre[sizeof(nodos[i].fname) - 1] = '\0';
+		memcpy(nombre, nodos[i].fname, sizeof(nodos[i].fname));
+		list_add(contenido, nombre);
+	}
+}
+return EXIT_SUCCESS;
+}
+

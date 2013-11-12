@@ -26,7 +26,7 @@ static int file_descriptor; // file descriptor del archivo de grasa
 static uint file_size;      // el tamaño del archivo
 struct grasa_header_t* header;
 t_bitarray* bitmap;
-GFile nodos[1024];
+GFile* nodos;
 char* mmaped_file = NULL; // el array de chars que contiene el archivo via mmaped_file
 uint bitmap_bytes_usados; // Tamaño archivo / blocksize / 8
 
@@ -119,26 +119,26 @@ static void cargar_bitmap() {
 }
 
 static void cargar_nodos() {
-	//int i;
-	//uint continuar = 1;
-	//GFile* nodo;
-	uint inicio_nodos = (header->size_bitmap + 1) * TAMANIO_BLOQUE;
-	//nodos = malloc(sizeof(struct grasa_file_t)*GFILEBYTABLE);
-	//nodos = list_create();
-	char* str_nodos = string_substring(mmaped_file, inicio_nodos,
-			sizeof(struct grasa_file_t) * GFILEBYTABLE);
-	memcpy(nodos, str_nodos, sizeof(struct grasa_file_t) * GFILEBYTABLE);
-	/*for(i=0;i<GFILEBYTABLE && continuar;i++){
-	 nodo = (GFile*)malloc(sizeof(GFile));
-	 nodo = (GFile*)string_substring(str_nodos,i*sizeof(GFile),sizeof(GFile));
-	 if(nodo->state == 1 || nodo->state == 2){
-	 list_add(nodos,(void *)nodo);
-	 }
-	 //else{continuar = 0;};
-
-	 }
-	 */
-	loggear_nodos(nodos);
+        //int i;
+        //uint continuar = 1;
+        //GFile* nodo;
+        uint inicio_nodos = (header->size_bitmap + 1) * TAMANIO_BLOQUE;
+        //nodos = malloc(sizeof(struct grasa_file_t)*GFILEBYTABLE);
+        //nodos = list_create();
+        //char* str_nodos = string_substring(mmaped_file, inicio_nodos,
+                        //sizeof(struct grasa_file_t) * GFILEBYTABLE);
+        //memcpy(nodos, str_nodos, sizeof(struct grasa_file_t) * GFILEBYTABLE);
+        /*for(i=0;i<GFILEBYTABLE && continuar;i++){
+         nodo = (GFile*)malloc(sizeof(GFile));
+         nodo = (GFile*)string_substring(str_nodos,i*sizeof(GFile),sizeof(GFile));
+         if(nodo->state == 1 || nodo->state == 2){
+         list_add(nodos,(void *)nodo);
+         }
+         //else{continuar = 0;};
+         }
+         */
+        nodos = mmaped_file + inicio_nodos;
+        loggear_nodos(nodos);
 }
 
 void liberar_recursos() {
@@ -197,8 +197,10 @@ int main(int argc, char *argv[]) {
 	// saco el archivo de grasa de la lista de argumentos
 	argv[argc - 2] = argv[argc - 1];
 	argv[argc - 1] = NULL;
+
 	argc--;
 
+	// En vez de sacar el primer elemento envio los valores modificados a fuse
 	struct fuse_args args = FUSE_ARGS_INIT(argc,argv);
 	cargar_header();
 	cargar_bitmap();
@@ -209,7 +211,7 @@ int main(int argc, char *argv[]) {
 
 	logger_info(logger, "Fin de fuse_main - %s.",
 			(fuse_retorno == 0) ? "Finalizacion correcta" : "Error");
-	liberar_recursos();
+	//liberar_recursos();
 
 	return EXIT_SUCCESS;
 }

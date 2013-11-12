@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <fuse.h>
 #include <fcntl.h>
+#include "../libs/common/collections/list.h"
 
 int fs_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi);
 int fs_mkdir(const char *path, mode_t mode);
@@ -21,5 +22,6 @@ int agregar_nodo(const GFile nodo);
 int borrar_nodo(const uint32_t bloque);
 int buscar_bloque_nodo(const char* path, uint32_t *bloque);
 int buscar_bloque_por_padre(char *padre, uint32_t bloque_padre, uint32_t *bloque);
+int buscar_nodos_por_padre(uint32_t bloque_padre,t_list *contenido);
 
 #endif
