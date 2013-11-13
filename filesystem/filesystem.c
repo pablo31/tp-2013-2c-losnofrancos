@@ -66,7 +66,7 @@ void logger_bitmap(t_bitarray* bitmap) {
 void loggear_nodos(GFile* nodos) {
 	int i;
 	//struct grasa_file_t nodo;
-	GFile nodo;
+	//GFile nodo;
 	logger_info(logger, "Tabla de nodos");
 
 	for (i = 0; i < GFILEBYTABLE; ++i)
@@ -137,7 +137,7 @@ static void cargar_nodos() {
          //else{continuar = 0;};
          }
          */
-        nodos = mmaped_file + inicio_nodos;
+        nodos = (GFile*) mmaped_file + inicio_nodos;
         loggear_nodos(nodos);
 }
 
