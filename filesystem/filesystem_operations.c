@@ -261,18 +261,18 @@ int borrar_nodo(const uint32_t bloque) {
 	}
 
 }
+
 /*
- * Retorna si el nodo tiene el nombre especificado.
+ *
  */
 bool es_nodo_por_nombre(GFile nodo, char* nombre){
 	return strncmp((char*)nodo.fname, nombre, GFILENAMELENGTH);
 }
-/*
- * Retorna si el nodo es hijo del padre especificado.
- */
+
 bool es_nodo_por_padre(GFile nodo, uint32_t padre){
 	return nodo.parent_dir_block == padre;
 }
+
 
 /* Busco el nodo con nombre "fname" y cuyo padre es el bloque "bloque_padre"
  * y lo devuelvo en "bloque"
@@ -298,6 +298,7 @@ int buscar_bloque_por_padre(char *fname, uint32_t bloque_padre,
 	else
 		return EXIT_FAILURE;
 }
+
 
 
 // con el path completo busco el bloque en donde esta guardado ese nodo y lo devuelvo
