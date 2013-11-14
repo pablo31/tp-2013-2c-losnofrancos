@@ -32,6 +32,17 @@ uint bitmap_bytes_usados; // Tamaño archivo / blocksize / 8
 
 tad_logger* logger;
 
+
+
+static void set_file_name(char* name){	
+	file_name = string_new();
+	strcpy(file_name, name);	
+}
+
+static char* get_file_name(){
+	return file_name;
+}
+
 static void iniciar_logger(char* exe_name) {
 	//inicializamos el singleton logger
 	logger_initialize_for_info(LOG_FILE, exe_name);
@@ -64,22 +75,13 @@ void logger_bitmap(t_bitarray* bitmap) {
 }
 
 void loggear_nodos(GFile* nodos) {
-	int i;
-	//struct grasa_file_t nodo;
-	//GFile nodo;
-	logger_info(logger, "Tabla de nodos");
 
-	for (i = 0; i < GFILEBYTABLE; ++i)
-	//for (i = 0; i < nodos->elements_count; ++i)
-			{
-		//nodo = nodos[i];
-		//nodo = (GFile*)list_get(nodos,i);
-		if (nodos[i].state != 0) {
+	logger_info(logger, "Tabla de nodos");
+	int i;
+	for (i = 0; i < GFILEBYTABLE; ++i){
+		if (nodos[i].state != 0) { // 0 = borrado.
 			logger_info(logger, "Nodo %i)", i);
 			switch (nodos[i].state) {
-			//case 0:
-			//logger_info(logger, "\tEstado: Borrado");
-			//break;
 			case 1:
 				logger_info(logger, "\tEstado: Ocupado");
 				break;
@@ -95,7 +97,6 @@ void loggear_nodos(GFile* nodos) {
 			logger_info(logger, "\tTamaño:%i", nodos[i].file_size);
 			logger_info(logger, "\tCreacion:%i", nodos[i].c_date);
 			logger_info(logger, "\tModificacion:%i", nodos[i].m_date);
-
 		}
 	}
 }
@@ -119,26 +120,10 @@ static void cargar_bitmap() {
 }
 
 static void cargar_nodos() {
-        //int i;
-        //uint continuar = 1;
-        //GFile* nodo;
-        uint inicio_nodos = (header->size_bitmap + 1) * TAMANIO_BLOQUE;
-        //nodos = malloc(sizeof(struct grasa_file_t)*GFILEBYTABLE);
-        //nodos = list_create();
-        //char* str_nodos = string_substring(mmaped_file, inicio_nodos,
-                        //sizeof(struct grasa_file_t) * GFILEBYTABLE);
-        //memcpy(nodos, str_nodos, sizeof(struct grasa_file_t) * GFILEBYTABLE);
-        /*for(i=0;i<GFILEBYTABLE && continuar;i++){
-         nodo = (GFile*)malloc(sizeof(GFile));
-         nodo = (GFile*)string_substring(str_nodos,i*sizeof(GFile),sizeof(GFile));
-         if(nodo->state == 1 || nodo->state == 2){
-         list_add(nodos,(void *)nodo);
-         }
-         //else{continuar = 0;};
-         }
-         */
-        nodos = (GFile*) mmaped_file + inicio_nodos;
-        loggear_nodos(nodos);
+    uint inicio_nodos = (header->size_bitmap + 1) * TAMANIO_BLOQUE;
+    nodos = (GFile*) mmaped_file + inicio_nodos; // esto anda? nodos vuela por los aires.
+
+    loggear_nodos(nodos);
 }
 
 void liberar_recursos() {
@@ -160,18 +145,9 @@ void liberar_recursos() {
 }
 
 void cargar_configuracion_grasa(int argc, char *argv[]) {
-	/*if ((argc < 3) || (argv[argc - 2][0] == '-')
-			|| (argv[argc - 1][0] == '-')) {
-		logger_error(logger,
-				"uso:\n\t./filesystem.sh [opciones de FUSE] archivo_grasa directorio_donde_montar");
-		liberar_recursos();
-		exit(EXIT_FAILURE);
-	}
-*/
-	file_name = string_new();
-	strcpy(file_name, argv[1]);
+	set_file_name(argv[1]);
 
-	file_descriptor = open(file_name, O_RDONLY);
+	file_descriptor = open(get_file_name(), O_RDONLY);
 
 	struct stat status;
 	fstat(file_descriptor, &status);
@@ -184,24 +160,22 @@ void cargar_configuracion_grasa(int argc, char *argv[]) {
 	if (mmaped_file == MAP_FAILED ) {
 		logger_error(logger,
 				"Error al iniciar mmaped_file con el archivo %s. '%s' ",
-				file_name, strerror(errno));
+				get_file_name(), strerror(errno));
 		cerrar_logger();
 		exit(EXIT_FAILURE); //terminamos forzosamente el proceso.
 	}
 }
 
 int main(int argc, char *argv[]) {
-	//int argc_fuse = argc - 1;
-	//char* argv_fuse[] = argv[2];
-	int i;
 	iniciar_logger(argv[0]);
 	cargar_configuracion_grasa(argc, argv);
 
 	// saco el archivo de grasa de la lista de argumentos
+	int i;
 	for(i=2;i<argc;i++){
 		argv[i-1] = argv[i];
 	}
-	//argv[argc - 2] = argv[argc - 1];
+
 	argv[argc - 1] = NULL;
 	argc--;
 
@@ -216,8 +190,7 @@ int main(int argc, char *argv[]) {
 
 	logger_info(logger, "Fin de fuse_main - %s.",
 			(fuse_retorno == 0) ? "Finalizacion correcta" : "Error");
-	//liberar_recursos();
 
 	return EXIT_SUCCESS;
 }
-;
+
