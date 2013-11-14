@@ -15,6 +15,7 @@
 #include "nivel_configuracion.h"
 #include "nivel.h"
 #include "enemigo.h"
+#include "verificador_deadlock.h"
 
 private void nivel_conectar_a_plataforma(tad_nivel* self, char* ippuerto);
 private void nivel_iniciar_interfaz_grafica(tad_nivel* self);
@@ -67,6 +68,8 @@ int main(int argc, char **argv){
 	verificar_argumentos(argc, argv);
 	char* config_path = argv[1];
 
+	gui_item* items;
+
 	srand(time(NULL)); //seed para random
 
 	//inicializo el nivel
@@ -86,8 +89,8 @@ int main(int argc, char **argv){
 	//se mueven los enemigos
 	//nivel_move_enemigos(self);
 
-	//se carga el algoritmo vereficador deadlock
-	//algotirmo_vereficador_deadlock_activate(self);
+	//algoritmo vereficador de deadlock
+	verificador_deadlock(self, items);
 
 	//ejecutamos la logica
 	nivel_ejecutar_logica(self);
@@ -171,18 +174,13 @@ private void nuevo_hilo_enemigo(PACKED_ARGS){
 
 }
 
-
-
 private void algotirmo_vereficador_deadlock_activate(tad_nivel* self){
 	logger_info(get_logger(self), "Se inicia el vereficador deadlock ");
 	verificador_deadlock(self);
 
 }
 
-
 */
-
-
 private void nivel_ejecutar_logica(tad_nivel* self){
 	var(config_path, get_config_path(self));
 	var(socket, self->socket);
