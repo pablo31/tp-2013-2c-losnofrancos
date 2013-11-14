@@ -121,7 +121,7 @@ static void cargar_bitmap() {
 
 static void cargar_nodos() {
     uint inicio_nodos = (header->size_bitmap + 1) * TAMANIO_BLOQUE;
-    nodos = (GFile*) mmaped_file + inicio_nodos; // esto anda? nodos vuela por los aires.
+    nodos = (GFile*)(mmaped_file + inicio_nodos); // esto anda? nodos vuela por los aires.
 
     loggear_nodos(nodos);
 }
