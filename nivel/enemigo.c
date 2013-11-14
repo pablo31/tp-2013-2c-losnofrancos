@@ -1,4 +1,4 @@
-
+/*
 #include "../libs/vector/vector2.h"
 
 #include "enemigo.h"
@@ -44,7 +44,7 @@ void mover_en_L(tad_enemigo* self){
 
 	int random = rand()%9; //TODO random 0,8
 
-	vector2 nueva_pos = vector2_add(pos, movimientos[random]);
+	v	nueva_pos = vector2_add(pos, movimientos[random]);
 	while(nueva_pos.x < 0 || nueva_pos.y < 0 || nueva_pos.x > limites.x || nueva_pos.y > limites.y){
 		vector2 nueva_pos = vector2_add(pos, movimientos[random]);
 	}
@@ -69,3 +69,4 @@ void mover_vertidal_derecha(tad_enemigo* self){
 
 }
 
+*/
