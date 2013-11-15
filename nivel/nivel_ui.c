@@ -107,8 +107,8 @@ private void nivel_gui_crear_item(char id, vector2 pos, char tipo, int cantidad)
 	item->pos = pos;
 	item->item_type = tipo;
 	item->quantity = cantidad;
-	item->recursos_asignados = string_new(); //item_personaje
-	item->recursos_asignados[0] = '\0'; //item_personaje
+	//item->recursos_asignados = string_new(); //item_personaje
+	//item->recursos_asignados[0] = '\0'; //item_personaje
 
 	list_add(items, item);
 

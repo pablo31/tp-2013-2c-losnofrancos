@@ -68,7 +68,7 @@ int main(int argc, char **argv){
 	verificar_argumentos(argc, argv);
 	char* config_path = argv[1];
 
-	gui_item* items;
+	//gui_item* items;
 
 	srand(time(NULL)); //seed para random
 
@@ -90,7 +90,7 @@ int main(int argc, char **argv){
 	//nivel_move_enemigos(self);
 
 	//algoritmo vereficador de deadlock
-	verificador_deadlock(self, items);
+	//verificador_deadlock(self, items);
 
 	//ejecutamos la logica
 	nivel_ejecutar_logica(self);
