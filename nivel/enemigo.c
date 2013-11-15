@@ -7,7 +7,7 @@ void movimiento_permitido_enemigo(tad_nivel* nivel, tad_enemigo* self){
 
 
 	if(list_size(nivel->personajes) > 0)
-		atacar_al_personaje(self);
+		atacar_al_personaje(nivel,self);
 	else
 		mover_en_L(self);
 
@@ -17,8 +17,9 @@ void movimiento_permitido_enemigo(tad_nivel* nivel, tad_enemigo* self){
 
 void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self){
 	//se carga la posicion del personaje que esta mas cerca.
-	vector2 posicion_personaje = personaje_Mas_Cerca(nivel,self);
+	//vector2 posicion_personaje = personaje_Mas_Cerca(nivel,self);
 	//self->posicion_personaje = posicion_personaje;
+	//TODO arreglar el esto
 
 	self->posicion_personaje.x=2;
 	self->posicion_personaje.y=2;
@@ -58,7 +59,7 @@ void mover_en_L(tad_enemigo* self){
 
 	nueva_pos = vector2_add(pos, movimientos[random]);
 	while(vector2_within_map(nueva_pos, limite_mapa)){
-		vector2 nueva_pos = vector2_add(pos, movimientos[random]);
+		nueva_pos = vector2_add(pos, movimientos[random]);
 	}
 
 	self->pos = nueva_pos;
