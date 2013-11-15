@@ -34,6 +34,6 @@ vector2 vector2_add_x(vector2 v, int x);
 vector2 vector2_add_y(vector2 v, int y);
 vector2 vector2_direction_to(vector2 self, vector2 target);
 vector2 vector2_duplicate(vector2 v);
-
+int vector2_within_map(vector2 v, vector2 mapa);
 
 #endif /* VECTOR2_H_ */

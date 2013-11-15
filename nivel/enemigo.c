@@ -1,21 +1,31 @@
-/*
+
 #include "../libs/vector/vector2.h"
 
 #include "enemigo.h"
 
 void movimiento_permitido_enemigo(tad_nivel* nivel, tad_enemigo* self){
+
+
 	if(list_size(nivel->personajes) > 0)
 		atacar_al_personaje(self);
 	else
 		mover_en_L(self);
 
-	nivel_gui_mover_item(self );
+	//supuestamente aca se dibuja el personaje
 	nivel_gui_dibujar();
 }
 
-void atacar_al_personaje(tad_enemigo* self){
-	nivel_gui_mover_item(self );
-	nivel_gui_dibujar();
+void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self){
+	//se carga la posicion del personaje que esta mas cerca.
+	vector2 posicion_personaje = personaje_Mas_Cerca(nivel,self);
+	//self->posicion_personaje = posicion_personaje;
+
+	self->posicion_personaje.x=2;
+	self->posicion_personaje.y=2;
+
+	self->pos.x = self->pos.x +1;
+	self->pos.y = self->pos.y +1;
+
 }
 
 void mover_en_L(tad_enemigo* self){
@@ -23,7 +33,7 @@ void mover_en_L(tad_enemigo* self){
 	//dependiendo de la posicion que se encuentre en el mapa
 	//tiene que mover al enemigo
 	int deltax = 1;
-	int deltay = 3;
+	int deltay = 2;
 
 	vector2 movimientos[8];
 	movimientos[0] = vector2_new(deltax, deltay);
@@ -40,33 +50,21 @@ void mover_en_L(tad_enemigo* self){
 	int rows;
 	int cols;
 	nivel_gui_get_area_nivel(out rows, out cols);
-	vector2 limites = vector2_new(cols, rows);
+	vector2 limite_mapa = vector2_new(cols, rows);
 
 	int random = rand()%9; //TODO random 0,8
 
-	v	nueva_pos = vector2_add(pos, movimientos[random]);
-	while(nueva_pos.x < 0 || nueva_pos.y < 0 || nueva_pos.x > limites.x || nueva_pos.y > limites.y){
+	vector2 nueva_pos;
+
+	nueva_pos = vector2_add(pos, movimientos[random]);
+	while(vector2_within_map(nueva_pos, limite_mapa)){
 		vector2 nueva_pos = vector2_add(pos, movimientos[random]);
 	}
 
 	self->pos = nueva_pos;
-	//TODO dibujar, etc
-}
-
-void mover_horizontal_izquierda(tad_enemigo* self){
 
 }
 
-void mover_horizontal_derecha(tad_enemigo* self){
 
-}
 
-void mover_vertical_izquierda(tad_enemigo* self){
 
-}
-
-void mover_vertidal_derecha(tad_enemigo* self){
-
-}
-
-*/

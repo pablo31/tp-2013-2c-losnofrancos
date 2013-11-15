@@ -95,3 +95,12 @@ vector2 vector2_direction_to(vector2 self, vector2 target){
 vector2 vector2_duplicate(vector2 v){
 	return vector2_new(v.x, v.y);
 }
+
+int vector2_within_map(vector2 v, vector2 mapa){
+
+	if (v.x >0 && v.y>0 &&v.x<mapa.x && v.y<mapa.y){
+		return 1;
+	}else return 0;
+}
+
+
