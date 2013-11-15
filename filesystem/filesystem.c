@@ -78,12 +78,12 @@ void loggear_nodos(GFile* nodos) {
 
 	logger_info(logger, "Tabla de nodos");
 	int i;
-	for (i = 0; i < GFILEBYTABLE; ++i){
+	for (i = 1; i < GFILEBYTABLE; ++i){
 		if (nodos[i].state != 0) { // 0 = borrado.
 			logger_info(logger, "Nodo %i)", i);
 			switch (nodos[i].state) {
 			case 1:
-				logger_info(logger, "\tEstado: Ocupado");
+				logger_info(logger, "\tEstado: Archivo");
 				break;
 			case 2:
 				logger_info(logger, "\tEstado: Directorio");
@@ -93,10 +93,11 @@ void loggear_nodos(GFile* nodos) {
 				break;
 			}
 
-			logger_info(logger, "\tNombre:%s", nodos[i].fname);
-			logger_info(logger, "\tTamaño:%i", nodos[i].file_size);
-			logger_info(logger, "\tCreacion:%i", nodos[i].c_date);
-			logger_info(logger, "\tModificacion:%i", nodos[i].m_date);
+			logger_info(logger, "\tNombre: %s", nodos[i].fname);
+			logger_info(logger, "\tTamaño: %i", nodos[i].file_size);
+			logger_info(logger, "\tCreacion: %i", nodos[i].c_date);
+			logger_info(logger, "\tModificacion: %i", nodos[i].m_date);
+			logger_info(logger, "\tPadre: %i", nodos[i].parent_dir_block);
 		}
 	}
 }
@@ -121,7 +122,8 @@ static void cargar_bitmap() {
 
 static void cargar_nodos() {
     uint inicio_nodos = (header->size_bitmap + 1) * TAMANIO_BLOQUE;
-    nodos = (GFile*)(mmaped_file + inicio_nodos); // esto anda? nodos vuela por los aires.
+    nodos = (GFile*)(mmaped_file + inicio_nodos);
+    nodos = &nodos[-1];
 
     loggear_nodos(nodos);
 }

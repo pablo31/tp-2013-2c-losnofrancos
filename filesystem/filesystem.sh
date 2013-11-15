@@ -13,6 +13,6 @@ rm grasa.log #borro el archivo de log anterior asi no se hace muy grande
 #valgrind --tool=memcheck --leak-check=full ./filesystem $archivo $directorio 
 #valgrind --tool=exp-sgcheck ./filesystem $archivo $directorio 
 
-./filesystem $archivo $directorio 
+./filesystem $archivo $directorio -d
 
 echo "Desmonar con 'fusermount -u $directorio'"
