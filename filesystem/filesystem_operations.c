@@ -36,7 +36,27 @@ void logear_path(const char* funcion, const char* path) {
 int fs_read(const char *path, char *buf, size_t size, off_t offset,
 		struct fuse_file_info *fi) {
 	//logger_info(logger, "Abro archivo:");
-	//logear_path("fs_read", path);
+	logear_path("fs_read", path);
+
+	int indice = 0;
+	int retorno = buscar_bloque_nodo(path, &indice);
+
+	if (!retorno){ // no existe.
+		return -ENOENT;
+	}
+
+	GFile nodo = nodos[indice];
+
+	int i = 0;
+
+	while (nodo.blk_indirect[i] != 0){
+		logger_info(logger,"nodo->blk_indirect:%i %i",i, nodo.blk_indirect[i]);
+		i++;
+	}
+
+	//printf("size:%i  offset:%i", size,offset);
+	
+	logger_info(logger,"nodo->blk_indirect:2 %i", nodo.blk_indirect[1]);
 
 	//leer archivo desde offset hasta size y guardar en buff
 	return 0;
@@ -174,7 +194,7 @@ int fs_rmdir(const char *path) {
 
 int fs_getattr(const char * path, struct stat *stat) {
 	//logger_info(logger, "get attributes");
-	logear_path("fs_getattr", path);
+	//logear_path("fs_getattr", path);
 	char* temp = string_from_format(path, "%s");
 	uint32_t bloque = 0;
 	int rc = 0; //Return code
@@ -218,6 +238,7 @@ int fs_getattr(const char * path, struct stat *stat) {
 int fs_open(const char *path, struct fuse_file_info *fi) {
 	//logger_info(logger, "Abrir");
 	//logear_path("fs_open", path);
+	logear_path("fs_open", path);
 
 	if ((fi->flags & 3) != O_RDONLY)
 		return -EACCES;
