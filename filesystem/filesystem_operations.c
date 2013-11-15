@@ -17,7 +17,7 @@ extern tad_logger* logger;
 extern char* mmaped_file;
 extern struct grasa_header_t* header;
 extern t_bitarray* grasa_bitmap;
-extern GFile nodos[1024];
+extern GFile* nodos;
 
 void logear_path(const char* funcion, const char* path) {
 	logger_info(logger, "\tFuncion:'%s'", funcion);
@@ -110,6 +110,7 @@ int fs_opendir(const char *path, struct fuse_file_info *fi) {
 	//logear_path("fs_opendir", path);
 	int err = 0;
 	uint32_t bloque;
+	logger_info(logger, "\nodos%i'", nodos);
 	err = buscar_bloque_nodo(temp, &bloque);
 
 	if (!err) {
@@ -193,11 +194,9 @@ int fs_open(const char *path, struct fuse_file_info *fi) {
 int fs_readdir(const char *path, void *buffer, fuse_fill_dir_t filler,
 	off_t offset, struct fuse_file_info *fi) {
 	char* temp = string_from_format(path, "%s"); // no uso string_duplicate para evitar el warning de tipos.
-	//int i = 0;
-	//t_list *contenido;
 	uint32_t bloque_padre;
 	int rc = 0; //return code
-	//char *nombre;
+
 	//logger_info(logger, "Leer directorio");
 	//logear_path("fs_readdir", path);
 
@@ -211,12 +210,7 @@ int fs_readdir(const char *path, void *buffer, fuse_fill_dir_t filler,
 	rc = buscar_bloque_nodo(temp, &bloque_padre);
 	if (!rc) {
 		rc = buscar_nodos_por_padre(bloque_padre, buffer, filler);
-		if (!rc) {
-			/*for (i = 0; i < (*contenido).elements_count; i++) {
-				nombre = (char*)list_get(contenido, 0);
-				filler(buffer, nombre, NULL, 0);
-			};*/
-		} else {
+		if (rc){
 			return -ENOENT;
 		}
 	} else {
@@ -225,9 +219,10 @@ int fs_readdir(const char *path, void *buffer, fuse_fill_dir_t filler,
 
 	return 0;
 }
-//--------------------------
-// Funciones auxiliares:   |
-//--------------------------
+
+//-------------------------------------------------------------------
+// Funciones auxiliares:											|
+//-------------------------------------------------------------------
 int agregar_nodo(const GFile nodo) {
 	bool fin = false;
 	int i = 0;
@@ -337,7 +332,7 @@ int buscar_nodos_por_padre(uint32_t bloque_padre, void *buffer,fuse_fill_dir_t f
 			//memcpy(nombre, nodos[i].fname, GFILENAMELENGTH - 1);
 			//nombre[GFILENAMELENGTH - 1] = '\0';
 			//list_add(contenido, nombre);
-			//filler(buffer, nombre, NULL, 0);
+			filler(buffer, nodos[i].fname, NULL, 0);
 		}
 	}
 	return EXIT_SUCCESS;
