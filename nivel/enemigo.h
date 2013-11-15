@@ -10,3 +10,5 @@ void mover_en_L(tad_enemigo* self);
 void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self);
 
 #endif
+
+

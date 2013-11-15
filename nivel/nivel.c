@@ -8,7 +8,7 @@
 #include "../libs/multiplexor/multiplexor.h"
 #include "../libs/notifier/notifier.h"
 #include "../libs/signal/signal.h"
-
+#include "../libs/thread/thread.h"
 #include "../libs/protocol/protocol.h"
 
 #include "nivel_ui.h"

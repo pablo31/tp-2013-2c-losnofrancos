@@ -1,6 +1,6 @@
 
 #include "../libs/vector/vector2.h"
-
+#include "nivel_ui.h"
 #include "enemigo.h"
 
 void movimiento_permitido_enemigo(tad_nivel* nivel, tad_enemigo* self){
