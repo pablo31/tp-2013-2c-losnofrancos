@@ -3,6 +3,8 @@
 #include "nivel_ui.h"
 #include "enemigo.h"
 
+vector2 buscar_Personaje_Mas_Cercano(tad_nivel* nivel, tad_enemigo* self);
+
 void movimiento_permitido_enemigo(tad_nivel* nivel, tad_enemigo* self){
 
 
@@ -17,16 +19,44 @@ void movimiento_permitido_enemigo(tad_nivel* nivel, tad_enemigo* self){
 
 void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self){
 	//se carga la posicion del personaje que esta mas cerca.
-	//vector2 posicion_personaje = personaje_Mas_Cerca(nivel,self);
-	//self->posicion_personaje = posicion_personaje;
-	//TODO arreglar el esto
+	vector2 posicion_personaje;
+		posicion_personaje= buscar_Personaje_Mas_Cercano(nivel,self);
 
-	self->posicion_personaje.x=2;
-	self->posicion_personaje.y=2;
+	self->posicion_personaje.x= posicion_personaje.x;
+	self->posicion_personaje.y= posicion_personaje.y;
 
 	self->pos.x = self->pos.x +1;
 	self->pos.y = self->pos.y +1;
 
+	nivel_gui_mover_item(self->simbolo,self->pos);
+	nivel_gui_dibujar();
+}
+
+vector2 buscar_Personaje_Mas_Cercano(tad_nivel* nivel,tad_enemigo* self){
+
+	vector2 masCerca;
+	vector2 masCercaBase;
+	vector2 maslejos = vector2_new(20,20);
+	int x =1;
+
+
+	foreach(personaje, nivel->personajes, tad_personaje*){
+		// hacer un burbujeo de enemigos
+		//caso base, se compara el enemigo primero de la lista con un vector maximo (20,20) => levanta enemigo
+		//si hay mas de uno, compara el primero con el siguiente y se queda con el mejor
+
+
+		//con el primer enemigo
+		if (x==1){
+			masCercaBase = vector2_dame_el_menor(maslejos,personaje->pos);
+			masCerca.x = masCercaBase.x;
+			masCerca.y = masCercaBase.y;
+			x = x+1;
+		}else	masCerca = vector2_dame_el_menor(masCercaBase,personaje->pos);
+
+	}
+
+	return masCerca;
 }
 
 void mover_en_L(tad_enemigo* self){
@@ -64,6 +94,8 @@ void mover_en_L(tad_enemigo* self){
 
 	self->pos = nueva_pos;
 
+	nivel_gui_mover_item(self->simbolo,self->pos);
+	nivel_gui_dibujar();
 }
 
 

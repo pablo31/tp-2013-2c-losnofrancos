@@ -104,3 +104,17 @@ int vector2_within_map(vector2 v, vector2 mapa){
 }
 
 
+vector2 vector2_dame_el_menor(vector2 a, vector2 b){
+	vector2 ret;
+
+	if (a.x > b.x) {
+		ret.x =a.x;
+	}else ret.x =b.x;
+
+	if (a.y > b.y) {
+			ret.y =a.y;
+		}else ret.y =b.y;
+
+	return ret;
+}
+
