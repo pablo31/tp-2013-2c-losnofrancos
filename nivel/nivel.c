@@ -26,7 +26,7 @@ private void nivel_ejecutar_logica(tad_nivel* self);
 private void manejar_desconexion(tad_nivel* self);
 private void manejar_desconexion_multiplexor(tad_nivel* self, tad_multiplexor* m);
 private void manejar_paquete_planificador(PACKED_ARGS);
-private void config_file_modified(PACKED_ARGS);
+private void modificacion_archivo_config(PACKED_ARGS);
 
 private void nivel_finalizar(tad_nivel* self);
 private void nivel_finalizar_cerrar_multiplexor(tad_nivel* self, tad_multiplexor* m);
@@ -189,7 +189,7 @@ private void nivel_ejecutar_logica(tad_nivel* self){
 
 	//Creamos un multiplexor y le asociamos el notificador y el socket del planificador
 	tad_multiplexor* multiplexor = multiplexor_create();
-	multiplexor_bind_notifier(multiplexor, notifier, config_file_modified, self);
+	multiplexor_bind_notifier(multiplexor, notifier, modificacion_archivo_config, self);
 	multiplexor_bind_socket(multiplexor, socket, manejar_paquete_planificador, self);
 
 	//Redeclaro la funcion manejadora de sigint, para que cierre el multiplexor
@@ -285,8 +285,12 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 
 }
 
-private void config_file_modified(PACKED_ARGS){
-	UNPACK_ARGS(tad_nivel* self, tad_socket* socket, char* config_file);
+private void modificacion_archivo_config(PACKED_ARGS){
+	UNPACK_ARGS(tad_nivel* self);
+
+	var(socket, self->socket);
+	var(config_file, self->config_path);
+	var(logger, get_logger(self));
 
 	char* algoritmo_actual = self->algoritmo;
 	int quantum_actual = self->quantum;
@@ -296,28 +300,36 @@ private void config_file_modified(PACKED_ARGS){
 	int nuevo_quantum;
 	int nuevo_retardo;
 
-	t_config* config = config_create(config_file); //TODO llevar esto a nivel_configuracion.c
+	logger_info(logger, "Archivo de configuracion modificado");
 
+	t_config* config = config_create(config_file); //TODO llevar esto a nivel_configuracion.c
 	cargar_configuracion_cambiante(self, config,
 			out nuevo_algoritmo, out nuevo_quantum, out nuevo_retardo);
-
 	config_destroy(config);
+
+	int cambios = 0;
 
 	if(quantum_actual != nuevo_quantum){
 		self->quantum = nuevo_quantum;
 		socket_send_int(socket, QUANTUM, nuevo_quantum);
+		cambios++;
 	}
 	if(retardo_actual != nuevo_retardo){
 		self->retardo = nuevo_retardo;
 		socket_send_int(socket, RETARDO, nuevo_retardo);
+		cambios++;
 	}
 	if(!string_equals(algoritmo_actual, nuevo_algoritmo)){
 		self->algoritmo = nuevo_algoritmo;
 		free(algoritmo_actual);
 		socket_send_string(socket, ALGORITMO, nuevo_algoritmo);
+		cambios++;
 	}else{
 		free(nuevo_algoritmo);
 	}
+
+	if(!cambios)
+		logger_info(logger, "El archivo de configuracion no presenta cambios");
 }
 
 

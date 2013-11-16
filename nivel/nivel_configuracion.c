@@ -50,9 +50,9 @@ static void crear_enemigos(tad_nivel* nivel, int cantidad){
 
 void cargar_configuracion_cambiante(tad_nivel* nvl, t_config* config,
 		char* as_out algoritmo, int as_out quantum, int as_out retardo){
-	set algoritmo = string_duplicate(config_get_string_value(config,"algoritmo"));
 	set quantum = config_get_int_value(config,"quantum");
 	set retardo = config_get_int_value(config,"retardo");
+	set algoritmo = string_duplicate(config_get_string_value(config,"algoritmo"));
 }
 
 
