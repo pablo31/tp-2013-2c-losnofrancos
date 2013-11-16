@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
+
 
 #include "../libs/socket/socket_utils.h"
 #include "../libs/socket/package_serializers.h"
@@ -20,7 +20,6 @@
 private void nivel_conectar_a_plataforma(tad_nivel* self, char* ippuerto);
 private void nivel_iniciar_interfaz_grafica(tad_nivel* self);
 private void nivel_move_enemigos(tad_nivel* self);
-private void nuevo_hilo_enemigo(PACKED_ARGS);
 //private void algotirmo_vereficador_deadlock_activate(tad_nivel* self);
 private void nivel_ejecutar_logica(tad_nivel* self);
 
@@ -151,22 +150,16 @@ private void nivel_iniciar_interfaz_grafica(tad_nivel* self){
 private void nivel_move_enemigos(tad_nivel* self){
 		//Por cada enemigo del nivel se crea un hilo
 		//luego es responsabilidad de cada hilo mover a los enemigos
+
+	    int i=0;
 		foreach(enemigo, self->enemigos, tad_enemigo*){
-			thread_free_begin(nuevo_hilo_enemigo, 2,self,enemigo);
+			i++;
+			logger_info(get_logger(self), "posicon enemigo %d: en (%d:%d)", i,enemigo->pos.x,enemigo->pos.y);
+			//thread_begin(movimiento_permitido_enemigo, 2,self,enemigo);
+			movimiento_permitido_enemigo(self,enemigo);
 		}
 }
 
-private void nuevo_hilo_enemigo(PACKED_ARGS){
-	UNPACK_ARGS(tad_nivel* self,tad_enemigo* enemigo);
-
-	logger_info(get_logger(self), "Los enemigos, se mueven en forma de L");
-
-	//teniendo en cuenta que no:
-	     //salga del mapa
-	     //pase por arriba de una caja
-	movimiento_permitido_enemigo(self, enemigo);
-
-}
 /*
 private void algotirmo_vereficador_deadlock_activate(tad_nivel* self){
 	logger_info(get_logger(self), "Se inicia el vereficador deadlock ");

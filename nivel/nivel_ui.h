@@ -38,4 +38,12 @@ void nivel_gui_mover_item(char id, vector2 new_pos);
 void nivel_gui_crear_personaje(char simbolo, vector2 pos);
 void nivel_gui_quitar_personaje(char simbolo);
 void nivel_gui_crear_caja(tad_caja* c);
+
+/*
+ * Funciones para enemigos
+ */
+void nivel_gui_crear_enemigo(tad_enemigo* e);
+void nivel_gui_move_enemigo(char simbolo, vector2 pos);
+
+
 #endif
