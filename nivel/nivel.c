@@ -21,7 +21,7 @@ private void nivel_conectar_a_plataforma(tad_nivel* self, char* ippuerto);
 private void nivel_iniciar_interfaz_grafica(tad_nivel* self);
 //private void nivel_move_enemigos(tad_nivel* self);
 //private void nuevo_hilo_enemigo(PACKED_ARGS);
-//private void algotirmo_vereficador_deadlock_activate(tad_nivel* self);
+//private void verificador_deadlock(tad_nivel* self);
 private void nivel_ejecutar_logica(tad_nivel* self);
 
 
@@ -68,8 +68,6 @@ int main(int argc, char **argv){
 	verificar_argumentos(argc, argv);
 	char* config_path = argv[1];
 
-	gui_item* items;
-
 	srand(time(NULL)); //seed para random
 
 	//inicializo el nivel
@@ -90,7 +88,7 @@ int main(int argc, char **argv){
 	//nivel_move_enemigos(self);
 
 	//algoritmo vereficador de deadlock
-	verificador_deadlock(self, items);
+	verificador_deadlock(self);
 
 	//ejecutamos la logica
 	nivel_ejecutar_logica(self);

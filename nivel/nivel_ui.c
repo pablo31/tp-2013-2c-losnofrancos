@@ -7,12 +7,11 @@
 #include "nivel_ui.h"
 #include "../libs/logger/logger.h"
 
+
 private WINDOW * secwin;
 private WINDOW * mainwin;
 private int rows, cols;
 private tad_logger* logger;
-
-t_list* items; //list<gui_item>
 
 
 private void nivel_gui_get_term_size(int as_out rows, int as_out cols){
@@ -107,8 +106,8 @@ private void nivel_gui_crear_item(char id, vector2 pos, char tipo, int cantidad)
 	item->pos = pos;
 	item->item_type = tipo;
 	item->quantity = cantidad;
-	item->recursos_asignados = string_new(); //item_personaje
-	item->recursos_asignados[0] = '\0'; //item_personaje
+	//item->recursos_asignados = string_new(); //item_personaje
+	//item->recursos_asignados[0] = '\0'; //item_personaje
 
 	list_add(items, item);
 
@@ -175,3 +174,4 @@ void cargar_recursos_nivel(tad_nivel* nivel){
 	
 	nivel_gui_dibujar();
 }
+

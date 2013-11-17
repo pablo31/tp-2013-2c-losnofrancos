@@ -16,8 +16,6 @@ class(gui_item){
 	char item_type; //PERSONAJE o CAJA_DE_RECURSOS
 	int quantity;
 	vector2 pos;
-	char recurso_pedido; //item_personaje
-	char *recursos_asignados; //item_personaje
 };
 
 

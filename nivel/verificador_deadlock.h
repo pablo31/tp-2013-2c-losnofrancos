@@ -6,19 +6,15 @@
 #include "../libs/common/collections/list.h"
 
 
-struct item {
-	gui_item *item;
-	struct item *next;
+class (t_personaje_bloqueado){
+	char simbolo;
+	char* nombre;
 };
-typedef struct item item_nivel;
 
+int encontre_recurso (tad_recurso* recurso1, tad_recurso* recurso2);
 
-void* verificador_deadlock(tad_nivel* nivel, t_list* items);
+int verificador_deadlock(tad_nivel* nivel);
 
-void liberar_recursos_del_personaje(item_nivel* personaje,	item_nivel* lista_items_control);
-
-void liberar_lista(item_nivel *lista);
-
-void informar_deadlock_al_planificador(tad_nivel* nivel,t_list* personajes_deadlock);
+void liberar_recursos_del_personaje(tad_personaje* personaje, t_list* lista_recursos);
 
 #endif
