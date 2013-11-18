@@ -99,9 +99,7 @@ int fs_mkdir(const char *path, mode_t mode) {
 	//nodo.c_date = time(NULL );
 	//nodo.m_date = nodo.c_date;
 	nodo.file_size = 0;
-	//nodo.fname = strdup(directorio);
-	//strcpy(nodo.fname, directorio);
-
+	strcpy(nodo.fname, directorio);
 	nodo.state = 2; // 0: borrado, 1: archivo, 2: directorio
 
 	return agregar_nodo(nodo);
@@ -138,7 +136,7 @@ int fs_opendir(const char *path, struct fuse_file_info *fi) {
 
 	err = buscar_bloque_nodo(temp, &bloque);
 
-	if (!err && nodos[bloque + 1].state == 2) {
+	if (!err && nodos[bloque].state == 2) {
 		return EXIT_SUCCESS;
 	} else {
 		return -ENOENT;
@@ -176,20 +174,22 @@ int fs_rmdir(const char *path) {
 	uint32_t bloque = 0;
 
 	//logger_info(logger, "Elimino directorio");
-	logear_path("fs_rmdir", temp);
-
+	//logear_path("fs_rmdir", temp);
 	if (strcmp(path, "/") == 0) {
 		return -EPERM;
 	}
 
 	err = buscar_bloque_nodo(temp, &bloque);
 	if (err) {
-		return err;
+		return -ENOENT;
+	}
+	logger_info(logger, "bloque:%i", bloque);
+	if(nodos[bloque].state != 2){
+		return -ENOTDIR;
 	}
 
 	return borrar_nodo(bloque);
 
-	//actualizar nodos en archivo?
 }
 
 int fs_getattr(const char * path, struct stat *stat) {
@@ -203,7 +203,7 @@ int fs_getattr(const char * path, struct stat *stat) {
 	if (strcmp(path, "/") == 0) {
 		stat->st_mode = S_IFDIR | 0755;
 		stat->st_nlink = 2;
-		logger_info(logger, "default");
+		//logger_info(logger, "default");
 	} else {
 		rc = buscar_bloque_nodo(temp, &bloque);
 		if (!rc) {
@@ -214,7 +214,6 @@ int fs_getattr(const char * path, struct stat *stat) {
 				stat->st_nlink = 1;
 			} else {
 				stat->st_mode = S_IFDIR | 0755;
-				;
 				stat->st_nlink = 2;
 			}
 			//stat->st_uid = 1000;
@@ -315,9 +314,7 @@ int borrar_nodo(const uint32_t bloque) {
 
 }
 
-/*
- *
- */bool es_nodo_por_nombre(GFile nodo, char* nombre) {
+bool es_nodo_por_nombre(GFile nodo, char* nombre) {
 	return !strncmp((char*) nodo.fname, nombre, GFILENAMELENGTH);
 }
 

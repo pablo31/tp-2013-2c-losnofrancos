@@ -149,14 +149,14 @@ void liberar_recursos() {
 void cargar_configuracion_grasa(int argc, char *argv[]) {
 	set_file_name(argv[1]);
 
-	file_descriptor = open(get_file_name(), O_RDONLY);
+	file_descriptor = open(get_file_name(), O_RDWR);
 
 	struct stat status;
 	fstat(file_descriptor, &status);
 	file_size = status.st_size;
 
 	logger_info(logger, "Tamaño del archivo grasa: %i.", file_size);
-	mmaped_file = mmap(NULL, status.st_size, PROT_READ, MAP_SHARED,
+	mmaped_file = mmap(NULL, status.st_size, PROT_WRITE, MAP_SHARED,
 			file_descriptor, 0);
 
 	if (mmaped_file == MAP_FAILED ) {
