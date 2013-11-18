@@ -4,18 +4,20 @@
 #include "verificador_deadlock.h"
 
 
-int encontre_recurso (tad_recurso* recurso1, tad_recurso* recurso2){
-	if (recurso1->simbolo == recurso2->simbolo)
-		return 1;
-	else
-		return 0;
-}
-
 void liberar_recursos_del_personaje(tad_personaje* personaje, t_list* recursos_disponibles) {
 
 	foreach (recurso_personaje, personaje->recursos_asignados, tad_recurso*){
 
-		tad_recurso* recurso_aux = list_find (recursos_disponibles, (void*) encontre_recurso(recurso_personaje, recurso_aux));
+		tad_recurso* recurso_p = recurso_personaje;
+
+		int encontre_recurso (tad_recurso* recurso_aux){
+			if (recurso_p->simbolo == recurso_aux->simbolo)
+				return 1;
+			else
+				return 0;
+		}
+
+		tad_recurso* recurso_aux = list_find (recursos_disponibles, (void*) encontre_recurso);
 		recurso_aux->cantidad = recurso_aux->cantidad + recurso_personaje->cantidad;
 	}
 	list_clean(personaje->recursos_asignados);
@@ -56,6 +58,7 @@ int verificador_deadlock(tad_nivel* nivel) {
 			list_add (recursos_disponibles, recurso);
 		}
 
+
 		//liberar recursos de los personajes que no estan bloqueados
 		foreach(personaje, lista_personajes, tad_personaje*){
 			if (personaje->recurso_pedido == '\0' && personaje->recursos_asignados != NULL){
@@ -79,7 +82,16 @@ int verificador_deadlock(tad_nivel* nivel) {
 						recurso_pedido_aux->simbolo = personaje->recurso_pedido;
 						recurso_pedido_aux->cantidad = 1;
 
-						caja_recurso= list_find(recursos_disponibles, (void*) encontre_recurso(caja_recurso, recurso_pedido_aux));
+						tad_recurso* recurso_p = recurso_pedido_aux;
+
+						int encontre_recurso (tad_recurso* caja_recurso){
+							if (recurso_p->simbolo == caja_recurso->simbolo)
+								return 1;
+							else
+								return 0;
+						}
+
+						caja_recurso= list_find(recursos_disponibles, (void*) encontre_recurso);
 
 						//si puedo otorgar el recurso solicitado libero los recursos asignados
 						if(caja_recurso->cantidad > 0) {
