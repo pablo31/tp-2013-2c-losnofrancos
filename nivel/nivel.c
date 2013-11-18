@@ -19,16 +19,13 @@
 
 private void nivel_conectar_a_plataforma(tad_nivel* self, char* ippuerto);
 private void nivel_iniciar_interfaz_grafica(tad_nivel* self);
-<<<<<<< HEAD
+
 //private void nivel_move_enemigos(tad_nivel* self);
 //private void nuevo_hilo_enemigo(PACKED_ARGS);
 //private void verificador_deadlock(tad_nivel* self);
-=======
-private void nivel_move_enemigos(tad_nivel* self);
-//private void algotirmo_vereficador_deadlock_activate(tad_nivel* self);
->>>>>>> branch 'master' of https://github.com/sisoputnfrba/tp-2013-2c-losnofrancos.git
-private void nivel_ejecutar_logica(tad_nivel* self);
 
+private void nivel_move_enemigos(tad_nivel* self);
+private void nivel_ejecutar_logica(tad_nivel* self);
 
 private void manejar_desconexion(tad_nivel* self);
 private void manejar_desconexion_multiplexor(tad_nivel* self, tad_multiplexor* m);
@@ -73,11 +70,6 @@ int main(int argc, char **argv){
 	verificar_argumentos(argc, argv);
 	char* config_path = argv[1];
 
-<<<<<<< HEAD
-=======
-	//gui_item* items;
-
->>>>>>> branch 'master' of https://github.com/sisoputnfrba/tp-2013-2c-losnofrancos.git
 	srand(time(NULL)); //seed para random
 
 	//inicializo el nivel
@@ -98,11 +90,8 @@ int main(int argc, char **argv){
 	nivel_move_enemigos(self);
 
 	//algoritmo vereficador de deadlock
-<<<<<<< HEAD
+
 	verificador_deadlock(self);
-=======
-	//verificador_deadlock(self, items);
->>>>>>> branch 'master' of https://github.com/sisoputnfrba/tp-2013-2c-losnofrancos.git
 
 	//ejecutamos la logica
 	nivel_ejecutar_logica(self);
