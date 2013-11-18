@@ -18,6 +18,8 @@ extern char* mmaped_file;
 extern struct grasa_header_t* header;
 extern t_bitarray* grasa_bitmap;
 extern GFile* nodos;
+void cargar_datos(GFile archivo, char* buffer, size_t size, off_t offset);
+
 
 void logear_path(const char* funcion, const char* path) {
 	logger_info(logger, "\tFuncion:'%s'", funcion);
@@ -35,31 +37,22 @@ void logear_path(const char* funcion, const char* path) {
  */
 int fs_read(const char *path, char *buf, size_t size, off_t offset,
 		struct fuse_file_info *fi) {
-	//logger_info(logger, "Abro archivo:");
-	logear_path("fs_read", path);
 
-	int indice = 0;
+	//logear_path("fs_read", path);
+	logger_info(logger,"fs_read: '%s' %zu bytes desde byte %i.", path, size,offset);
+
+	uint indice = 0;
 	int retorno = buscar_bloque_nodo(path, &indice);
 
-	if (!retorno){ // no existe.
+	if (retorno){ // no existe.
+		logger_info(logger,"fs_read: no encontre '%s' indice: '%i'.", path, indice);
 		return -ENOENT;
 	}
 
 	GFile nodo = nodos[indice];
+	cargar_datos(nodo, buf, size, offset);
 
-	int i = 0;
-
-	while (nodo.blk_indirect[i] != 0){
-		logger_info(logger,"nodo->blk_indirect:%i %i",i, nodo.blk_indirect[i]);
-		i++;
-	}
-
-	//printf("size:%i  offset:%i", size,offset);
-	
-	logger_info(logger,"nodo->blk_indirect:2 %i", nodo.blk_indirect[1]);
-
-	//leer archivo desde offset hasta size y guardar en buff
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 /*
@@ -393,5 +386,69 @@ int buscar_nodos_por_padre(uint32_t bloque_padre, void *buffer,
 		}
 	}
 	return EXIT_SUCCESS;
+}
+
+
+uint get_indice_inicio_datos(){
+	/*	header:1 bloque
+		bitmap: n bloques definidos en el header
+		nodos: 1024
+		1 bloque = 4096 bytes */		
+	return (1 + header->size_bitmap + 1024) * 4096;
+}
+
+bool existe_puntero(ptrGBloque* ptr) {
+	return ptr != 0;
+}
+
+bool estoy_en_rango(uint base, uint offset, uint valor){
+	return (valor >= base) && (valor <= (base+offset));
+}
+
+char* buscar_nodo_datos(uint indice) {
+	const uint indice_inicio_datos = get_indice_inicio_datos();
+	return mmaped_file + indice_inicio_datos + (indice * 4096);
+}
+
+void cargar_datos(GFile archivo, char* buffer, size_t offset, off_t inicio){	
+	
+	uint i = 0;// Indice de los punteros a bloques de punteros. Max 1000.
+	uint j = 0;// Indice de los punteros a bloques de datos. Max 1024
+	uint k = 0;// Hasta donde cargue en el buffer. Max valor del offset.
+	bool fin = false;
+	char* nodo_datos = NULL; //Nodo con datos a cargar en el buffer.
+	//Los
+	ptrGBloque* punteros_a_datos = malloc(sizeof(ptrGBloque) * 1024);
+	
+	while (existe_puntero(archivo.blk_indirect) && !fin){	
+		//cargo los punteros de los nodos de datos en mi lista de punteros	
+		memcpy(punteros_a_datos,
+			   buscar_nodo_datos(archivo.blk_indirect[i]), 
+			   sizeof(ptrGBloque)*1024);
+		j = 0;
+		while(existe_puntero(&punteros_a_datos[j]) && !fin){
+			logger_info(logger,"fs_read: Bloque ptr %u nodo datos %u (->%u), ", i, j, punteros_a_datos[j]);			
+			nodo_datos = buscar_nodo_datos(punteros_a_datos[j]);
+
+			if (estoy_en_rango(inicio, offset, j)) {
+				uint cuantos_bytes_cargar = 0;
+
+				if (k + 4096 > offset)
+					//Lo que me falta para llegar al offset.
+					cuantos_bytes_cargar = (offset - j);
+				else
+					//cargo todo el bloque.
+					cuantos_bytes_cargar = 4096;
+
+				memcpy(buffer + k,nodo_datos, cuantos_bytes_cargar);
+				k = k+ cuantos_bytes_cargar;
+				j++;
+			}
+
+			fin = j < (inicio+offset); //estamos leyendo datos mas alla de lo pedido?	
+		}
+		
+		i++;
+	}
 }
 
