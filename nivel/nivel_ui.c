@@ -1,11 +1,11 @@
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <curses.h>
-#include <time.h>
 #include <unistd.h> //usleep
 #include "nivel.h"
 #include "nivel_ui.h"
 #include "../libs/logger/logger.h"
+
 
 
 private WINDOW * secwin;
@@ -71,8 +71,52 @@ void nivel_gui_dibujar() {
 	move(rows - 2, 2);
 	printw("Recursos: ");
 
+
+
+
 	foreach(item, items, gui_item*){
 		wmove (secwin, item->pos.y, item->pos.x); //TODO coordenadas cruzadas, pero anda bien S:
+
+
+		/*TODO
+		 *
+		 * El error porque no se mueven los enemigos esta aca...
+		 *
+		 *
+		 * Segun la catedra:
+		 *
+		 * void _draw_element(ITEM_NIVEL* item) {
+            wmove(secwin, item->posy, item->posx);
+            if(item->item_type == ENEMIGO_ITEM_TYPE) {
+                    waddch(secwin, '*' | COLOR_PAIR(4));
+            } else if (item->item_type == RECURSO_ITEM_TYPE) {
+                    waddch(secwin, item->id | COLOR_PAIR(3));
+            } else if(item->item_type == PERSONAJE_ITEM_TYPE) {
+                    waddch(secwin, item->id | COLOR_PAIR(2));
+            }
+            if (item->item_type == RECURSO_ITEM_TYPE) {
+                move(rows - 2, 7 * i + 3 + 9);
+                printw("%c: %d - ", item->id, item->quantity);
+                i++;
+            }
+        }
+
+        list_iterate(items, (void*) _draw_element);
+
+        fin de la catedra......
+
+		 *
+		 *Lo nuestro, tendria que ser así
+
+		 if(item->item_type == ENEMIGO_ITEM_TYPE)
+                waddch(secwin, item->id | COLOR_PAIR(4))
+		 else if (item->item_type== RECURSO_ITEM_TYPE)
+				waddch(secwin, item->id | COLOR_PAIR(3));
+		else if(item->item_type == PERSONAJE_ITEM_TYPE)
+				waddch(secwin, item->id | COLOR_PAIR(2));
+
+		 *
+		 */
 
 		if (item->item_type)
 			waddch(secwin, item->id | COLOR_PAIR(3));
@@ -130,6 +174,10 @@ void nivel_gui_crear_enemigo(tad_enemigo* enem) {
 	nivel_gui_crear_item(enem->simbolo, enem->pos, ENEMIGO_ITEM_TYPE, 1);
 }
 
+void nivel_gui_move_enemigo(char simbolo, vector2 pos){
+	nivel_gui_mover_item(simbolo,pos);
+}
+
 void nivel_gui_borrar_item(char id) {
 	bool item_buscado(void* ptr_item){
 		return ((gui_item*)ptr_item)->id == id;
@@ -162,11 +210,15 @@ void cargar_recursos_nivel(tad_nivel* nivel){
 		//Se lo paso por argumento asi lo modifico en el for anterior, sino me da siempre numeros iguales
 		// le sumo 1 al resultado porque no puede ser 0/0 la posicion.
 		srand(seed);
-		int x = 1 + (rand() % rows);
-		int y = 1 + (rand() % cols);
+		int x = 1 + (rand() %rows);
+		//int x = 20;
+		//int y = 20;
+		int y = 1 + (rand() %cols);
 		enemigo->pos = vector2_new(x, y); //TODO esto deberia estar en otro lado
 
 		nivel_gui_crear_enemigo(enemigo);
+		logger_info(logger, "Enemigo %c", enemigo->simbolo);
+		logger_info(logger, "Limites del mapa (%d,%d)", rows, cols);
 		logger_info(logger, "Enemigo agregado en (%d,%d)", x, y);
 
 		seed++;

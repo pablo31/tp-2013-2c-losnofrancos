@@ -4,6 +4,7 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "../libs/common/collections/list.h"
 #include "../libs/common/config.h"

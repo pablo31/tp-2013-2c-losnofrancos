@@ -1,14 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
+
 
 #include "../libs/socket/socket_utils.h"
 #include "../libs/socket/package_serializers.h"
 #include "../libs/multiplexor/multiplexor.h"
 #include "../libs/notifier/notifier.h"
 #include "../libs/signal/signal.h"
-
+#include "../libs/thread/thread.h"
 #include "../libs/protocol/protocol.h"
 
 #include "nivel_ui.h"
@@ -19,16 +19,21 @@
 
 private void nivel_conectar_a_plataforma(tad_nivel* self, char* ippuerto);
 private void nivel_iniciar_interfaz_grafica(tad_nivel* self);
+<<<<<<< HEAD
 //private void nivel_move_enemigos(tad_nivel* self);
 //private void nuevo_hilo_enemigo(PACKED_ARGS);
 //private void verificador_deadlock(tad_nivel* self);
+=======
+private void nivel_move_enemigos(tad_nivel* self);
+//private void algotirmo_vereficador_deadlock_activate(tad_nivel* self);
+>>>>>>> branch 'master' of https://github.com/sisoputnfrba/tp-2013-2c-losnofrancos.git
 private void nivel_ejecutar_logica(tad_nivel* self);
 
 
 private void manejar_desconexion(tad_nivel* self);
 private void manejar_desconexion_multiplexor(tad_nivel* self, tad_multiplexor* m);
 private void manejar_paquete_planificador(PACKED_ARGS);
-private void config_file_modified(PACKED_ARGS);
+private void modificacion_archivo_config(PACKED_ARGS);
 
 private void nivel_finalizar(tad_nivel* self);
 private void nivel_finalizar_cerrar_multiplexor(tad_nivel* self, tad_multiplexor* m);
@@ -68,6 +73,11 @@ int main(int argc, char **argv){
 	verificar_argumentos(argc, argv);
 	char* config_path = argv[1];
 
+<<<<<<< HEAD
+=======
+	//gui_item* items;
+
+>>>>>>> branch 'master' of https://github.com/sisoputnfrba/tp-2013-2c-losnofrancos.git
 	srand(time(NULL)); //seed para random
 
 	//inicializo el nivel
@@ -85,10 +95,14 @@ int main(int argc, char **argv){
 	nivel_iniciar_interfaz_grafica(self);
 
 	//se mueven los enemigos
-	//nivel_move_enemigos(self);
+	nivel_move_enemigos(self);
 
 	//algoritmo vereficador de deadlock
+<<<<<<< HEAD
 	verificador_deadlock(self);
+=======
+	//verificador_deadlock(self, items);
+>>>>>>> branch 'master' of https://github.com/sisoputnfrba/tp-2013-2c-losnofrancos.git
 
 	//ejecutamos la logica
 	nivel_ejecutar_logica(self);
@@ -145,33 +159,21 @@ private void nivel_iniciar_interfaz_grafica(tad_nivel* self){
 	cargar_recursos_nivel(self);
 }
 
-/*
-private void nivel_move_enemigos(tad_nivel* self){
 
+private void nivel_move_enemigos(tad_nivel* self){
 		//Por cada enemigo del nivel se crea un hilo
 		//luego es responsabilidad de cada hilo mover a los enemigos
+
+	    int i=0;
 		foreach(enemigo, self->enemigos, tad_enemigo*){
-
-			thread_begin(nuevo_hilo_enemigo, 2,self,enemigo);
-
+			i++;
+			logger_info(get_logger(self), "posicon enemigo %d: en (%d:%d)", i,enemigo->pos.x,enemigo->pos.y);
+			//thread_begin(movimiento_permitido_enemigo, 2,self,enemigo);
+			movimiento_permitido_enemigo(self,enemigo);
 		}
-
-
 }
 
-
-private void nuevo_hilo_enemigo(PACKED_ARGS){
-	UNPACK_ARGS(t_nivel* self,tad_enemigo* enemigo);
-
-	logger_info(get_logger(self), "Los enemigos, se mueven en forma de L");
-
-	//teniendo en cuenta que no:
-	     //salga del mapa
-	     //pase por arriba de una caja
-	movimiento_permitido_enemigo(self, enemigo);
-
-}
-
+/*
 private void algotirmo_vereficador_deadlock_activate(tad_nivel* self){
 	logger_info(get_logger(self), "Se inicia el vereficador deadlock ");
 	verificador_deadlock(self);
@@ -188,7 +190,7 @@ private void nivel_ejecutar_logica(tad_nivel* self){
 
 	//Creamos un multiplexor y le asociamos el notificador y el socket del planificador
 	tad_multiplexor* multiplexor = multiplexor_create();
-	multiplexor_bind_notifier(multiplexor, notifier, config_file_modified, self);
+	multiplexor_bind_notifier(multiplexor, notifier, modificacion_archivo_config, self);
 	multiplexor_bind_socket(multiplexor, socket, manejar_paquete_planificador, self);
 
 	//Redeclaro la funcion manejadora de sigint, para que cierre el multiplexor
@@ -284,8 +286,12 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 
 }
 
-private void config_file_modified(PACKED_ARGS){
-	UNPACK_ARGS(tad_nivel* self, tad_socket* socket, char* config_file);
+private void modificacion_archivo_config(PACKED_ARGS){
+	UNPACK_ARGS(tad_nivel* self);
+
+	var(socket, self->socket);
+	var(config_file, self->config_path);
+	var(logger, get_logger(self));
 
 	char* algoritmo_actual = self->algoritmo;
 	int quantum_actual = self->quantum;
@@ -295,28 +301,36 @@ private void config_file_modified(PACKED_ARGS){
 	int nuevo_quantum;
 	int nuevo_retardo;
 
-	t_config* config = config_create(config_file); //TODO llevar esto a nivel_configuracion.c
+	logger_info(logger, "Archivo de configuracion modificado");
 
+	t_config* config = config_create(config_file); //TODO llevar esto a nivel_configuracion.c
 	cargar_configuracion_cambiante(self, config,
 			out nuevo_algoritmo, out nuevo_quantum, out nuevo_retardo);
-
 	config_destroy(config);
+
+	int cambios = 0;
 
 	if(quantum_actual != nuevo_quantum){
 		self->quantum = nuevo_quantum;
 		socket_send_int(socket, QUANTUM, nuevo_quantum);
+		cambios++;
 	}
 	if(retardo_actual != nuevo_retardo){
 		self->retardo = nuevo_retardo;
 		socket_send_int(socket, RETARDO, nuevo_retardo);
+		cambios++;
 	}
 	if(!string_equals(algoritmo_actual, nuevo_algoritmo)){
 		self->algoritmo = nuevo_algoritmo;
 		free(algoritmo_actual);
 		socket_send_string(socket, ALGORITMO, nuevo_algoritmo);
+		cambios++;
 	}else{
 		free(nuevo_algoritmo);
 	}
+
+	if(!cambios)
+		logger_info(logger, "El archivo de configuracion no presenta cambios");
 }
 
 

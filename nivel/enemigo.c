@@ -1,29 +1,87 @@
-/*
-#include "../libs/vector/vector2.h"
 
+#include "../libs/vector/vector2.h"
+#include "nivel.h"
+#include "nivel_ui.h"
 #include "enemigo.h"
 
+vector2 buscar_Personaje_Mas_Cercano(tad_nivel* nivel, tad_enemigo* self);
+
 void movimiento_permitido_enemigo(tad_nivel* nivel, tad_enemigo* self){
+
+	//logger_info(get_logger(nivel), "Se cargo el enemigo %c:",self->simbolo);
+
+	//teniendo en cuenta que no:
+		//salga del mapa
+		//pase por arriba de una caja
+
 	if(list_size(nivel->personajes) > 0)
-		atacar_al_personaje(self);
-	else
-		mover_en_L(self);
+		atacar_al_personaje(nivel,self);
+	else{
+		logger_info(nivel->logger, "Nivel sin enemigos.");
+		mover_en_L(nivel,self);
+	}
 
-	nivel_gui_mover_item(self );
+}
+
+void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self){
+	//se carga la posicion del personaje que esta mas cerca.
+	vector2 posicion_personaje;
+		posicion_personaje= buscar_Personaje_Mas_Cercano(nivel,self);
+
+	self->posicion_personaje.x= posicion_personaje.x;
+	self->posicion_personaje.y= posicion_personaje.y;
+
+	self->pos.x = self->pos.x +1;
+	self->pos.y = self->pos.y +1;
+
+	nivel_gui_mover_item(self->simbolo,self->pos);
 	nivel_gui_dibujar();
 }
 
-void atacar_al_personaje(tad_enemigo* self){
-	nivel_gui_mover_item(self );
-	nivel_gui_dibujar();
+vector2 buscar_Personaje_Mas_Cercano(tad_nivel* nivel,tad_enemigo* self){
+
+	vector2 masCerca;
+	vector2 masCercaBase;
+	vector2 maslejos = vector2_new(20,20);
+	int x =1;
+
+
+	foreach(personaje, nivel->personajes, tad_personaje*){
+		// hacer un burbujeo de enemigos
+		//caso base, se compara el enemigo primero de la lista con un vector maximo (20,20) => levanta enemigo
+		//si hay mas de uno, compara el primero con el siguiente y se queda con el mejor
+
+
+		//con el primer enemigo
+		if (x==1){
+			masCercaBase = vector2_dame_el_menor(maslejos,personaje->pos);
+			masCerca.x = masCercaBase.x;
+			masCerca.y = masCercaBase.y;
+			x = x+1;
+		}else	masCerca = vector2_dame_el_menor(masCercaBase,personaje->pos);
+
+	}
+
+	return masCerca;
 }
 
-void mover_en_L(tad_enemigo* self){
+void mover_en_L(tad_nivel* nivel, tad_enemigo* self){
+
+	int q=0;
+		while(q<2){
+			   logger_info(nivel->logger, "%d",q);
+				q++;
+				self->pos.x=self->pos.x+1;
+				logger_info(nivel->logger, "posicon enemigo (%d:%d)", self->pos.x,self->pos.y);
+				nivel_gui_move_enemigo(self->simbolo,self->pos);
+				nivel_gui_dibujar();
+		}
 
 	//dependiendo de la posicion que se encuentre en el mapa
 	//tiene que mover al enemigo
+	/*
 	int deltax = 1;
-	int deltay = 3;
+	int deltay = 2;
 
 	vector2 movimientos[8];
 	movimientos[0] = vector2_new(deltax, deltay);
@@ -40,33 +98,24 @@ void mover_en_L(tad_enemigo* self){
 	int rows;
 	int cols;
 	nivel_gui_get_area_nivel(out rows, out cols);
-	vector2 limites = vector2_new(cols, rows);
+	vector2 limite_mapa = vector2_new(cols, rows);
 
-	int random = rand()%9; //TODO random 0,8
+	int random = rand()%9; //random 0,8
 
-	v	nueva_pos = vector2_add(pos, movimientos[random]);
-	while(nueva_pos.x < 0 || nueva_pos.y < 0 || nueva_pos.x > limites.x || nueva_pos.y > limites.y){
-		vector2 nueva_pos = vector2_add(pos, movimientos[random]);
+	vector2 nueva_pos;
+
+	nueva_pos = vector2_add(pos, movimientos[random]);
+	while(vector2_within_map(nueva_pos, limite_mapa)){
+		nueva_pos = vector2_add(pos, movimientos[random]);
 	}
 
 	self->pos = nueva_pos;
-	//TODO dibujar, etc
-}
+    */
 
-void mover_horizontal_izquierda(tad_enemigo* self){
 
-}
-
-void mover_horizontal_derecha(tad_enemigo* self){
 
 }
 
-void mover_vertical_izquierda(tad_enemigo* self){
 
-}
 
-void mover_vertidal_derecha(tad_enemigo* self){
 
-}
-
-*/
