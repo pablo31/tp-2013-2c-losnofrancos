@@ -388,16 +388,7 @@ int buscar_nodos_por_padre(uint32_t bloque_padre, void *buffer,
 	return EXIT_SUCCESS;
 }
 
-
-uint get_indice_inicio_datos(){
-	/*	header:1 bloque
-		bitmap: n bloques definidos en el header
-		nodos: 1024
-		1 bloque = 4096 bytes */		
-	return (1 + header->size_bitmap + 1024) * 4096;
-}
-
-bool existe_puntero(ptrGBloque* ptr) {
+bool existe_puntero(ptrGBloque ptr) {
 	return ptr != 0;
 }
 
@@ -405,50 +396,55 @@ bool estoy_en_rango(uint base, uint offset, uint valor){
 	return (valor >= base) && (valor <= (base+offset));
 }
 
-char* buscar_nodo_datos(uint indice) {
-	const uint indice_inicio_datos = get_indice_inicio_datos();
-	return mmaped_file + indice_inicio_datos + (indice * 4096);
+char* buscar_nodo(uint indice) {
+	return mmaped_file + (indice * 4096);
 }
 
+/*
+ * Cargo los datos del archivo de grasa en el buffer , con offset e inicio especificados.	
+ */
+
 void cargar_datos(GFile archivo, char* buffer, size_t offset, off_t inicio){	
-	
 	uint i = 0;// Indice de los punteros a bloques de punteros. Max 1000.
 	uint j = 0;// Indice de los punteros a bloques de datos. Max 1024
 	uint k = 0;// Hasta donde cargue en el buffer. Max valor del offset.
 	bool fin = false;
 	char* nodo_datos = NULL; //Nodo con datos a cargar en el buffer.
-	//Los
 	ptrGBloque* punteros_a_datos = malloc(sizeof(ptrGBloque) * 1024);
 	
-	while (existe_puntero(archivo.blk_indirect) && !fin){	
+	while (!fin && i < 1000 && existe_puntero(archivo.blk_indirect[i]) ){	
 		//cargo los punteros de los nodos de datos en mi lista de punteros	
-		memcpy(punteros_a_datos,
-			   buscar_nodo_datos(archivo.blk_indirect[i]), 
-			   sizeof(ptrGBloque)*1024);
+		memcpy(punteros_a_datos, buscar_nodo(archivo.blk_indirect[i]), sizeof(ptrGBloque)*1024);
+
 		j = 0;
-		while(existe_puntero(&punteros_a_datos[j]) && !fin){
-			logger_info(logger,"fs_read: Bloque ptr %u nodo datos %u (->%u), ", i, j, punteros_a_datos[j]);			
-			nodo_datos = buscar_nodo_datos(punteros_a_datos[j]);
+		while(!fin && j < 1024 && existe_puntero(punteros_a_datos[j])){
+			nodo_datos = buscar_nodo(punteros_a_datos[j]);
 
 			if (estoy_en_rango(inicio, offset, j)) {
 				uint cuantos_bytes_cargar = 0;
 
-				if (k + 4096 > offset)
-					//Lo que me falta para llegar al offset.
-					cuantos_bytes_cargar = (offset - j);
-				else
-					//cargo todo el bloque.
-					cuantos_bytes_cargar = 4096;
+				if ((offset - k) < 4096)					
+					cuantos_bytes_cargar = (offset - k); //Lo que me falta para el offset.
+				else					
+					cuantos_bytes_cargar = 4096;//cargo todo el bloque.
 
-				memcpy(buffer + k,nodo_datos, cuantos_bytes_cargar);
-				k = k+ cuantos_bytes_cargar;
-				j++;
+				logger_info(logger,"fs_read: k:%u offset:%u falta:%u",k , offset, offset - k);	
+				memcpy(buffer + k, nodo_datos, cuantos_bytes_cargar);
+				k = k + cuantos_bytes_cargar;			
 			}
 
-			fin = j < (inicio+offset); //estamos leyendo datos mas alla de lo pedido?	
+			j++;
+			fin = k >= (inicio+offset); //estamos leyendo datos mas alla de lo pedido?
+
+			if (fin)	
+				logger_info(logger,"fs_read: fin lectura");
 		}
 		
 		i++;
 	}
+
+	//logger_info(logger,"fs_read: strlen(buffer):%u ", strlen(buffer) );
+	//free(nodo_datos);
+	free(punteros_a_datos);
 }
 
