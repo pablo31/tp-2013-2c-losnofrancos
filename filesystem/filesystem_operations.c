@@ -396,7 +396,7 @@ bool estoy_en_rango(uint base, uint offset, uint valor){
 	return (valor >= base) && (valor <= (base+offset));
 }
 
-char* buscar_nodo(uint indice) {
+void* buscar_nodo(uint indice) {
 	return mmaped_file + (indice * 4096);
 }
 
@@ -414,7 +414,7 @@ void cargar_datos(GFile archivo, char* buffer, size_t offset, off_t inicio){
 	
 	while (!fin && i < 1000 && existe_puntero(archivo.blk_indirect[i]) ){	
 		//cargo los punteros de los nodos de datos en mi lista de punteros	
-		memcpy(punteros_a_datos, buscar_nodo(archivo.blk_indirect[i]), sizeof(ptrGBloque)*1024);
+		punteros_a_datos = (ptrGBloque*) buscar_nodo(archivo.blk_indirect[i]);
 
 		j = 0;
 		while(!fin && j < 1024 && existe_puntero(punteros_a_datos[j])){
