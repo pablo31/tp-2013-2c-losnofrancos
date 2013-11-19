@@ -399,26 +399,58 @@ void* buscar_nodo(uint indice) {
 }
 
 /*
+ * Dado un indice de bytes de un archivo grasa , devuelvo en que indice de nodos de punteros esta. 
+ * Cada nodo de punteros tiene 1024 punteros a nodos de datos
+ */
+uint get_nodo_punteros_inicial(off_t inicio){
+	return inicio/(1024*4096);
+}
+/*
+ * Dado un indice de bytes de un archivo grasa y un indice de nodos de punteros es, 
+ * devuelvo en que indice de bloques de datos empiezan los datos 
+ */
+uint get_nodo_datos_inicial(off_t inicio , uint indice_nodos_punteros){
+	uint temp = inicio - (indice_nodos_punteros*1024*4096);
+	return temp/4096;
+}
+
+
+/*
+ * Un archivo grasa esta definido como hasta 1000 punteros a bloques 
+ * y cada bloque tiene 1024 punteros a bloques de datos.
+ */
+uint get_offset_bytes_archivo(uint indice_nodos_punteros, uint indice_nodos_datos){
+	uint retorno = 4096 * (1000*1024*indice_nodos_punteros + indice_nodos_datos);
+	logger_info(logger,"fs_read: offset_bytes_archivo:%u",retorno);
+	return retorno;
+}
+/*
  * Cargo los datos del archivo de grasa en el buffer , con offset e inicio especificados.	
  */
-
 uint cargar_datos(GFile archivo, char* buffer, size_t offset, off_t inicio){	
-	uint i = 0;// Indice de los punteros a bloques de punteros. Max 1000.
-	uint j = 0;// Indice de los punteros a bloques de datos. Max 1024
+	uint i = get_nodo_punteros_inicial(inicio);// Indice de los punteros a bloques de punteros. Max 1000.
+	uint j = get_nodo_datos_inicial(i,inicio);// Indice de los punteros a bloques de datos. Max 1024
 	uint k = 0;// Hasta donde cargue en el buffer. Max valor del offset.
+	uint offset_bytes_archivo;// Offset de los bytes del archivo.
 	bool fin = false;
 	char* nodo_datos = NULL; //Nodo con datos a cargar en el buffer.
 	ptrGBloque* punteros_a_datos = NULL;
 	
+	logger_info(logger,"fs_read: i:%u j:%u inicio:%u",i,j,inicio);
+
+
 	while (!fin && i < 1000 && existe_puntero(archivo.blk_indirect[i]) ){	
 		//cargo los punteros de los nodos de datos en mi lista de punteros	
 		punteros_a_datos = (ptrGBloque*) buscar_nodo(archivo.blk_indirect[i]);
 
-		j = 0;
 		while(!fin && j < 1024 && existe_puntero(punteros_a_datos[j])){
+			offset_bytes_archivo = get_offset_bytes_archivo(i,j);
 			nodo_datos = buscar_nodo(punteros_a_datos[j]);
 
-			if (estoy_en_rango(inicio, offset, j)) {
+			//logger_info(logger,"fs_read: estoy_en_rango:%s inicio:%u offset:%u j:%u",
+			//	estoy_en_rango(inicio, offset, offset_bytes_archivo + j) ? "si":"no" , inicio,offset,offset_bytes_archivo + j);
+
+			if (estoy_en_rango(inicio, offset, offset_bytes_archivo + j)) {
 				uint cuantos_bytes_cargar = 0;
 
 				if ((offset - k) < 4096)					
@@ -429,7 +461,7 @@ uint cargar_datos(GFile archivo, char* buffer, size_t offset, off_t inicio){
 				logger_info(logger,"fs_read: k:%u offset:%u falta:%u",k , offset, offset - k);	
 				memcpy(buffer + k, nodo_datos, cuantos_bytes_cargar);
 				k = k + cuantos_bytes_cargar;			
-			}
+			} 
 
 			j++;
 			fin = k >= (inicio+offset); //estamos leyendo datos mas alla de lo pedido?
@@ -437,7 +469,8 @@ uint cargar_datos(GFile archivo, char* buffer, size_t offset, off_t inicio){
 			if (fin)	
 				logger_info(logger,"fs_read: fin lectura");
 		}
-		
+
+		j = 0;
 		i++;
 	}
 
