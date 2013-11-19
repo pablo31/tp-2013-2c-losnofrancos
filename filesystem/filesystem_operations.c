@@ -18,7 +18,7 @@ extern char* mmaped_file;
 extern struct grasa_header_t* header;
 extern t_bitarray* grasa_bitmap;
 extern GFile* nodos;
-void cargar_datos(GFile archivo, char* buffer, size_t size, off_t offset);
+uint cargar_datos(GFile archivo, char* buffer, size_t size, off_t offset);
 
 
 void logear_path(const char* funcion, const char* path) {
@@ -50,9 +50,7 @@ int fs_read(const char *path, char *buf, size_t size, off_t offset,
 	}
 
 	GFile nodo = nodos[indice];
-	cargar_datos(nodo, buf, size, offset);
-
-	return EXIT_SUCCESS;
+	return cargar_datos(nodo, buf, size, offset);
 }
 
 /*
@@ -404,7 +402,7 @@ void* buscar_nodo(uint indice) {
  * Cargo los datos del archivo de grasa en el buffer , con offset e inicio especificados.	
  */
 
-void cargar_datos(GFile archivo, char* buffer, size_t offset, off_t inicio){	
+uint cargar_datos(GFile archivo, char* buffer, size_t offset, off_t inicio){	
 	uint i = 0;// Indice de los punteros a bloques de punteros. Max 1000.
 	uint j = 0;// Indice de los punteros a bloques de datos. Max 1024
 	uint k = 0;// Hasta donde cargue en el buffer. Max valor del offset.
@@ -442,9 +440,8 @@ void cargar_datos(GFile archivo, char* buffer, size_t offset, off_t inicio){
 		
 		i++;
 	}
+
 	//logger_info(logger,"fs_read: buffer: %s",buffer);
-	//logger_info(logger,"fs_read: strlen(buffer):%u ", strlen(buffer) );
-	//free(nodo_datos);
-	logger_info(logger,"fs_read: buffer: %s",buffer);
+	return k;
 }
 
