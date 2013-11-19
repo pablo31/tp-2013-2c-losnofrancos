@@ -410,7 +410,7 @@ void cargar_datos(GFile archivo, char* buffer, size_t offset, off_t inicio){
 	uint k = 0;// Hasta donde cargue en el buffer. Max valor del offset.
 	bool fin = false;
 	char* nodo_datos = NULL; //Nodo con datos a cargar en el buffer.
-	ptrGBloque* punteros_a_datos = malloc(sizeof(ptrGBloque) * 1024);
+	ptrGBloque* punteros_a_datos = NULL;
 	
 	while (!fin && i < 1000 && existe_puntero(archivo.blk_indirect[i]) ){	
 		//cargo los punteros de los nodos de datos en mi lista de punteros	
@@ -442,9 +442,9 @@ void cargar_datos(GFile archivo, char* buffer, size_t offset, off_t inicio){
 		
 		i++;
 	}
-
+	//logger_info(logger,"fs_read: buffer: %s",buffer);
 	//logger_info(logger,"fs_read: strlen(buffer):%u ", strlen(buffer) );
 	//free(nodo_datos);
-	free(punteros_a_datos);
+	logger_info(logger,"fs_read: buffer: %s",buffer);
 }
 
