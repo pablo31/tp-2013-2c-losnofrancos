@@ -118,12 +118,13 @@ void nivel_gui_dibujar() {
 		 *
 		 */
 
-		if (item->item_type)
-			waddch(secwin, item->id | COLOR_PAIR(3));
-		else
+		if(item->item_type == ENEMIGO_ITEM_TYPE)
+			waddch(secwin, item->id | COLOR_PAIR(4));
+		else if(item->item_type == PERSONAJE_ITEM_TYPE)
 			waddch(secwin, item->id | COLOR_PAIR(2));
-
-		if (item->item_type) {
+		else if (item->item_type== RECURSO_ITEM_TYPE)
+		{
+			waddch(secwin, item->id | COLOR_PAIR(3));
 			move(rows - 2, 7 * i + 3 + 9);
 			printw("%c: %d - ", item->id, item->quantity);
 			i++;
@@ -200,29 +201,11 @@ void nivel_restar_recurso(char id){
 }
 
 void cargar_recursos_nivel(tad_nivel* nivel){
-	foreach(caja, nivel->cajas, tad_caja*){
+	foreach(caja, nivel->cajas, tad_caja*)
 		nivel_gui_crear_caja(caja);
-	}
 
-	int seed = time(null);
-	foreach(enemigo, nivel->enemigos, tad_enemigo*){
-		//la seed o semilla es un numero para generar valores aleatorios.
-		//Se lo paso por argumento asi lo modifico en el for anterior, sino me da siempre numeros iguales
-		// le sumo 1 al resultado porque no puede ser 0/0 la posicion.
-		srand(seed);
-		int x = 1 + (rand() %rows);
-		//int x = 20;
-		//int y = 20;
-		int y = 1 + (rand() %cols);
-		enemigo->pos = vector2_new(x, y); //TODO esto deberia estar en otro lado
-
+	foreach(enemigo, nivel->enemigos, tad_enemigo*)
 		nivel_gui_crear_enemigo(enemigo);
-		logger_info(logger, "Enemigo %c", enemigo->simbolo);
-		logger_info(logger, "Limites del mapa (%d,%d)", rows, cols);
-		logger_info(logger, "Enemigo agregado en (%d,%d)", x, y);
-
-		seed++;
-	}
 	
 	nivel_gui_dibujar();
 }
