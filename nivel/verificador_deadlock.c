@@ -24,7 +24,7 @@ void liberar_recursos_del_personaje(tad_personaje* personaje, t_list* recursos_d
 }
 
 
-int verificador_deadlock(tad_nivel* nivel) {
+void verificador_deadlock(tad_nivel* nivel) {
 
 	bool hay_deadlock;
 	int flag_cambios = 0;
@@ -85,10 +85,15 @@ int verificador_deadlock(tad_nivel* nivel) {
 						tad_recurso* recurso_p = recurso_pedido_aux;
 
 						int encontre_recurso (tad_recurso* caja_recurso){
-							if (recurso_p->simbolo == caja_recurso->simbolo)
-								return 1;
-							else
-								return 0;
+							if (recurso_p->simbolo == caja_recurso->simbolo){
+								logger_info(get_logger(nivel), "El nivel %c encontro recurso",nivel->nombre);
+								return 1;// TODO cambiar esto por un mensaje
+							}
+							else{
+								logger_info(get_logger(nivel), "El nivel %c no encontro recurso",nivel->nombre);
+								return 0; //TODO no hacer nada
+							}
+
 						}
 
 						caja_recurso= list_find(recursos_disponibles, (void*) encontre_recurso);
@@ -121,7 +126,7 @@ int verificador_deadlock(tad_nivel* nivel) {
 
 			if (hay_deadlock){
 				//informar deadlock por archivo log indicando personajes involucrados;
-				  //logger_info(nivel->logger, "Se detecto deadlock. Personajes: %s",personajes_deadlock);
+				  logger_info(nivel->logger, "Se detecto deadlock. Personajes: %s",personajes_deadlock);
 
 				//si el recovery esta activado elijo personaje victima e informo al planificador
 				if (nivel->recovery == 1) {
@@ -132,5 +137,6 @@ int verificador_deadlock(tad_nivel* nivel) {
 			}
 		}
 	}
-	return EXIT_FAILURE;
+	//return EXIT_FAILURE;   Jorge: pase la funcion de int a void, porque nivel.c no hace nada...
+	// la responsabilidad de mandar mensajes, tiene que estar en la logica de verificador de deadlock.c
 }

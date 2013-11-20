@@ -7,7 +7,7 @@
 #include "../libs/logger/logger.h"
 
 
-
+t_list* items; //list<gui_item>   Jorge, esto estaba el sabado y no rompe
 private WINDOW * secwin;
 private WINDOW * mainwin;
 private int rows, cols;
@@ -53,7 +53,7 @@ void nivel_gui_inicializar(){
 	box(secwin, 0, 0);
 	wrefresh(secwin);
 
-	items = list_create();
+	items = list_create(); // TODO Jorge, de donde sale esto¿?
 
 	logger_info(logger, "Inicializada");
 

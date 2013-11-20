@@ -4,6 +4,7 @@
 #include "nivel.h"
 #include "nivel_ui.h"
 #include "../libs/common/collections/list.h"
+#include "../libs/logger/logger.h"
 
 class (t_personaje_bloqueado){
 	char simbolo;
@@ -11,8 +12,7 @@ class (t_personaje_bloqueado){
 };
 
 
-int verificador_deadlock(tad_nivel* nivel);
-
+void verificador_deadlock(tad_nivel* nivel);
 void liberar_recursos_del_personaje(tad_personaje* personaje, t_list* lista_recursos);
 
 #endif

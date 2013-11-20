@@ -4,11 +4,14 @@
 #include "nivel_ui.h"
 #include "enemigo.h"
 
+
 vector2 buscar_Personaje_Mas_Cercano(tad_nivel* nivel, tad_enemigo* self);
 
-void movimiento_permitido_enemigo(tad_nivel* nivel, tad_enemigo* self){
+void movimiento_permitido_enemigo(PACKED_ARGS){
+	UNPACK_ARGS(tad_nivel* nivel, tad_enemigo* self);
 
-	//logger_info(get_logger(nivel), "Se cargo el enemigo %c:",self->simbolo);
+
+	logger_info(get_logger(nivel), "Se cargo el enemigo %c:",self->simbolo);
 
 	//teniendo en cuenta que no:
 		//salga del mapa
