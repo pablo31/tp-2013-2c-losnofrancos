@@ -164,7 +164,7 @@ void nivel_move_enemigos(tad_nivel* self){
 
 private void nivel_crea_hilo_deadlock(tad_nivel* self){
 	logger_info(get_logger(self), "Se inicia el vereficador deadlock ");
-	//thread_free_begin(verificador_deadlock, 1, self);
+	thread_free_begin(verificador_deadlock, 1, self);
 }
 
 

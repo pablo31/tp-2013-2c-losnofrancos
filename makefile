@@ -107,7 +107,7 @@ all:
 	
 	@echo ""
 	@echo "   >>> COMPILANDO PROCESO NIVEL"
-	@gcc -Wall -ggdb nivel/nivel_ui.c nivel/nivel_configuracion.c nivel/nivel.c nivel/enemigo.c -lncurses -lpthread libcommon.a libsck.a liblog.a libmpx.a libth.a libntf.a libsgn.a -o nivel.sh
+	@gcc -Wall -ggdb nivel/nivel_ui.c nivel/nivel_configuracion.c nivel/nivel.c nivel/enemigo.c nivel/verificador_deadlock.c -lncurses -lpthread libcommon.a libsck.a liblog.a libmpx.a libth.a libntf.a libsgn.a -o nivel.sh
 	
 	@echo ""
 	@echo ""
