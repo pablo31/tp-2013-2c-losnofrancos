@@ -36,6 +36,9 @@ private tad_personaje* algoritmo_rr(tad_planificador* self);
 private void bloquear_personaje(tad_planificador* self, tad_personaje* personaje);
 private tad_personaje* buscar_personaje_bloqueado(tad_planificador* self, char simbolo);
 
+//busca a un personaje
+private tad_personaje* buscar_personaje(tad_planificador* self, char simbolo);
+
 //manejo de desconexiones
 private void error_socket_personaje(tad_planificador* self, tad_personaje* personaje);
 private void error_socket_nivel(tad_planificador* self);
@@ -303,6 +306,13 @@ private tad_personaje* buscar_personaje_bloqueado(tad_planificador* self, char s
 	return list_remove_by_condition(self->personajes_bloqueados, personaje_buscado);
 }
 
+//se busca a un personaje de la lista de listos, cuando el enemigo lo mata
+private tad_personaje* buscar_personaje(tad_planificador* self, char simbolo){
+	bool personaje_buscado(void* elem){
+		return ((tad_personaje*)elem)->simbolo == simbolo;
+	}
+	return list_remove_by_condition(self->personajes_listos, personaje_buscado);
+}
 
 
 
@@ -340,7 +350,21 @@ private void manejar_paquete_nivel(tad_planificador* self, tad_package* paquete)
 		list_add(self->personajes_listos, personaje);
 		socket_send_empty_package(personaje->socket, RECURSO_OTORGADO);
 
-	}
+	}else if(tipo == MUERTE_POR_ENEMIGO){
+		var(simbolo, package_get_char(paquete));
+		free(package_get_data(paquete));
+		var(personaje, buscar_personaje(self, simbolo)); //se saca el personaje de la lista de listos
+		logger_info(logger, "El personaje %s muere por un enemigo.", personaje->nombre);
+		socket_send_empty_package(personaje->socket, MUERTE_POR_ENEMIGO);
+
+	}else if(tipo == MUERTE_POR_DEADLOCK){
+			var(simbolo, package_get_char(paquete));
+			free(package_get_data(paquete));
+			var(personaje, buscar_personaje_bloqueado(self, simbolo));
+			logger_info(logger, "El personaje muere %s muere por el algoritmo deadlock.", personaje->nombre);
+			socket_send_empty_package(personaje->socket, MUERTE_POR_DEADLOCK);
+
+		}
 }
 
 

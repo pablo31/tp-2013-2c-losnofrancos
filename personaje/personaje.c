@@ -227,8 +227,28 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 	int objetivosAconseguir  = list_size(nivel->objetivos);
 	int i = 0;
 
+	//esta variable es lo mismo que bool, luego cambiar
+    int gano_el_nivel=1;
+
 	while(objetivosConseguidos<objetivosAconseguir){
-		socket_receive_expected_empty_package(socket, PLANIFICADOR_OTORGA_TURNO);
+
+		//comento esto, pero no puede volver en forma de fichas
+		//socket_receive_expected_empty_package(socket, PLANIFICADOR_OTORGA_TURNO);
+		tad_package* paquete = socket_receive_one_of_this_packages(socket,3,PLANIFICADOR_OTORGA_TURNO,MUERTE_POR_ENEMIGO,MUERTE_POR_DEADLOCK);
+
+		var(tipo_mensaje, package_get_data_type(paquete));
+
+		if(tipo_mensaje == MUERTE_POR_ENEMIGO){
+
+			gano_el_nivel=0;
+			objetivosConseguidos=objetivosAconseguir;
+
+		}else if(tipo_mensaje == MUERTE_POR_DEADLOCK){
+
+			gano_el_nivel=0;
+			objetivosConseguidos=objetivosAconseguir;
+		}
+
 		logger_info(logger_nivel, "Turno otorgado");
 
 		char* ptr_objetivo = list_get(nivel->objetivos, i);
@@ -265,7 +285,13 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 		}
 	}
 
-	socket_send_empty_package(socket, PERSONAJE_FINALIZO_NIVEL);
+	if (gano_el_nivel ==1){
+		socket_send_empty_package(socket, PERSONAJE_FINALIZO_NIVEL);
+	} else{
+		//se tiene que conectar al orquestador para reiniciar un nivel o el plan de niveles completos
+		morir(self);
+	}
+
 
 	socket_close(socket);
 	logger_info(logger_nivel, "Nivel completado con exito");
@@ -351,11 +377,13 @@ private void morir(t_personaje* self){
 		vidas--;
 		logger_info(get_logger(self), "El personaje perdio una vida, le quedan %d", vidas);
 		//TODO ver que nivel hay que reiniciar
+		//reiniciar solo el nivel
 	}else{
 		vidas = vidas_iniciales;
 		logger_info(get_logger(self), "El personaje perdio su ultima vida");
 		logger_info(get_logger(self), "Las vidas se reestableceran a %d", vidas);
 		//TODO ver que hacer en esta situacion jaja
+		//hay el reiniciar el plan de niveles
 	}
 
 	set_vidas(self, vidas);
