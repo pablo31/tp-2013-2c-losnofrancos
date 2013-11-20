@@ -24,7 +24,8 @@ void liberar_recursos_del_personaje(tad_personaje* personaje, t_list* recursos_d
 }
 
 
-void verificador_deadlock(tad_nivel* nivel) {
+void verificador_deadlock(PACKED_ARGS){
+	UNPACK_ARGS(tad_nivel* nivel);
 
 	bool hay_deadlock;
 	int flag_cambios = 0;

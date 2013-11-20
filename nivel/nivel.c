@@ -21,6 +21,7 @@ private void nivel_conectar_a_plataforma(tad_nivel* self, char* ippuerto);
 private void nivel_iniciar_interfaz_grafica(tad_nivel* self);
 
 private void nivel_move_enemigos(tad_nivel* self);
+private void nivel_crea_hilo_deadlock(tad_nivel* self);
 private void nivel_ejecutar_logica(tad_nivel* self);
 
 private void manejar_desconexion(tad_nivel* self);
@@ -86,7 +87,8 @@ int main(int argc, char **argv){
 	nivel_move_enemigos(self);
 
 	//algoritmo vereficador de deadlock
-	//verificador_deadlock(self);
+	nivel_crea_hilo_deadlock(self);
+
 
 	//ejecutamos la logica
 	nivel_ejecutar_logica(self);
@@ -157,14 +159,15 @@ void nivel_move_enemigos(tad_nivel* self){
 		}
 }
 
-/*
-private void algotirmo_vereficador_deadlock_activate(tad_nivel* self){
-	logger_info(get_logger(self), "Se inicia el vereficador deadlock ");
-	verificador_deadlock(self);
 
+
+
+private void nivel_crea_hilo_deadlock(tad_nivel* self){
+	logger_info(get_logger(self), "Se inicia el vereficador deadlock ");
+	//thread_free_begin(verificador_deadlock, 1, self);
 }
 
-*/
+
 private void nivel_ejecutar_logica(tad_nivel* self){
 	var(config_path, get_config_path(self));
 	var(socket, self->socket);
