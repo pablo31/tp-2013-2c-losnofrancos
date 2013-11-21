@@ -149,8 +149,7 @@ private void nivel_iniciar_interfaz_grafica(tad_nivel* self){
 	logger_info(get_logger(self), "Inicializando interfaz grafica");
 	//Intento iniciar la GUI
 	nivel_gui_inicializar();
-	//Cargo los recursos en la pantalla
-	cargar_recursos_nivel(self);
+	nivel_gui_dibujar(self);
 }
 
 
@@ -234,8 +233,6 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		vector2 pos;
 		package_get_char_and_vector2(paquete, out simbolo, out pos);
 
-		nivel_gui_crear_personaje(simbolo, pos);
-
 		alloc(personaje, tad_personaje);
 		personaje->simbolo = simbolo;
 		personaje->pos = pos;
@@ -245,7 +242,7 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		list_add(self->personajes, personaje);
 		//mutex_open(mutex_lista_personajes);
 
-		nivel_gui_dibujar();
+		nivel_gui_dibujar(self);
 
 	}else if(tipo == SOLICITUD_UBICACION_RECURSO){
 		char recurso = package_get_char(paquete);
@@ -262,8 +259,7 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		foreach(personaje, self->personajes, tad_personaje*)
 			if(personaje->simbolo == simbolo)
 				personaje->pos = pos;
-		nivel_gui_mover_item(simbolo, pos);
-		nivel_gui_dibujar();
+		nivel_gui_dibujar(self);
 
 	}else if(tipo == PERSONAJE_SOLICITUD_RECURSO){
 		char simbolo;
@@ -287,8 +283,11 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		//mutex_open(mutex_lista_personajes);
 
 		char simbolo = package_get_char(paquete);
-		nivel_gui_quitar_personaje(simbolo);
-		nivel_gui_dibujar();
+		bool personaje_buscado(void* ptr){
+			return ((tad_personaje*)ptr)->simbolo == simbolo;
+		}
+		list_remove_by_condition(self->personajes, personaje_buscado);
+		nivel_gui_dibujar(self);
 
 	}
 

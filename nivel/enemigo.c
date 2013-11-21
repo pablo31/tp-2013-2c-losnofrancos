@@ -37,8 +37,7 @@ void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self){
 	self->pos.x = self->pos.x +1;
 	self->pos.y = self->pos.y +1;
 
-	nivel_gui_mover_item(self->simbolo,self->pos);
-	nivel_gui_dibujar();
+	nivel_gui_dibujar(nivel);
 }
 
 vector2 buscar_Personaje_Mas_Cercano(tad_nivel* nivel,tad_enemigo* self){
@@ -76,8 +75,7 @@ void mover_en_L(tad_nivel* nivel, tad_enemigo* self){
 				q++;
 				self->pos.x=self->pos.x+1;
 				logger_info(nivel->logger, "posicon enemigo (%d:%d)", self->pos.x,self->pos.y);
-				nivel_gui_move_enemigo(self->simbolo,self->pos);
-				nivel_gui_dibujar();
+				nivel_gui_dibujar(nivel);
 		}
 
 	//dependiendo de la posicion que se encuentre en el mapa
