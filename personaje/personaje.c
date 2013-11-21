@@ -72,7 +72,7 @@ private void comer_honguito_verde(t_personaje* self);
 private void inicio_nuevo_hilo(PACKED_ARGS);
 private int conectarse_al_orquestador(t_personaje* self, t_nivel* nivel, tad_logger* logger);
 private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, tad_logger* logger);
-private vector2 posicion_siguiente(vector2 posicion, vector2 destino);
+
 
 private void manejar_error_orquestador(tad_socket* socket, tad_logger* logger);
 private void manejar_error_planificador(tad_socket* socket, tad_logger* logger);
@@ -436,23 +436,3 @@ private void personaje_destruir(t_personaje* self){
 
 
 
-private vector2 posicion_siguiente(vector2 posicion, vector2 destino){
-	if(vector2_equals(posicion, destino)) return vector2_duplicate(posicion);
-
-	//conocimientos adquiridos en tgc, no me fallen!!
-
-	vector2 delta = vector2_subtract(destino, posicion);
-	int abs_x = abs(delta.x);
-	int abs_y = abs(delta.y);
-
-	vector2 movimiento;
-
-	if(abs_x > abs_y)
-		//hay mas distancia en x, nos movemos en x
-		movimiento = vector2_new(delta.x / abs_x, 0);
-	else
-		//hay mas distancia en y, nos movemos en y
-		movimiento = vector2_new(0, delta.y / abs_y);
-
-	return vector2_add(posicion, movimiento);
-}
