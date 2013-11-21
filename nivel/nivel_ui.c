@@ -86,7 +86,7 @@ void nivel_gui_dibujar(tad_nivel* nivel){
 
 	foreach(enemigo, enemigos, tad_enemigo*){
 		wmove(secwin, enemigo->pos.y, enemigo->pos.x);
-		waddch(secwin, '*' | COLOR_PAIR(4));
+		waddch(secwin, '*' | COLOR_PAIR(2));
 	}
 
 	foreach(personaje, personajes, tad_personaje*){
