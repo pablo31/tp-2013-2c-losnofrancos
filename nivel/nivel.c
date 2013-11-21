@@ -9,6 +9,7 @@
 #include "../libs/notifier/notifier.h"
 #include "../libs/signal/signal.h"
 #include "../libs/thread/thread.h"
+#include "../libs/thread/mutex.h"
 #include "../libs/protocol/protocol.h"
 
 #include "nivel_ui.h"
@@ -86,8 +87,15 @@ int main(int argc, char **argv){
 	//se mueven los enemigos
 	nivel_move_enemigos(self);
 
-	//algoritmo vereficador de deadlock
+	//crear semaforo para acceder a lista personajes del nivel
+	//tad_mutex* mutex_lista_personajes = mutex_create();
+
+	//crear semaforo para acceder a lista de cajas del nivel
+	//tad_mutex* mutex_lista_cajas = mutex_create();
+
+	//algoritmo verificador de deadlock
 	nivel_crea_hilo_deadlock(self);
+	//nivel_crea_hilo_deadlock(self,mutex_lista_personajes,mutex_lista_cajas);
 
 
 	//ejecutamos la logica
@@ -231,7 +239,11 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		alloc(personaje, tad_personaje);
 		personaje->simbolo = simbolo;
 		personaje->pos = pos;
+
+		//usar semaforo al actualizar lista de personajes
+		//mutex_close(mutex_lista_personajes);
 		list_add(self->personajes, personaje);
+		//mutex_open(mutex_lista_personajes);
 
 		nivel_gui_dibujar();
 
@@ -259,11 +271,21 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		package_get_two_chars(paquete, out simbolo, out recurso);
 		//TODO validar que el personaje este en el lugar
 		//TODO verificar que halla instancias de ese recurso
-		//TODO descontar una instancia a esa caja
+
+			//usar semaforo al actualizar cantidad de recursos
+			//	 mutex_close(mutex_lista_cajas);
+				 //TODO descontar una instancia a esa caja
+				// mutex_open(mutex_lista_cajas);
 		//TODO
 		socket_send_char(socket, RECURSO_OTORGADO, simbolo); //hardcod
 
 	}else if(tipo == PERSONAJE_FINALIZO_NIVEL){
+
+		//usar semaforo al actualizar lista de personajes
+		//mutex_close(mutex_lista_personajes);
+		 //eliminar personaje de la lista de personajes del nivel
+		//mutex_open(mutex_lista_personajes);
+
 		char simbolo = package_get_char(paquete);
 		nivel_gui_quitar_personaje(simbolo);
 		nivel_gui_dibujar();
