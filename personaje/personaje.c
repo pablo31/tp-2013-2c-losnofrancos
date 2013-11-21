@@ -240,11 +240,13 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 
 		if(tipo_mensaje == MUERTE_POR_ENEMIGO){
 
+			logger_info(get_logger(self), "El personaje %s ha muerto al ser alcanzado por un enemigo", get_nombre(self));
 			gano_el_nivel=0;
 			objetivosConseguidos=objetivosAconseguir;
 
 		}else if(tipo_mensaje == MUERTE_POR_DEADLOCK){
 
+			logger_info(get_logger(self), "El personaje %s ha muerto victima del interbloqueo", get_nombre(self));
 			gano_el_nivel=0;
 			objetivosConseguidos=objetivosAconseguir;
 		}

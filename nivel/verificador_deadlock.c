@@ -35,6 +35,7 @@ void verificador_deadlock(PACKED_ARGS){
 	t_list* recursos_disponibles = list_create();
 
 
+
 		logger_info(get_logger(nivel),
 			"Verificador de Deadlock creado, tiempo de checkeo: %.2f segundos",
 			nivel->tiempo_deadlock / 10000.0);
@@ -134,12 +135,19 @@ void verificador_deadlock(PACKED_ARGS){
 
 			if (hay_deadlock){
 				//informar deadlock por archivo log indicando personajes involucrados;
-				  //logger_info(nivel->logger, "Se detecto deadlock. Personajes: %s",personajes_deadlock);
+
+				logger_info(get_logger(nivel), "Se detecto interbloqueo.");
+				//logger_info(nivel->logger, "Se detecto deadlock. Personajes: %s",personajes_deadlock);
 
 				//si el recovery esta activado elijo personaje victima e informo al planificador
 				if (nivel->recovery == 1) {
-					//decido a que personaje matar
+
+					//elijo como victima al primer personaje de la lista
+					tad_personaje* personaje_victima = list_get(personajes_deadlock, 1);
+
 					//informo por archivo de log
+					logger_info(get_logger(nivel), "El personaje %s ha sido seleccionado como victima del interbloqueo", personaje_victima->nombre);
+
 					//informar_deadlock_al_planificador
 				}
 			}
