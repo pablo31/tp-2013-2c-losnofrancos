@@ -1,5 +1,6 @@
 
 #include "../libs/vector/vector2.h"
+#include <unistd.h>
 #include "nivel.h"
 #include "nivel_ui.h"
 #include "enemigo.h"
@@ -31,11 +32,10 @@ void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self){
 	vector2 posicion_personaje;
 		posicion_personaje= buscar_Personaje_Mas_Cercano(nivel,self);
 
-	self->posicion_personaje.x= posicion_personaje.x;
-	self->posicion_personaje.y= posicion_personaje.y;
+		vector2 nuevaPosicion = posicion_siguiente(self->pos,posicion_personaje);
 
-	self->pos.x = self->pos.x +1;
-	self->pos.y = self->pos.y +1;
+		self->pos= nuevaPosicion;
+
 
 	nivel_gui_dibujar(nivel);
 }
@@ -69,13 +69,14 @@ vector2 buscar_Personaje_Mas_Cercano(tad_nivel* nivel,tad_enemigo* self){
 
 void mover_en_L(tad_nivel* nivel, tad_enemigo* self){
 
-	int q=0;
-		while(q<2){
-			   logger_info(nivel->logger, "%d",q);
-				q++;
+//	int q=0;
+		while(1){
+			   //logger_info(nivel->logger, "%d");
+//				q++;
 				self->pos.x=self->pos.x+1;
 				logger_info(nivel->logger, "posicon enemigo (%d:%d)", self->pos.x,self->pos.y);
 				nivel_gui_dibujar(nivel);
+				usleep(nivel->sleep_enemigos * 1000);
 		}
 
 	//dependiendo de la posicion que se encuentre en el mapa

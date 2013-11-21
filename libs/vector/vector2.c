@@ -92,9 +92,6 @@ vector2 vector2_direction_to(vector2 self, vector2 target){
 	return diff;
 }
 
-vector2 vector2_duplicate(vector2 v){
-	return vector2_new(v.x, v.y);
-}
 
 int vector2_within_map(vector2 v, vector2 mapa){
 
@@ -117,4 +114,24 @@ vector2 vector2_dame_el_menor(vector2 a, vector2 b){
 
 	return ret;
 }
+
+vector2 posicion_siguiente(vector2 origen, vector2 destino){
+	if(vector2_equals(origen, destino)) return origen;
+
+	vector2 delta = vector2_subtract(destino, origen);
+	int abs_x = abs(delta.x);
+	int abs_y = abs(delta.y);
+
+	vector2 movimiento;
+
+	if(abs_x > abs_y)
+		//hay mas distancia en x, nos movemos en x
+		movimiento = vector2_new(delta.x / abs_x, 0);
+	else
+		//hay mas distancia en y, nos movemos en y
+		movimiento = vector2_new(0, delta.y / abs_y);
+
+	return vector2_add(origen, movimiento);
+}
+
 
