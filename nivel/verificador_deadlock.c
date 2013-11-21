@@ -25,17 +25,14 @@ void liberar_recursos_del_personaje(tad_personaje* personaje, t_list* recursos_d
 
 
 void verificador_deadlock(PACKED_ARGS){
-	UNPACK_ARGS(tad_nivel* nivel);
+        UNPACK_ARGS(tad_nivel* nivel);
 
 	bool hay_deadlock;
 	int flag_cambios = 0;
 
 	t_list* personajes_deadlock = list_create();
-	t_personaje_bloqueado* personaje_bloqueado;
-	t_list *lista_personajes;
-	t_list *recursos_disponibles = list_create();
-	tad_recurso* recurso;
-	tad_recurso* caja_recurso;
+	t_list* lista_personajes =list_create();
+	t_list* recursos_disponibles = list_create();
 
 
 		logger_info(get_logger(nivel),
@@ -47,20 +44,32 @@ void verificador_deadlock(PACKED_ARGS){
 
 		sleep(nivel->tiempo_deadlock);
 
-		lista_personajes = NULL;
 		hay_deadlock = false;
 		bool hay_bloqueados = false;
 
-		*lista_personajes = *nivel->personajes;
 
-		foreach (caja, nivel->cajas, tad_caja*){
-			recurso->simbolo = caja->simbolo;
-			recurso->cantidad = caja->instancias;
-			list_add (recursos_disponibles, recurso);
+		//agrega los personajes del nivel a lista auxiliar lista_personajes
+		foreach (personaje_nivel, nivel->personajes, tad_personaje*){
+					alloc (personaje, tad_personaje);
+					personaje->nombre = personaje_nivel->nombre;
+					personaje->pos = personaje_nivel->pos;
+					personaje->recurso_pedido = personaje_nivel->recurso_pedido;
+					personaje->recursos_asignados = personaje_nivel->recursos_asignados;
+					personaje->simbolo = personaje_nivel->simbolo;
+					list_add (lista_personajes, personaje);
 		}
 
 
-		//liberar recursos de los personajes que no estan bloqueados
+		//agrega los recursos del nivel a lista auxiliar recursos_disponibles
+		foreach (caja, nivel->cajas, tad_caja*){
+					alloc (recurso, tad_recurso);
+					recurso->simbolo = caja->simbolo;
+					recurso->cantidad = caja->instancias;
+					list_add (recursos_disponibles, recurso);
+		}
+
+
+		//libera recursos de los personajes que no estan bloqueados
 		foreach(personaje, lista_personajes, tad_personaje*){
 			if (personaje->recurso_pedido == '\0' && personaje->recursos_asignados != NULL){
 				liberar_recursos_del_personaje(personaje, recursos_disponibles);
@@ -74,30 +83,25 @@ void verificador_deadlock(PACKED_ARGS){
 		if (hay_bloqueados) {
 			do {
 				flag_cambios = 0;
-				//verifico si puedo otorgar el recurso solicitado a aquellos personajes bloqueados
+				//verifica si puedo otorgar el recurso solicitado a aquellos personajes bloqueados
 				foreach(personaje, lista_personajes, tad_personaje*){
 					if (personaje->recurso_pedido != '\0'
 							&& personaje->recursos_asignados != NULL) {
 
-						tad_recurso* recurso_pedido_aux;
+						alloc (recurso_pedido_aux, tad_recurso);
 						recurso_pedido_aux->simbolo = personaje->recurso_pedido;
 						recurso_pedido_aux->cantidad = 1;
 
 						tad_recurso* recurso_p = recurso_pedido_aux;
 
 						int encontre_recurso (tad_recurso* caja_recurso){
-							if (recurso_p->simbolo == caja_recurso->simbolo){
-								logger_info(get_logger(nivel), "El nivel %c encontro recurso",nivel->nombre);
-								return 1;// TODO cambiar esto por un mensaje
-							}
-							else{
-								logger_info(get_logger(nivel), "El nivel %c no encontro recurso",nivel->nombre);
-								return 0; //TODO no hacer nada
-							}
-
+							if (recurso_p->simbolo == caja_recurso->simbolo)
+								return 1;
+							else
+								return 0;
 						}
 
-						caja_recurso= list_find(recursos_disponibles, (void*) encontre_recurso);
+						tad_recurso* caja_recurso= list_find(recursos_disponibles, (void*) encontre_recurso);
 
 						//si puedo otorgar el recurso solicitado libero los recursos asignados
 						if(caja_recurso->cantidad > 0) {
@@ -105,6 +109,8 @@ void verificador_deadlock(PACKED_ARGS){
 							personaje->recurso_pedido = '\0';
 							flag_cambios = 1;
 						}
+
+						//dealloc (recurso_pedido_aux);
 					}
 				}
 			} while (flag_cambios != 0);
@@ -114,20 +120,21 @@ void verificador_deadlock(PACKED_ARGS){
 			foreach (personaje, lista_personajes, tad_personaje*){
 				if (personaje->recurso_pedido != '\0'
 						&& personaje->recursos_asignados != NULL) {
+					alloc (personaje_bloqueado, t_personaje_bloqueado);
 					personaje_bloqueado->simbolo = personaje->simbolo;
-					personaje_bloqueado->nombre = personaje->nombre;
+					personaje_bloqueado->nombre= personaje->nombre;
 					list_add (personajes_deadlock, personaje_bloqueado);
 					//string_append(personajes_deadlock, personaje_bloqueado);
 					}
 			}
 
-			//si existen por lo menos dos personajes se informa deadlock
+			//si existen por lo menos dos personajes en la lista entonces hay deadlock
 			if (list_size(personajes_deadlock) > 1)
 				hay_deadlock = true;
 
 			if (hay_deadlock){
 				//informar deadlock por archivo log indicando personajes involucrados;
-				  logger_info(nivel->logger, "Se detecto deadlock. Personajes: %s",personajes_deadlock);
+				  //logger_info(nivel->logger, "Se detecto deadlock. Personajes: %s",personajes_deadlock);
 
 				//si el recovery esta activado elijo personaje victima e informo al planificador
 				if (nivel->recovery == 1) {
@@ -136,8 +143,12 @@ void verificador_deadlock(PACKED_ARGS){
 					//informar_deadlock_al_planificador
 				}
 			}
+
+			//dealloc(personaje_bloqueado);
 		}
+		dealloc (personaje);
+		//dealloc (recurso);
+
 	}
-	//return EXIT_FAILURE;   Jorge: pase la funcion de int a void, porque nivel.c no hace nada...
-	// la responsabilidad de mandar mensajes, tiene que estar en la logica de verificador de deadlock.c
+	//return EXIT_FAILURE;
 }
