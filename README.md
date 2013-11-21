@@ -2,6 +2,7 @@ LosNoFrancos
 ============
 "Desarrollando para usted desde hace mas de un año ;D"
 
+![alt tag](https://raw.github.com/pablo31/tp-2013-2c-losnofrancos/master/doc/img.png)
 TP para Sistemas Operativos 2c2013
 
 Proyectos de Eclipse incluidos:
