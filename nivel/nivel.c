@@ -324,13 +324,10 @@ private void modificacion_archivo_config(PACKED_ARGS){
 	int nuevo_retardo;
 
 	logger_info(logger, "Archivo de configuracion modificado");
-	notifier_wait_for_modification(notifier); //para bajar la banderita
-	logger_info(logger, "Banderita bajada");
+	notifier_wait_for_modification(notifier);
 
-	t_config* config = config_create(config_file); //TODO llevar esto a nivel_configuracion.c
-	cargar_configuracion_cambiante(self, config,
+	recargar_configuracion_nivel(self, config_file,
 			out nuevo_algoritmo, out nuevo_quantum, out nuevo_retardo);
-	config_destroy(config);
 
 	int cambios = 0;
 
