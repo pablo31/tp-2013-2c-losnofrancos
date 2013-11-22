@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
 
 	var(niveles, get_niveles(self));
 	var(cantidad_de_niveles, list_size(niveles));
-	tad_thread* thread[cantidad_de_niveles];
+	tad_thread thread[cantidad_de_niveles];
 
 	int i;
 	//se inicia un nuevo hilo por cada nivel que tiene jugar
