@@ -143,6 +143,8 @@ private void inicio_nuevo_hilo(PACKED_ARGS){
 	int status = 0;
 	while(!status)
 		status = conectarse_al_orquestador(self, nivel, logger_nivel);
+
+	logger_dispose_instance(logger_nivel);
 }
 
 
@@ -162,7 +164,7 @@ private void manejar_error_orquestador(tad_socket* socket, tad_logger* logger){
 }
 
 private void manejar_error_planificador(tad_socket* socket, tad_logger* logger){
-	logger_error(logger, "Error en el envio o recepcion de datos del planificador");
+	if(socket_get_error(socket) != CUSTOM_ERROR) logger_error(logger, "Error en el envio o recepcion de datos del planificador");
 	socket_close(socket);
 }
 
@@ -208,6 +210,29 @@ private int conectarse_al_orquestador(t_personaje* self, t_nivel* nivel, tad_log
 	return jugar_nivel(self, nivel, socket, logger_nivel);
 }
 
+private tad_package* esperar_paquete_del_planificador(t_personaje* self, byte tipo_esperado, tad_socket* socket, tad_logger* logger){
+	tad_package* paquete = socket_receive_one_of_this_packages(socket, 3,
+			tipo_esperado,
+			MUERTE_POR_DEADLOCK,
+			MUERTE_POR_ENEMIGO);
+	var(tipo, package_get_data_type(paquete));
+
+	if(tipo == tipo_esperado) return paquete;
+
+	//informamos el motivo de la muerte
+	if(tipo == MUERTE_POR_DEADLOCK) logger_info(logger, "Muerte por enemigo");
+	else logger_info(logger, "Muerte por deadlock");
+
+	//TODO quitar una vida
+
+	//liberamos recursos
+	package_dispose(paquete);
+	//hacemos saltar el socket con un error fantasma
+	socket_set_error(socket, CUSTOM_ERROR);
+
+	return null;
+}
+
 private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, tad_logger* logger_nivel){
 	SOCKET_ERROR_MANAGER(socket){
 		manejar_error_planificador(socket, logger_nivel);
@@ -224,33 +249,13 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 
 
 	int objetivosConseguidos = 0;
-	int objetivosAconseguir  = list_size(nivel->objetivos);
+	int objetivosAconseguir = list_size(nivel->objetivos);
 	int i = 0;
 
-	//esta variable es lo mismo que bool, luego cambiar
-    int gano_el_nivel=1;
+	while(objetivosConseguidos < objetivosAconseguir){
 
-	while(objetivosConseguidos<objetivosAconseguir){
-
-		//comento esto, pero no puede volver en forma de fichas
-		//socket_receive_expected_empty_package(socket, PLANIFICADOR_OTORGA_TURNO);
-		tad_package* paquete = socket_receive_one_of_this_packages(socket,3,PLANIFICADOR_OTORGA_TURNO,MUERTE_POR_ENEMIGO,MUERTE_POR_DEADLOCK);
-
-		var(tipo_mensaje, package_get_data_type(paquete));
-
-		if(tipo_mensaje == MUERTE_POR_ENEMIGO){
-
-			logger_info(get_logger(self), "El personaje %s ha muerto al ser alcanzado por un enemigo", get_nombre(self));
-			gano_el_nivel=0;
-			objetivosConseguidos=objetivosAconseguir;
-
-		}else if(tipo_mensaje == MUERTE_POR_DEADLOCK){
-
-			logger_info(get_logger(self), "El personaje %s ha muerto victima del interbloqueo", get_nombre(self));
-			gano_el_nivel=0;
-			objetivosConseguidos=objetivosAconseguir;
-		}
-
+		tad_package* paquete = esperar_paquete_del_planificador(self, PLANIFICADOR_OTORGA_TURNO, socket, logger_nivel);
+		package_dispose(paquete);
 		logger_info(logger_nivel, "Turno otorgado");
 
 		char* ptr_objetivo = list_get(nivel->objetivos, i);
@@ -260,11 +265,14 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 			logger_info(logger_nivel, "Solicitando ubicacion del proximo recurso");
 			//se solicita la ubicacion de la caja de recursos proxima a obtener, no consume quamtum
 			socket_send_char(socket, SOLICITUD_UBICACION_RECURSO, objetivoActual);
-			posicionDelProximoRecurso = socket_receive_expected_vector2(socket, UBICACION_RECURSO);
+
+			tad_package* respuesta = esperar_paquete_del_planificador(self, UBICACION_RECURSO, socket, logger_nivel);
+			posicionDelProximoRecurso = package_get_vector2(respuesta);
+			package_dispose(respuesta);
 			logger_info(logger_nivel, "La ubicacion del recurso es (%d,%d)", posicionDelProximoRecurso.x, posicionDelProximoRecurso.y);
 
 
-		}else if(!vector2_equals(posicionPersonaje,posicionDelProximoRecurso)){
+		}else if(!vector2_equals(posicionPersonaje, posicionDelProximoRecurso)){
 			//se calcula en función de su posición actual (x,y), la dirección en la que debe
 			//realizar su próximo movimiento  para alcanzar la caja de recursos y 1avanzar
 			vector2 nuevaPosicion = vector2_next_step(posicionPersonaje, posicionDelProximoRecurso);
@@ -272,14 +280,17 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 			socket_send_vector2(socket, PERSONAJE_MOVIMIENTO, nuevaPosicion);
 			posicionPersonaje = nuevaPosicion;
 
-		}else if(vector2_equals(posicionPersonaje,posicionDelProximoRecurso)){
+		}else if(vector2_equals(posicionPersonaje, posicionDelProximoRecurso)){
 			//se solicita una instancia del recurso en caso de estar en la posicion de la caja correspondiente
 			logger_info(logger_nivel, "Solicitando instancia de recurso");
 			socket_send_char(socket, PERSONAJE_SOLICITUD_RECURSO, objetivoActual);
+
 			//se queda esperando a que le otorguen el recurso
-			socket_receive_expected_empty_package(socket, RECURSO_OTORGADO);
+			tad_package* respuesta = esperar_paquete_del_planificador(self, RECURSO_OTORGADO, socket, logger_nivel);
+			package_dispose(respuesta);
+
+			//recibio el recurso!
 			logger_info(logger_nivel, "Recurso otorgado");
-			//si recibe recurso tiene hacer
 			objetivosConseguidos++;
 			i++;
 			posicionDelProximoRecurso = vector2_new();
@@ -287,17 +298,11 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 		}
 	}
 
-	if (gano_el_nivel ==1){
-		socket_send_empty_package(socket, PERSONAJE_FINALIZO_NIVEL);
-	} else{
-		//se tiene que conectar al orquestador para reiniciar un nivel o el plan de niveles completos
-		morir(self);
-	}
-
+	//informamos que ganamos y nos vamos a desconectar
+	socket_send_empty_package(socket, PERSONAJE_FINALIZO_NIVEL);
 
 	socket_close(socket);
 	logger_info(logger_nivel, "Nivel completado con exito");
-	logger_dispose_instance(logger_nivel);
 
 	return 1;
 
