@@ -12,10 +12,8 @@
 
 #include "../command/command.h"
 
-struct s_thread{
-	pthread_t thread;
-};
-typedef struct s_thread tad_thread;
+
+typedef pthread_t tad_thread;
 
 
 //Inicia un thread guardando una referencia a el (para luego hacer join)
