@@ -126,6 +126,8 @@ void verificador_deadlock(PACKED_ARGS){
 			} while (flag_cambios != 0);
 
 
+			char *str_personajes_deadlock = string_new();
+
 			//Identifico los personajes en deadlock por tener recurso pedido (bloqueado) y recursos asignados.
 			foreach (personaje, lista_personajes, tad_personaje*){
 				if (personaje->recurso_pedido != '\0'
@@ -134,7 +136,7 @@ void verificador_deadlock(PACKED_ARGS){
 					personaje_bloqueado->simbolo = personaje->simbolo;
 					personaje_bloqueado->nombre= personaje->nombre;
 					list_add (personajes_deadlock, personaje_bloqueado);
-					//string_append(personajes_deadlock, personaje_bloqueado);
+					string_append_with_format(&str_personajes_deadlock, "%s.", personaje_bloqueado->nombre);
 					}
 			}
 
@@ -145,8 +147,8 @@ void verificador_deadlock(PACKED_ARGS){
 			if (hay_deadlock){
 				//informar deadlock por archivo log indicando personajes involucrados;
 
-				logger_info(get_logger(nivel), "Se detecto interbloqueo.");
-				//logger_info(nivel->logger, "Se detecto deadlock. Personajes: %s",personajes_deadlock);
+				 logger_info(get_logger(nivel),
+						 "Se detecto interbloqueo. Personajes involucrados: %s", str_personajes_deadlock);
 
 				//si el recovery esta activado elijo personaje victima e informo al planificador
 				if (nivel->recovery == 1) {
@@ -161,6 +163,7 @@ void verificador_deadlock(PACKED_ARGS){
 				}
 			}
 
+			dealloc(str_personajes_deadlock);
 			//dealloc(personaje_bloqueado);
 		}
 		dealloc (personaje);
