@@ -19,9 +19,8 @@ tad_notifier* notifier_create(char* file_path){
 }
 
 void notifier_wait_for_modification(tad_notifier* self){
-	alloc(event, struct inotify_event);
-	read(self->fd, event, sizeof(struct inotify_event)); //bloqueante
-	free(event);
+	struct inotify_event event;
+	read(self->fd, &event, sizeof(event)); //bloqueante
 }
 
 void notifier_dispose(tad_notifier* self){
