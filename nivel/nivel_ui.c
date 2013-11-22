@@ -1,18 +1,19 @@
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <curses.h>
-#include <unistd.h> //usleep
+#include <unistd.h>
 
 #include "nivel.h"
 #include "nivel_ui.h"
 
 #include "../libs/logger/logger.h"
-#include "../libs/common.h"
 #include "../libs/vector/vector2.h"
+#include "../libs/thread/mutex.h"
+#include "../libs/common.h"
 
 
-private WINDOW * secwin;
-private WINDOW * mainwin;
+private WINDOW* secwin;
+private WINDOW* mainwin;
 private int rows, cols;
 private tad_logger* logger;
 
@@ -27,13 +28,13 @@ private void nivel_gui_get_term_size(int as_out rows, int as_out cols){
     set cols = ws.ws_col;
 }
 
-void nivel_gui_get_area_nivel(int as_out rows, int as_out cols){
-	int term_rows;
-	int term_cols;
-	nivel_gui_get_term_size(out term_rows, out term_cols);
-	set rows = term_rows - 4;
-	set cols = term_cols - 2;
-}
+//void nivel_gui_get_area_nivel(int as_out rows, int as_out cols){
+//	int term_rows;
+//	int term_cols;
+//	nivel_gui_get_term_size(out term_rows, out term_cols);
+//	set rows = term_rows - 4;
+//	set cols = term_cols - 2;
+//}
 
 
 void nivel_gui_inicializar(){
@@ -61,10 +62,15 @@ void nivel_gui_inicializar(){
 	//TODO pokemon-style intro (see ../pruebas/intro.c)
 }
 
+private void nivel_gui_draw_char(char ch, vector2 pos, int color_pair){
+	wmove(secwin, pos.y, pos.x);
+	waddch(secwin, ch | COLOR_PAIR(color_pair));
+}
 
 void nivel_gui_dibujar(tad_nivel* nivel){
 	int i = 0;
 
+	//limpiamos la pantalla
 	werase(secwin);
 	box(secwin, 0, 0);
 	wbkgd(secwin, COLOR_PAIR(1));
@@ -76,24 +82,33 @@ void nivel_gui_dibujar(tad_nivel* nivel){
 	var(personajes, nivel->personajes);
 	var(enemigos, nivel->enemigos);
 
+	var(semaforo_cajas, nivel->semaforo_cajas);
+	var(semaforo_enemigos, nivel->semaforo_enemigos);
+	var(semaforo_personajes, nivel->semaforo_personajes);
+
+	//dibujamos a los enemigos
+	mutex_close(semaforo_enemigos);
+	foreach(enemigo, enemigos, tad_enemigo*)
+		nivel_gui_draw_char('*', enemigo->pos, 2);
+	mutex_open(semaforo_enemigos);
+
+	//dibujamos a los personajes
+	mutex_close(semaforo_personajes);
+	foreach(personaje, personajes, tad_personaje*)
+		nivel_gui_draw_char(personaje->simbolo, personaje->pos, 2);
+	mutex_open(semaforo_personajes);
+
+	//dibujamos las cajas
+	mutex_close(semaforo_cajas);
 	foreach(caja, cajas, tad_caja*){
-		wmove(secwin, caja->pos.y, caja->pos.x);
-		waddch(secwin, caja->simbolo | COLOR_PAIR(3));
-		move(rows - 2, 7 * i + 3 + 9);
+		nivel_gui_draw_char(caja->simbolo, caja->pos, 3);
+		move(rows - 2, 7 * i + 3 + 9); //TODO algo mas lindo??
 		printw("%c: %d - ", caja->simbolo, caja->instancias);
 		i++;
 	}
+	mutex_open(semaforo_cajas);
 
-	foreach(enemigo, enemigos, tad_enemigo*){
-		wmove(secwin, enemigo->pos.y, enemigo->pos.x);
-		waddch(secwin, '*' | COLOR_PAIR(2));
-	}
-
-	foreach(personaje, personajes, tad_personaje*){
-		wmove(secwin, personaje->pos.y, personaje->pos.x);
-		waddch(secwin, personaje->simbolo | COLOR_PAIR(2));
-	}
-
+	//actualizamos la pantalla
 	wrefresh(secwin);
 	wrefresh(mainwin);
 }

@@ -56,7 +56,7 @@ void cargar_configuracion_cambiante(tad_nivel* nvl, t_config* config,
 }
 
 
-private void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
+void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 	var(config_path, get_config_path(self));
 	var(config, config_create(config_path));
 
@@ -67,7 +67,6 @@ private void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 	self->logger = logger;
 
 	logger_info(logger, "Cargando configuracion del nivel");
-	
 
 
 	self->nombre = string_duplicate(config_get_string_value(config, "Nombre"));
@@ -134,23 +133,6 @@ private void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 	
 	config_destroy(config);
 }
-
-tad_nivel* crear_nivel(char* config_path, char* as_out ippuerto){
-	alloc(self, tad_nivel);
-	
-	self->config_path = config_path;
-
-	self->personajes = list_create();
-	self->cajas = list_create();
-	self->enemigos = list_create();
-
-	char* plataforma;
-	cargar_configuracion_nivel(self, out plataforma);
-	set ippuerto = plataforma;
-
-	return self;
-}
-
 
 void destruir_nivel(tad_nivel* self){
 	//liberamos strings varios

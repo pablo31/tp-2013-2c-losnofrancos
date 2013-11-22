@@ -18,6 +18,8 @@
 #include "enemigo.h"
 #include "verificador_deadlock.h"
 
+tad_nivel* crear_nivel(char* config_path, char* as_out ippuerto);
+
 private void nivel_conectar_a_plataforma(tad_nivel* self, char* ippuerto);
 private void nivel_iniciar_interfaz_grafica(tad_nivel* self);
 
@@ -107,6 +109,27 @@ int main(int argc, char **argv){
 	return EXIT_FAILURE;
 }
 
+
+tad_nivel* crear_nivel(char* config_path, char* as_out ippuerto){
+	alloc(self, tad_nivel);
+
+	self->config_path = config_path;
+
+	self->semaforo_personajes = mutex_create();
+	self->personajes = list_create();
+
+	self->semaforo_cajas = mutex_create();
+	self->cajas = list_create();
+
+	self->semaforo_enemigos = mutex_create();
+	self->enemigos = list_create();
+
+	char* plataforma;
+	cargar_configuracion_nivel(self, out plataforma);
+	set ippuerto = plataforma;
+
+	return self;
+}
 
 /***************************************************************
  * Ejecucion y logica

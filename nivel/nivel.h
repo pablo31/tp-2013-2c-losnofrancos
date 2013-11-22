@@ -12,6 +12,7 @@
 #include "../libs/socket/socket.h"
 #include "../libs/logger/logger.h"
 #include "../libs/vector/vector2.h"
+#include "../libs/thread/mutex.h"
 #include "../libs/common.h"
 
 
@@ -51,9 +52,13 @@ class(tad_nivel){
 	tad_socket* socket;
 	char* config_path;
 
+	tad_mutex* semaforo_personajes;
 	t_list* personajes;
 
+	tad_mutex* semaforo_cajas;
 	t_list* cajas;
+
+	tad_mutex* semaforo_enemigos;
 	t_list* enemigos;
 
 	char* algoritmo;
