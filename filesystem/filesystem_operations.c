@@ -16,9 +16,9 @@
 extern tad_logger* logger;
 extern char* mmaped_file;
 extern struct grasa_header_t* header;
-extern t_bitarray* grasa_bitmap;
+extern t_bitarray* bitmap;
 extern GFile* nodos;
-uint cargar_datos(GFile archivo, char* buffer, size_t size, off_t offset);
+
 
 
 void logear_path(const char* funcion, const char* path) {
@@ -37,15 +37,15 @@ void logear_path(const char* funcion, const char* path) {
  */
 int fs_read(const char *path, char *buf, size_t size, off_t offset,
 		struct fuse_file_info *fi) {
-
+	char* temp = string_from_format(path, "%s"); // no uso string_duplicate para evitar el warning de tipos.
 	//logear_path("fs_read", path);
 	logger_info(logger,"fs_read: '%s' %zu bytes desde byte %i.", path, size,offset);
 
 	uint indice = 0;
-	int retorno = buscar_bloque_nodo(path, &indice);
+	int retorno = buscar_bloque_nodo(temp, &indice);
 
 	if (retorno){ // no existe.
-		logger_info(logger,"fs_read: no encontre '%s' indice: '%i'.", path, indice);
+		logger_info(logger,"fs_read: no encontre '%s' indice: '%i'.", temp, indice);
 		return -ENOENT;
 	}
 
@@ -71,8 +71,8 @@ int fs_mkdir(const char *path, mode_t mode) {
 	//logger_info(logger, "Creo directorio:");
 	//logear_path("fs_mkdir", path);
 	if (strcmp(path, "/") == 0) {
-			return -EPERM;
-		}
+		return -EPERM;
+	}
 	subpath = string_split(temp, "/");
 	while (subpath[i] != NULL ) {
 
@@ -81,16 +81,18 @@ int fs_mkdir(const char *path, mode_t mode) {
 		err = buscar_bloque_por_padre(directorio, bloque_padre,
 				&nodo.parent_dir_block);
 		if (err && subpath[i + 1] != NULL ) {
-			return EXIT_FAILURE;
+			return -ENOENT;
 		};
 
 		i++;
 	};
-
-	//nodo.c_date = time(NULL );
-	//nodo.m_date = nodo.c_date;
+	if (err == 0) { //Si la ultima busqueda no fallo significa que ya existe
+		return -EEXIST;
+	}
+	nodo.c_date = time(NULL );
+	nodo.m_date = nodo.c_date;
 	nodo.file_size = 0;
-	strcpy(nodo.fname, directorio);
+	strcpy((char *)nodo.fname, directorio);
 	nodo.state = 2; // 0: borrado, 1: archivo, 2: directorio
 
 	return agregar_nodo(nodo);
@@ -104,11 +106,46 @@ int fs_mkdir(const char *path, mode_t mode) {
  If this method is not implemented or under Linux kernel versions earlier than 2.6.15, the mknod() and open() methods will be called instead.
  */
 int fs_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
+	char* temp = string_from_format(path, "%s"); // no uso string_duplicate para evitar el warning de tipos.
+	char** subpath;
+	char* directorio = NULL;
+	int i = 0;
+	int err = 0;
+	GFile nodo;
+	uint32_t bloque_padre = 0;
+
 	//logger_info(logger, "Creo archivo:");
 	//logear_path("fs_create", path);
-	;
-	return 0;
+
+	if (strcmp(path, "/") == 0) {
+		return -EPERM;
+	}
+	subpath = string_split(temp, "/");
+	while (subpath[i] != NULL ) {
+
+		bloque_padre = nodo.parent_dir_block;
+		directorio = subpath[i];
+		err = buscar_bloque_por_padre((char *)directorio, bloque_padre,
+				&nodo.parent_dir_block);
+		if (err && subpath[i + 1] != NULL ) {
+			return -ENOENT;
+		};
+
+		i++;
+	};
+	if (err == 0) { //Si la ultima busqueda no fallo significa que ya existe
+		return -EEXIST;
+	}
+	nodo.c_date = time(NULL );
+	nodo.m_date = nodo.c_date;
+	nodo.file_size = 0;
+	strcpy((char *)nodo.fname, directorio);
+	nodo.state = 1; // 0: borrado, 1: archivo, 2: directorio
+
+	return agregar_nodo(nodo);
+
 }
+
 
 /*
  Open directory
@@ -152,8 +189,24 @@ int fs_write(const char *path, const char *buf, size_t size, off_t offset,
 int fs_unlink(const char *path) {
 	//logger_info(logger, "Elimino archivo:");
 	//logear_path("fs_unlink", path);
+	char* temp = string_from_format(path, "%s"); // no uso string_duplicate para evitar el warning de tipos.
+	int err = 0;
+	uint32_t bloque = 0;
 
-	return 0;
+	err = buscar_bloque_nodo(temp, &bloque);
+	if (err) {
+		return -ENOENT;
+	}
+	err = borrar_nodo(bloque);
+	if (err) {
+		return err;
+	}
+	// marcar los bloques en el mapa de bits como vacios
+	err = liberar_espacio(bloque);
+	if (err) {
+		return err;
+	}
+	return EXIT_SUCCESS;
 }
 
 /*
@@ -174,7 +227,7 @@ int fs_rmdir(const char *path) {
 	if (err) {
 		return -ENOENT;
 	}
-	logger_info(logger, "bloque:%i", bloque);
+	//logger_info(logger, "bloque:%i", bloque);
 	if(nodos[bloque].state != 2){
 		return -ENOTDIR;
 	}
@@ -226,14 +279,21 @@ int fs_getattr(const char * path, struct stat *stat) {
 }
 
 int fs_open(const char *path, struct fuse_file_info *fi) {
+	int err = 0;
+	char* temp;
+	uint32_t bloque = 0;
 	//logger_info(logger, "Abrir");
 	//logear_path("fs_open", path);
-	logear_path("fs_open", path);
+	temp = string_from_format(path, "%s");
+	err = buscar_bloque_nodo(temp, &bloque);
+	if (err) {
+		return -ENOENT;
+	}
 
-	if ((fi->flags & 3) != O_RDONLY)
-		return -EACCES;
+	return EXIT_SUCCESS;
 
-	return 0;
+	/*if ((fi->flags & 3) != O_RDONLY)
+	 return -EACCES;*/
 }
 
 int fs_readdir(const char *path, void *buffer, fuse_fill_dir_t filler,
@@ -300,7 +360,7 @@ int borrar_nodo(const uint32_t bloque) {
 		nodos[bloque].state = 0;
 		return EXIT_SUCCESS;
 	} else {
-		return EXIT_FAILURE;
+		return -EAGAIN;
 	}
 
 }
@@ -380,7 +440,7 @@ int buscar_nodos_por_padre(uint32_t bloque_padre, void *buffer,
 			//memcpy(nombre, nodos[i].fname, GFILENAMELENGTH - 1);
 			//nombre[GFILENAMELENGTH - 1] = '\0';
 			//list_add(contenido, nombre);
-			filler(buffer, nodos[i].fname, NULL, 0);
+			filler(buffer, (char*)nodos[i].fname, NULL, 0);
 		}
 	}
 	return EXIT_SUCCESS;
@@ -478,3 +538,34 @@ uint cargar_datos(GFile archivo, char* buffer, size_t offset, off_t inicio){
 	return k;
 }
 
+int liberar_espacio(uint32_t bloque) {
+	uint i = 0;		// Indice de los punteros a bloques de punteros. Max 1000.
+	uint j = 0;			// Indice de los punteros a bloques de datos. Max 1024
+	bool usado;
+	ptrGBloque* punteros_a_datos = NULL;
+
+	while (i < 1000 && existe_puntero(nodos[bloque].blk_indirect[i])) {
+		//cargo los punteros de los nodos de datos en mi lista de punteros
+		punteros_a_datos = (ptrGBloque*) buscar_nodo(
+				nodos[bloque].blk_indirect[i]);
+
+		j = 0;
+		while (j < 1024 && existe_puntero(punteros_a_datos[j])) {
+			//nodo_datos = buscar_nodo(punteros_a_datos[j]);
+			usado = bitarray_test_bit(bitmap,nodos[bloque].blk_indirect[i]);
+			if(!usado){
+				logger_info(logger,"Bloque %i no utilizado pero intenta borrarse. ind",punteros_a_datos[j]);
+			}
+			bitarray_clean_bit(bitmap, punteros_a_datos[j]);
+			j++;
+
+		}
+		usado = bitarray_test_bit(bitmap,nodos[bloque].blk_indirect[i]);
+		if(!usado){
+			logger_info(logger,"Bloque %i no utilizado pero intenta borrarse",nodos[bloque].blk_indirect[i]);
+		}
+		bitarray_clean_bit(bitmap, nodos[bloque].blk_indirect[i]);
+		i++;
+	}
+	return EXIT_SUCCESS;
+}

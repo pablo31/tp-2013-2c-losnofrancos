@@ -23,6 +23,7 @@ int borrar_nodo(const uint32_t bloque);
 int buscar_bloque_nodo(char* path, uint32_t *bloque);
 int buscar_bloque_por_padre(char *padre, uint32_t bloque_padre, uint32_t *bloque);
 int buscar_nodos_por_padre(uint32_t bloque_padre, void * buffer, fuse_fill_dir_t filler);
-		//t_list *contenido);
+int liberar_espacio(uint32_t bloque);
+uint cargar_datos(GFile archivo, char* buffer, size_t size, off_t offset);
 
 #endif
