@@ -201,7 +201,7 @@ private void nivel_ejecutar_logica(tad_nivel* self){
 
 	//Creamos un multiplexor y le asociamos el notificador y el socket del planificador
 	tad_multiplexor* multiplexor = multiplexor_create();
-	multiplexor_bind_notifier(multiplexor, notifier, modificacion_archivo_config, self);
+	multiplexor_bind_notifier(multiplexor, notifier, modificacion_archivo_config, self, notifier);
 	multiplexor_bind_socket(multiplexor, socket, manejar_paquete_planificador, self);
 
 	//Redeclaro la funcion manejadora de sigint, para que cierre el multiplexor
@@ -309,7 +309,7 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 }
 
 private void modificacion_archivo_config(PACKED_ARGS){
-	UNPACK_ARGS(tad_nivel* self);
+	UNPACK_ARGS(tad_nivel* self, tad_notifier* notifier);
 
 	var(socket, self->socket);
 	var(config_file, self->config_path);
@@ -324,6 +324,8 @@ private void modificacion_archivo_config(PACKED_ARGS){
 	int nuevo_retardo;
 
 	logger_info(logger, "Archivo de configuracion modificado");
+	notifier_wait_for_modification(notifier); //para bajar la banderita
+	logger_info(logger, "Banderita bajada");
 
 	t_config* config = config_create(config_file); //TODO llevar esto a nivel_configuracion.c
 	cargar_configuracion_cambiante(self, config,
