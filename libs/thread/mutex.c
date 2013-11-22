@@ -14,28 +14,23 @@
 
 //Crea un semaforo listo para usar
 tad_mutex* mutex_create(){
-	alloc(ret, tad_mutex);
-	alloc(pmutex, pthread_mutex_t);
-	ret->pmutex = pmutex;
-	pthread_mutex_init(ret->pmutex, NULL);
-	return ret;
+	alloc(mutex, tad_mutex);
+	pthread_mutex_init(mutex, null);
+	return mutex;
 }
 
 //Cierra el semaforo
 void mutex_close(tad_mutex* mutex){
-	pthread_mutex_t* pmutex = mutex->pmutex;
-	pthread_mutex_lock(pmutex);
+	pthread_mutex_lock(mutex);
 }
 
 //Abre el semaforo
 void mutex_open(tad_mutex* mutex){
-	pthread_mutex_t* pmutex = mutex->pmutex;
-	pthread_mutex_unlock(pmutex);
+	pthread_mutex_unlock(mutex);
 }
 
 //Libera los recursos del semaforo
 void mutex_dispose(tad_mutex* mutex){
-	pthread_mutex_destroy(mutex->pmutex);
-	dealloc(mutex->pmutex);
+	pthread_mutex_destroy(mutex);
 	dealloc(mutex);
 }

@@ -10,11 +10,8 @@
 
 #include <pthread.h>
 
-struct s_mutex{
-	pthread_mutex_t* pmutex;
-};
 
-typedef struct s_mutex tad_mutex;
+typedef pthread_mutex_t tad_mutex;
 
 
 //Crea un semaforo

@@ -12,18 +12,16 @@
 
 #include "../command/command.h"
 
-struct s_thread{
-	pthread_t thread;
-};
-typedef struct s_thread tad_thread;
+
+typedef pthread_t tad_thread;
 
 
 //Inicia un thread guardando una referencia a el (para luego hacer join)
-tad_thread* thread_begin(void* function, int numargs, ...);
+tad_thread thread_begin(void* function, int numargs, ...);
 //Inicia un thread sin guardar referencia a el
 void thread_free_begin(void* function, int numargs, ...);
-//Pausea la ejecucion del programa hasta que el thread finalize
-void thread_join(tad_thread* thread);
+//Bloquea el programa hasta que el thread finalize
+void thread_join(tad_thread thread);
 
 
 #endif /* THREAD_H_ */

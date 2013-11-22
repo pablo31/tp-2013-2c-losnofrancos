@@ -33,16 +33,16 @@ int main(void){
 	printf("Thread principal > a=0\n");
 
 	int i = 1;
-	tad_thread* thread1 = thread_begin(foo, 1, &i);
+	tad_thread thread1 = thread_begin(foo, 1, &i);
 
 	i = 2;
-	tad_thread* thread2 = thread_begin(foo, 1, &i);
+	tad_thread thread2 = thread_begin(foo, 1, &i);
 
 	i = 3;
-	tad_thread* thread3 = thread_begin(foo, 1, &i);
+	tad_thread thread3 = thread_begin(foo, 1, &i);
 
 	i = 4;
-	tad_thread* thread4 = thread_begin(foo, 1, &i);
+	tad_thread thread4 = thread_begin(foo, 1, &i);
 
 	thread_join(thread4);
 	thread_join(thread3);
