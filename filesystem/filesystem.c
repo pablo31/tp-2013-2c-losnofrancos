@@ -14,12 +14,12 @@
 #include "../libs/common/collections/list.h"
 #include <sys/stat.h>
 
-#define TAMANIO_BLOQUE 		  4096
+
 #define LOG_FILE              "grasa.log" //el archivo donde se va a guardar el log.
 struct fuse_operations grasa_operations = { .mkdir = fs_mkdir, .unlink =
 		fs_unlink, .rmdir = fs_rmdir, .read = fs_read, .open = fs_open, .write =
 		fs_write, .opendir = fs_opendir, .readdir = fs_readdir, .create =
-		fs_create, .getattr = fs_getattr, };
+		fs_create, .getattr = fs_getattr, .truncate = fs_truncate };
 
 static char* file_name = NULL;
 static int file_descriptor; // file descriptor del archivo de grasa

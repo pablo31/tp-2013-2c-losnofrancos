@@ -38,7 +38,7 @@ int fs_read(const char *path, char *buf, size_t size, off_t offset,
 		struct fuse_file_info *fi) {
 	char* temp = string_from_format(path, "%s"); // no uso string_duplicate para evitar el warning de tipos.
 	//logear_path("fs_read", path);
-	logger_info(logger,"fs_read: '%s' %zu bytes desde byte %i.", path, size,offset);
+	//logger_info(logger,"fs_read: '%s' %zu bytes desde byte %i.", path, size,offset);
 
 	uint indice = 0;
 	int retorno = buscar_bloque_nodo(temp, &indice);
@@ -181,9 +181,20 @@ int fs_opendir(const char *path, struct fuse_file_info *fi) {
  */
 int fs_write(const char *path, const char *buf, size_t size, off_t offset,
 		struct fuse_file_info *fi) {
+	char* temp = string_from_format(path, "%s"); // no uso string_duplicate para evitar el warning de tipos.
 	//logger_info(logger, "Escribo archivo:");
 	//logear_path("fs_write", path);
-	return 0;
+	logger_info(logger,"fs_write: size:%u offset:%u  buffer:%s", size, offset, buf);
+
+	uint indice = 0;
+	int err = buscar_bloque_nodo(temp, &indice);
+	logger_info(logger,"fs_write: encontre el nodo? :%s indice:%u", (err) ? "no": "si", indice );
+	
+	if (err) // no existe.
+		return -ENOENT;
+	
+	GFile nodo = nodos[indice];
+	return guardar_datos(&nodo, buf, size, offset);
 }
 
 /*
@@ -191,7 +202,7 @@ int fs_write(const char *path, const char *buf, size_t size, off_t offset,
  */
 int fs_unlink(const char *path) {
 	//logger_info(logger, "Elimino archivo:");
-	//logear_path("fs_unlink", path);
+	logear_path("fs_unlink", path);
 	char* temp = string_from_format(path, "%s"); // no uso string_duplicate para evitar el warning de tipos.
 	int err = 0;
 	uint32_t bloque = 0;
@@ -280,7 +291,7 @@ int fs_getattr(const char * path, struct stat *stat) {
 	 stat->st_uid = 1000;
 	 stat->st_gid = 1000;
 	 */
-	logger_info(logger, "nlink =%i, Mode = %i", stat->st_nlink, stat->st_mode);
+	//logger_info(logger, "nlink =%i, Mode = %i", stat->st_nlink, stat->st_mode);
 
 	return EXIT_SUCCESS;
 }
@@ -290,9 +301,10 @@ int fs_open(const char *path, struct fuse_file_info *fi) {
 	char* temp;
 	uint32_t bloque = 0;
 	//logger_info(logger, "Abrir");
-	//logear_path("fs_open", path);
+	logear_path("fs_open", path);
 	temp = string_from_format(path, "%s");
 	err = buscar_bloque_nodo(temp, &bloque);
+	logger_info(logger,"fs_open: encontre '%s' ? '%s'.", path, (err) ? "no" : "si");
 	if (err) {
 		return -ENOENT;
 	}
@@ -333,6 +345,13 @@ int fs_readdir(const char *path, void *buffer, fuse_fill_dir_t filler,
 	}
 
 	return EXIT_SUCCESS;
+}
+
+int fs_truncate(const char * path, off_t offset) {
+	// why? because 'fuck you'. That's why	
+	//                               -FUSE
+	// funcion dummy para que no se queje de "function not implemented"
+	return 0;
 }
 
 //-------------------------------------------------------------------
@@ -491,9 +510,110 @@ uint get_nodo_datos_inicial(off_t inicio , uint indice_nodos_punteros){
  */
 uint get_offset_bytes_archivo(uint indice_nodos_punteros, uint indice_nodos_datos){
 	uint retorno = 4096 * (1000*1024*indice_nodos_punteros + indice_nodos_datos);
-	logger_info(logger,"fs_read: offset_bytes_archivo:%u",retorno);
+	//logger_info(logger,"fs_read: offset_bytes_archivo:%u",retorno);
 	return retorno;
 }
+/*
+ * Devuelve el indice un nodo vacio segun el campo bitmap
+ */
+uint get_indice_nodo_vacio(){
+	/*  1 bloque header
+		n bloques del bitmap
+		1024 bloques de nodos
+		1 nodo = 4096 bytes */
+	uint inicio_datos = (header->size_bitmap + 1024 + 1) * TAMANIO_BLOQUE;
+	bool fin = false;
+
+	while (!fin){
+		if (bitarray_test_bit(bitmap, inicio_datos)){			
+			fin = true;
+		}
+		inicio_datos++;
+	}
+
+
+	return inicio_datos;
+}
+
+void set_bloque_usado(uint indice_bloque) {
+	bitarray_set_bit(bitmap, indice_bloque);
+}
+
+void set_bloque_libre(uint indice_bloque){
+	bitarray_clean_bit(bitmap, indice_bloque);	
+}
+
+
+uint guardar_datos(GFile* archivo, const char* buffer, size_t size, off_t offset){
+	if (archivo == NULL) 
+		return EXIT_FAILURE;
+
+	uint i = get_nodo_punteros_inicial(offset);// Indice de los punteros a bloques de punteros. Max 1000.
+	uint j = get_nodo_datos_inicial(i,offset);// Indice de los punteros a bloques de datos. Max 1024
+	uint k = 0;// Hasta donde guarde en el buffer. Max valor del offset.
+	uint offset_bytes_archivo;// Offset de los bytes del archivo.
+	bool fin = false;
+	char* nodo_datos = NULL; //Nodo con datos a cargar en el buffer.
+	ptrGBloque punteros_a_datos[GFILEBYTABLE];
+
+	while (!fin && i < 1000){
+		if (!existe_puntero(archivo->blk_indirect[i])){			
+			archivo->blk_indirect[i] = get_indice_nodo_vacio();
+			set_bloque_usado(archivo->blk_indirect[i]);
+		}
+
+		sem_wait(&mutex_datos);
+		memcpy(punteros_a_datos,buscar_nodo(archivo->blk_indirect[i]),TAMANIO_BLOQUE);
+		sem_post(&mutex_datos);
+
+		while(!fin && j < 1024 && existe_puntero(punteros_a_datos[j])){
+			if (!existe_puntero(punteros_a_datos[j])){			
+				punteros_a_datos[j] = get_indice_nodo_vacio();
+				set_bloque_usado(punteros_a_datos[j]);
+			}
+
+			offset_bytes_archivo = get_offset_bytes_archivo(i,j);
+			nodo_datos = buscar_nodo(punteros_a_datos[j]);
+
+			logger_info(logger,"fs_write: estoy_en_rango:%s inicio:%u offset:%u j:%u",
+				estoy_en_rango(offset, size, offset_bytes_archivo + j) ? "si":"no" , offset, size, offset_bytes_archivo + j);
+
+			if (estoy_en_rango(offset, size, offset_bytes_archivo + j)) {
+				uint cuantos_bytes_guardar = 0;
+
+				if ((offset - k) < 4096)					
+					cuantos_bytes_guardar = (offset - k); //Lo que me falta para el offset.
+				else					
+					cuantos_bytes_guardar = 4096;//cargo todo el bloque.
+
+				//logger_info(logger,"fs_read: k:%u offset:%u falta:%u",k , offset, offset - k);
+				sem_wait(&mutex_datos);
+				memcpy(nodo_datos, buffer + k, cuantos_bytes_guardar);
+				sem_post(&mutex_datos);
+				k = k + cuantos_bytes_guardar;			
+			} 
+
+			j++;
+			fin = k >= (offset+size); //estamos leyendo datos mas alla de lo pedido?
+		}
+
+		j = 0;
+		i++;
+	}
+
+
+	/*
+	uint i = get_nodo_punteros_inicial(inicio);// Indice de los punteros a bloques de punteros. Max 1000.
+	uint j = get_nodo_datos_inicial(i,inicio);// Indice de los punteros a bloques de datos. Max 1024
+	bool fin = false;
+	*/
+	return 0;
+}
+
+
+
+
+
 /*
  * Cargo los datos del archivo de grasa en el buffer , con offset e inicio especificados.	
  */
@@ -504,10 +624,9 @@ uint cargar_datos(GFile archivo, char* buffer, size_t offset, off_t inicio){
 	uint offset_bytes_archivo;// Offset de los bytes del archivo.
 	bool fin = false;
 	char* nodo_datos = NULL; //Nodo con datos a cargar en el buffer.
-	//ptrGBloque* punteros_a_datos = NULL;
 	ptrGBloque punteros_a_datos[GFILEBYTABLE];
 	
-	logger_info(logger,"fs_read: i:%u j:%u inicio:%u",i,j,inicio);
+	//logger_info(logger,"fs_read: i:%u j:%u inicio:%u",i,j,inicio);
 
 
 	while (!fin && i < 1000 && existe_puntero(archivo.blk_indirect[i]) ){	
@@ -531,7 +650,7 @@ uint cargar_datos(GFile archivo, char* buffer, size_t offset, off_t inicio){
 				else					
 					cuantos_bytes_cargar = 4096;//cargo todo el bloque.
 
-				logger_info(logger,"fs_read: k:%u offset:%u falta:%u",k , offset, offset - k);
+				//logger_info(logger,"fs_read: k:%u offset:%u falta:%u",k , offset, offset - k);
 				sem_wait(&mutex_datos);
 				memcpy(buffer + k, nodo_datos, cuantos_bytes_cargar);
 				sem_post(&mutex_datos);
@@ -541,8 +660,8 @@ uint cargar_datos(GFile archivo, char* buffer, size_t offset, off_t inicio){
 			j++;
 			fin = k >= (inicio+offset); //estamos leyendo datos mas alla de lo pedido?
 
-			if (fin)	
-				logger_info(logger,"fs_read: fin lectura");
+			//if (fin)	
+				//logger_info(logger,"fs_read: fin lectura");
 		}
 
 		j = 0;
