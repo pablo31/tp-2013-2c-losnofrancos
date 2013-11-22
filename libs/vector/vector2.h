@@ -26,16 +26,23 @@ vector2 vector2_new();
 int vector2_get_x(vector2 v);
 int vector2_get_y(vector2 v);
 int vector2_equals(vector2 a, vector2 b);
+
+vector2 vector2_add_x(vector2 v, int scalar);
+vector2 vector2_add_y(vector2 v, int scalar);
+
 vector2 vector2_add(vector2 a, vector2 b);
 vector2 vector2_subtract(vector2 a, vector2 b);
-vector2 vector2_dame_el_menor(vector2 a, vector2 b);
-vector2 vector2_multiply(vector2 v, int s);
-vector2 vector2_divide(vector2 v, int s);
-vector2 vector2_add_x(vector2 v, int x);
-vector2 vector2_add_y(vector2 v, int y);
-vector2 vector2_direction_to(vector2 self, vector2 target);
+vector2 vector2_multiply(vector2 v, int scalar);
+vector2 vector2_divide(vector2 v, int scalar);
+
+vector2 vector2_minimize(vector2 a, vector2 b);
+vector2 vector2_maximize(vector2 a, vector2 b);
+
+int vector2_between(vector2 v, vector2 min, vector2 max);
 int vector2_within_map(vector2 v, vector2 mapa);
-vector2 posicion_siguiente(vector2 origen, vector2 destino);
+
+vector2 vector2_direction_to(vector2 self, vector2 target);
+vector2 vector2_next_step(vector2 origen, vector2 destino);
 
 
 #endif /* VECTOR2_H_ */

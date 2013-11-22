@@ -48,6 +48,16 @@ int vector2_equals(vector2 a, vector2 b){
  * Misc
  ******************************/
 
+vector2 vector2_add_x(vector2 v, int scalar){
+	v.x += scalar;
+	return v;
+}
+
+vector2 vector2_add_y(vector2 v, int scalar){
+	v.y += scalar;
+	return v;
+}
+
 vector2 vector2_add(vector2 a, vector2 b){
 	vector2 ret;
 	ret.x = a.x + b.x;
@@ -61,27 +71,38 @@ vector2 vector2_subtract(vector2 a, vector2 b){
 	return ret;
 }
 
-vector2 vector2_multiply(vector2 v, int s){
+vector2 vector2_multiply(vector2 v, int scalar){
 	vector2 ret;
-	ret.x = v.x * s;
-	ret.y = v.y * s;
+	ret.x = v.x * scalar;
+	ret.y = v.y * scalar;
 	return ret;
 }
-vector2 vector2_divide(vector2 v, int s){
+vector2 vector2_divide(vector2 v, int scalar){
 	vector2 ret;
-	ret.x = v.x / s;
-	ret.y = v.y / s;
+	ret.x = v.x / scalar;
+	ret.y = v.y / scalar;
 	return ret;
 }
 
-vector2 vector2_add_x(vector2 v, int x){
-	vector2 ret = v;
-	ret.x += x;
+int vector2_between(vector2 v, vector2 min, vector2 max){
+	return v.x > min.x && v.y > min.y && v.x < max.x && v.y < max.y;
+}
+
+int vector2_within_map(vector2 v, vector2 map_limits){
+	return vector2_between(v, vector2_new(0,0), map_limits);
+}
+
+vector2 vector2_minimize(vector2 a, vector2 b){
+	vector2 ret;
+	ret.x = a.x<b.x?a.x:b.x;
+	ret.y = a.y<b.y?a.y:b.y;
 	return ret;
 }
-vector2 vector2_add_y(vector2 v, int y){
-	vector2 ret = v;
-	ret.y += y;
+
+vector2 vector2_maximize(vector2 a, vector2 b){
+	vector2 ret;
+	ret.x = a.x>b.x?a.x:b.x;
+	ret.y = a.y>b.y?a.y:b.y;
 	return ret;
 }
 
@@ -92,46 +113,23 @@ vector2 vector2_direction_to(vector2 self, vector2 target){
 	return diff;
 }
 
+vector2 vector2_next_step(vector2 origin, vector2 target){
+	if(vector2_equals(origin, target)) return origin;
 
-int vector2_within_map(vector2 v, vector2 mapa){
-
-	if (v.x >0 && v.y>0 &&v.x<mapa.x && v.y<mapa.y){
-		return 1;
-	}else return 0;
-}
-
-
-vector2 vector2_dame_el_menor(vector2 a, vector2 b){
-	vector2 ret;
-
-	if (a.x > b.x) {
-		ret.x =a.x;
-	}else ret.x =b.x;
-
-	if (a.y > b.y) {
-			ret.y =a.y;
-		}else ret.y =b.y;
-
-	return ret;
-}
-
-vector2 posicion_siguiente(vector2 origen, vector2 destino){
-	if(vector2_equals(origen, destino)) return origen;
-
-	vector2 delta = vector2_subtract(destino, origen);
+	vector2 delta = vector2_subtract(target, origin);
 	int abs_x = abs(delta.x);
 	int abs_y = abs(delta.y);
 
-	vector2 movimiento;
+	vector2 movement;
 
 	if(abs_x > abs_y)
 		//hay mas distancia en x, nos movemos en x
-		movimiento = vector2_new(delta.x / abs_x, 0);
+		movement = vector2_new(delta.x / abs_x, 0);
 	else
 		//hay mas distancia en y, nos movemos en y
-		movimiento = vector2_new(0, delta.y / abs_y);
+		movement = vector2_new(0, delta.y / abs_y);
 
-	return vector2_add(origen, movimiento);
+	return vector2_add(origin, movement);
 }
 
 

@@ -267,7 +267,7 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 		}else if(!vector2_equals(posicionPersonaje,posicionDelProximoRecurso)){
 			//se calcula en función de su posición actual (x,y), la dirección en la que debe
 			//realizar su próximo movimiento  para alcanzar la caja de recursos y 1avanzar
-			vector2 nuevaPosicion = posicion_siguiente(posicionPersonaje, posicionDelProximoRecurso);
+			vector2 nuevaPosicion = vector2_next_step(posicionPersonaje, posicionDelProximoRecurso);
 			logger_info(logger_nivel, "Moviendose a (%d,%d)", nuevaPosicion.x, nuevaPosicion.y);
 			socket_send_vector2(socket, PERSONAJE_MOVIMIENTO, nuevaPosicion);
 			posicionPersonaje = nuevaPosicion;

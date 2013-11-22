@@ -32,7 +32,7 @@ void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self){
 	vector2 posicion_personaje;
 		posicion_personaje= buscar_Personaje_Mas_Cercano(nivel,self);
 
-		vector2 nuevaPosicion = posicion_siguiente(self->pos,posicion_personaje);
+		vector2 nuevaPosicion = vector2_next_step(self->pos,posicion_personaje);
 
 		self->pos= nuevaPosicion;
 
@@ -56,11 +56,11 @@ vector2 buscar_Personaje_Mas_Cercano(tad_nivel* nivel,tad_enemigo* self){
 
 		//con el primer enemigo
 		if (x==1){
-			masCercaBase = vector2_dame_el_menor(maslejos,personaje->pos);
+			masCercaBase = vector2_minimize(maslejos,personaje->pos);
 			masCerca.x = masCercaBase.x;
 			masCerca.y = masCercaBase.y;
 			x = x+1;
-		}else	masCerca = vector2_dame_el_menor(masCercaBase,personaje->pos);
+		}else	masCerca = vector2_minimize(masCercaBase,personaje->pos);
 
 	}
 
