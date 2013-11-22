@@ -32,7 +32,7 @@ uint bitmap_bytes_usados; // Tamaño archivo / blocksize / 8
 
 tad_logger* logger;
 
-
+sem_t mutex_nodos,mutex_mapa,mutex_datos;
 
 static void set_file_name(char* name){	
 	file_name = string_new();
@@ -47,6 +47,12 @@ static void iniciar_logger(char* exe_name) {
 	//inicializamos el singleton logger
 	logger_initialize_for_info(LOG_FILE, exe_name);
 	logger = logger_new_instance("Filesystem");
+}
+
+void iniciar_semaforos(void){
+	sem_init(&mutex_nodos,0,1);
+	sem_init(&mutex_mapa,0,1);
+	sem_init(&mutex_datos,0,1);
 }
 
 static void cerrar_logger() {
@@ -170,6 +176,7 @@ void cargar_configuracion_grasa(int argc, char *argv[]) {
 
 int main(int argc, char *argv[]) {
 	iniciar_logger(argv[0]);
+	iniciar_semaforos();
 	cargar_configuracion_grasa(argc, argv);
 
 	// saco el archivo de grasa de la lista de argumentos

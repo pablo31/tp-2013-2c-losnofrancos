@@ -1,6 +1,9 @@
 #ifndef FS_OPERATIONS
 #define FS_OPERATIONS
 
+#define TAMANIO_BLOQUE 		  4096
+
+#include <semaphore.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <fuse.h>
