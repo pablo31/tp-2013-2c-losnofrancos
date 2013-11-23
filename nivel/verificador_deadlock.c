@@ -174,11 +174,20 @@ void verificador_deadlock(PACKED_ARGS){
 				}
 
 			}
-
 			dealloc(str_personajes_deadlock);
-
 		}
 
+		//libero personajes en deadlock
+		list_clean(personajes_deadlock);
+		//libero recursos disponibles
+		list_clean(recursos_disponibles);
+		//libero personajes del nivel
+		list_clean(lista_personajes);
+
 	}
-	//return EXIT_FAILURE;
+
+	list_destroy(personajes_deadlock);
+	list_destroy(recursos_disponibles);
+	list_destroy(lista_personajes);
+
 }
