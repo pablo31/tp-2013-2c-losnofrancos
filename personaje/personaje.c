@@ -111,16 +111,28 @@ int main(int argc, char* argv[]) {
 	var(cantidad_de_niveles, list_size(niveles));
 	tad_thread thread[cantidad_de_niveles];
 
-	int i;
-	//se inicia un nuevo hilo por cada nivel que tiene jugar
-	for(i = 0; i < cantidad_de_niveles; i++){
-		t_nivel* nivel = list_get(niveles, i);
-		thread[i] = thread_begin(inicio_nuevo_hilo, 2, self, nivel);
-	}
+	int gano_todos_los_niveles = 0;
+	int cantidad_de_reiniciadas = 0;
 
-	//esperamos a que todos los hilos terminen de juegar
-	for(i = 0; i < cantidad_de_niveles; i++){
-		thread_join(thread[i]);
+	while(!gano_todos_los_niveles){
+		int i;
+		//se inicia un nuevo hilo por cada nivel que tiene jugar
+		for(i = 0; i < cantidad_de_niveles; i++){
+			t_nivel* nivel = list_get(niveles, i);
+			thread[i] = thread_begin(inicio_nuevo_hilo, 2, self, nivel);
+		}
+
+		//esperamos a que todos los hilos terminen de juegar
+		for(i = 0; i < cantidad_de_niveles; i++){
+			thread_join(thread[i]);
+		}
+
+		//si todavia tiene vidas, significa que gano todos los niveles
+		gano_todos_los_niveles = get_vidas(self);
+		if(!gano_todos_los_niveles){
+			//TODO preguntar si reiniciar
+			cantidad_de_reiniciadas++;
+		}
 	}
 
 	//TODO conectarse al orquestador para decirle que ganamos
@@ -141,7 +153,7 @@ private void inicio_nuevo_hilo(PACKED_ARGS){
 	tad_logger* logger_nivel = logger_new_instance("Thread %s", nivel->nombre);
 
 	int status = 0;
-	while(!status)
+	while(!status && self->vidas)
 		status = conectarse_al_orquestador(self, nivel, logger_nivel);
 
 	logger_dispose_instance(logger_nivel);
@@ -223,7 +235,7 @@ private tad_package* esperar_paquete_del_planificador(t_personaje* self, byte ti
 	if(tipo == MUERTE_POR_DEADLOCK) logger_info(logger, "Muerte por enemigo");
 	else logger_info(logger, "Muerte por deadlock");
 
-	//TODO quitar una vida
+	morir(self);
 
 	//liberamos recursos
 	package_dispose(paquete);
@@ -254,6 +266,14 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 
 	while(objetivosConseguidos < objetivosAconseguir){
 
+		//si no tenemos mas vidas, nos desconectamos y matamos el hilo
+		if(!get_vidas(self)){
+			socket_close(socket);
+			logger_info(logger_nivel, "Nivel finalizado sin exito por falta de vidas");
+			return 0;
+		}
+
+		//esperamos que el planificador nos otorgue un turno
 		tad_package* paquete = esperar_paquete_del_planificador(self, PLANIFICADOR_OTORGA_TURNO, socket, logger_nivel);
 		package_dispose(paquete);
 		logger_info(logger_nivel, "Turno otorgado");
@@ -383,25 +403,20 @@ private void morir(t_personaje* self){
 	if(vidas > 0){
 		vidas--;
 		logger_info(get_logger(self), "El personaje perdio una vida, le quedan %d", vidas);
-		//TODO ver que nivel hay que reiniciar
-		//reiniciar solo el nivel
 	}else{
+		//TODO preguntarle al usuario si quiere reestableces las vidas
 		vidas = vidas_iniciales;
 		logger_info(get_logger(self), "El personaje perdio su ultima vida");
 		logger_info(get_logger(self), "Las vidas se reestableceran a %d", vidas);
-		//TODO ver que hacer en esta situacion jaja
-		//hay el reiniciar el plan de niveles
 	}
 
 	set_vidas(self, vidas);
 }
 
 private void comer_honguito_verde(t_personaje* self){
-	logger_info(get_logger(self), "Llego un honguito de esos que pegan ;)");
-	var(vidas, get_vidas(self));
-	vidas++;
-	logger_info(get_logger(self), "El personaje gano una vida, posee en total %d", vidas);
-	set_vidas(self, vidas);
+	logger_info(get_logger(self), "Llego un honguito de esos que pegan");
+	self->vidas++;
+	logger_info(get_logger(self), "El personaje gano una vida, posee en total %d", get_vidas(self));
 }
 
 private void personaje_destruir(t_personaje* self){
