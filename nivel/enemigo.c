@@ -6,14 +6,15 @@
 #include "enemigo.h"
 
 
+
 vector2 buscar_Personaje_Mas_Cercano(tad_nivel* nivel, tad_enemigo* self);
 
 void movimiento_permitido_enemigo(PACKED_ARGS){
 	UNPACK_ARGS(tad_nivel* nivel, tad_enemigo* self);
 
-
 	logger_info(get_logger(nivel), "ENEMIGO: Se cargo el enemigo %c:",self->simbolo);
 
+	srand(time(NULL)); //seed para random
 	//teniendo en cuenta que no:
 		//salga del mapa
 		//pase por arriba de una caja
@@ -75,7 +76,7 @@ void mover_en_L(tad_nivel* nivel, tad_enemigo* self){
 	nivel_gui_get_area_nivel(out rows, out cols);
 	vector2 limite_mapa = vector2_new(cols, rows);
 
-	int random = rand()%9;; //random 0,8
+	int random = rand()%9; //random 0,8
 
 	int completo_movimiento_L=1;
 	int cantidad_movimiento=3;
@@ -94,7 +95,7 @@ void mover_en_L(tad_nivel* nivel, tad_enemigo* self){
 							sleep(1);
 							//usleep(nivel->sleep_enemigos * 1000);
 							nivel_gui_dibujar(nivel);
-						}else {
+						}else{
 							//sino completo la L, tiene que buscar otra L azar
 							cantidad_movimiento=0;
 							completo_movimiento_L =0;
@@ -102,6 +103,8 @@ void mover_en_L(tad_nivel* nivel, tad_enemigo* self){
 
 					}
 			}
+		completo_movimiento_L=1;
+		cantidad_movimiento=3;
 	}
 
 
