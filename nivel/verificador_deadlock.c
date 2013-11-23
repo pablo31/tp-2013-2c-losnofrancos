@@ -2,6 +2,8 @@
 #include "../libs/common/collections/list.h"
 #include "../libs/common/string.h"
 #include "../libs/thread/mutex.h"
+#include "../libs/socket/socket_utils.h"
+#include "../libs/protocol/protocol.h"
 #include "verificador_deadlock.h"
 
 
@@ -155,7 +157,7 @@ void verificador_deadlock(PACKED_ARGS){
 
 				//informar deadlock por archivo log indicando personajes involucrados;
 				logger_info(get_logger(nivel),
-						"Se detecto interbloqueo. Personajes involucrados: %s", str_personajes_deadlock);
+						"Se detecto deadlock. Personajes involucrados: %s", str_personajes_deadlock);
 
 				//si el recovery esta activado elijo personaje victima e informo al planificador
 				if (nivel->recovery == 1) {
@@ -164,9 +166,11 @@ void verificador_deadlock(PACKED_ARGS){
 					tad_personaje* personaje_victima = list_get(personajes_deadlock, 1);
 
 					//informo por archivo de log
-					logger_info(get_logger(nivel), "El personaje %s ha sido seleccionado como victima del interbloqueo", personaje_victima->nombre);
+					logger_info(get_logger(nivel), "El personaje %s ha sido seleccionado como victima del deadlock", personaje_victima->nombre);
 
-					//informar_deadlock_al_planificador
+					//informo muerte del personaje por deadlock al planificador
+					socket_send_char(nivel->socket, MUERTE_POR_DEADLOCK, personaje_victima->simbolo);
+
 				}
 
 			}
