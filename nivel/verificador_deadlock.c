@@ -13,7 +13,7 @@ void liberar_recursos_del_personaje(tad_personaje* personaje, t_list* recursos_d
 
 		tad_recurso* recurso_p = recurso_personaje;
 
-		int encontre_recurso (tad_recurso* recurso_aux){
+		bool encontre_recurso (tad_recurso* recurso_aux){
 			if (recurso_p->simbolo == recurso_aux->simbolo)
 				return 1;
 			else

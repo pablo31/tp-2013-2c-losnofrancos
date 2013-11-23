@@ -74,6 +74,7 @@ class(tad_nivel){
 
 tad_logger* get_logger(tad_nivel* self);
 char* get_config_path(tad_nivel* self);
+void liberar_recursos_del_personaje(tad_personaje* personaje, t_list* lista_recursos);
 
 
 #endif

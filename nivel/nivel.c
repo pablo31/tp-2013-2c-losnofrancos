@@ -47,6 +47,7 @@ private void verificar_argumentos(int argc, char* argv[]) {
 	exit(EXIT_FAILURE);
 }
 
+
 /***************************************************************
  * Getters
  ***************************************************************/
@@ -251,6 +252,7 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		alloc(personaje, tad_personaje);
 		personaje->simbolo = simbolo;
 		personaje->pos = pos;
+		personaje->recurso_pedido = '\0';
 
 		mutex_close(self->semaforo_personajes);
 		list_add(self->personajes, personaje);
@@ -261,41 +263,84 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 	}else if(tipo == SOLICITUD_UBICACION_RECURSO){
 		char recurso = package_get_char(paquete);
 		vector2 ubicacion;
+
+		mutex_close(self->semaforo_cajas);
 		foreach(caja, self->cajas, tad_caja*)
 			if(caja->simbolo == recurso)
 				ubicacion = caja->pos;
+		mutex_open(self->semaforo_cajas);
+
 		socket_send_vector2(socket, UBICACION_RECURSO, ubicacion);
 
 	}else if(tipo == PERSONAJE_MOVIMIENTO){
 		char simbolo;
 		vector2 pos;
 		package_get_char_and_vector2(paquete, out simbolo, out pos);
+
+		mutex_close(self->semaforo_personajes);
 		foreach(personaje, self->personajes, tad_personaje*)
 			if(personaje->simbolo == simbolo)
 				personaje->pos = pos;
+		mutex_open(self->semaforo_personajes);
+
 		nivel_gui_dibujar(self);
 
 	}else if(tipo == PERSONAJE_SOLICITUD_RECURSO){
 		char simbolo;
 		char recurso;
 		package_get_two_chars(paquete, out simbolo, out recurso);
-		//TODO validar que el personaje este en el lugar
-		//TODO verificar que halla instancias de ese recurso
+
+		//Se busca personaje
+		bool personaje_buscado(void* ptr){
+			return ((tad_personaje*)ptr)->simbolo == simbolo;
+		}
+		mutex_close(self->semaforo_personajes);
+		tad_personaje* personaje_solicitud = list_find(self->personajes, personaje_buscado);
+		mutex_open(self->semaforo_personajes);
+
 		mutex_close(self->semaforo_cajas);
-		//TODO descontar una instancia a esa caja
+		foreach(caja, self->cajas, tad_caja*){
+			if (personaje_solicitud->simbolo == simbolo){
+			//Se valida que el personaje este en la posicion de la caja
+				int posx_personaje = vector2_get_x (personaje_solicitud->pos);
+				int posy_personaje = vector2_get_y (personaje_solicitud->pos);
+				int posx_caja = vector2_get_x (personaje_solicitud->pos);
+				int posy_caja = vector2_get_y (personaje_solicitud->pos);
+				if ((posx_personaje == posx_caja)
+					&& (posy_personaje == posy_caja)){
+					//Se verifica que haya instancias del recurso para otorgar
+					if (caja->instancias > 0){
+					caja->instancias = caja->instancias - 1;
+					//actualizar lista recursos_asignados del personaje aumentando cant.del recurso
+					//o agregando un nuevo recurso a la lista
+
+					//actualizar recurso_pedido del personaje
+					socket_send_char(socket, RECURSO_OTORGADO, simbolo);
+					}
+					else {} //TODO
+				}
+			}
+		}
 		mutex_open(self->semaforo_cajas);
 
-		//TODO
-		socket_send_char(socket, RECURSO_OTORGADO, simbolo); //hardcod
 
-	}else if(tipo == PERSONAJE_FINALIZO_NIVEL){
+	}else if(tipo == PERSONAJE_FINALIZO_NIVEL){ // o si el personaje murio
 		char simbolo = package_get_char(paquete);
 
 		bool personaje_buscado(void* ptr){
 			return ((tad_personaje*)ptr)->simbolo == simbolo;
 		}
 
+		//Se busca personaje
 		mutex_close(self->semaforo_personajes);
+		//tad_personaje* personaje_fin = list_find(self->personajes, personaje_buscado);
+
+		//Se liberan recursos asignados
+		mutex_close(self->semaforo_cajas);
+		//liberar_recursos_del_personaje(tad_personaje* personaje_fin, t_list* self->cajas);
+		mutex_close(self->semaforo_cajas);
+
+		//Se elimina personaje de la lista
 		list_remove_by_condition(self->personajes, personaje_buscado);
 		mutex_open(self->semaforo_personajes);
 
