@@ -30,8 +30,8 @@ void liberar_recursos_del_personaje(tad_personaje* personaje, t_list* recursos_d
 void verificador_deadlock(PACKED_ARGS){
 	UNPACK_ARGS(tad_nivel* nivel);
 
-//	var(semaforo_personajes, nivel->semaforo_personajes);
-//	var(semaforo_cajas, nivel->semaforo_cajas);
+	var(semaforo_personajes, nivel->semaforo_personajes);
+	var(semaforo_cajas, nivel->semaforo_cajas);
 
 	bool hay_deadlock;
 	int flag_cambios = 0;
@@ -53,10 +53,10 @@ void verificador_deadlock(PACKED_ARGS){
 		hay_deadlock = false;
 		bool hay_bloqueados = false;
 
-		//agrega los personajes del nivel a lista auxiliar lista_personajes
-
 		//semaforo para acceder a lista de personajes del nivel
-		//mutex_close(semaforo_personajes);
+		mutex_close(semaforo_personajes);
+
+		//agrega los personajes del nivel a lista auxiliar lista_personajes
 		foreach (personaje_nivel, nivel->personajes, tad_personaje*){
 			alloc (personaje, tad_personaje);
 			personaje->nombre = personaje_nivel->nombre;
@@ -66,7 +66,8 @@ void verificador_deadlock(PACKED_ARGS){
 			personaje->simbolo = personaje_nivel->simbolo;
 			list_add (lista_personajes, personaje);
 		}
-		//mutex_open(semaforo_personajes);
+
+		mutex_open(semaforo_personajes);
 
 
 		//agrega los recursos del nivel a lista auxiliar recursos_disponibles
@@ -74,14 +75,16 @@ void verificador_deadlock(PACKED_ARGS){
 		if (list_is_empty(lista_personajes)==false){
 
 			//semaforo para acceder a lista de cajas del nivel
-			//mutex_close(semaforo_cajas);
+			mutex_close(semaforo_cajas);
+
 			foreach (caja, nivel->cajas, tad_caja*){
 				alloc (recurso, tad_recurso);
 				recurso->simbolo = caja->simbolo;
 				recurso->cantidad = caja->instancias;
 				list_add (recursos_disponibles, recurso);
 			}
-			//mutex_open(semaforo_cajas);
+
+			mutex_open(semaforo_cajas);
 
 		}
 

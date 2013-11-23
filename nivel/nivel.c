@@ -91,8 +91,6 @@ int main(int argc, char **argv){
 
 	//algoritmo verificador de deadlock
 	nivel_crea_hilo_deadlock(self);
-	//nivel_crea_hilo_deadlock(self);
-
 
 	//ejecutamos la logica
 	nivel_ejecutar_logica(self);
