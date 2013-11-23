@@ -112,6 +112,7 @@ void planificador_agregar_personaje(tad_planificador* self, char* nombre, char s
 }
 
 private void planificador_liberar_personaje(tad_planificador* self, tad_personaje* personaje){
+	socket_send_char(self->nivel->socket,PERSONAJE_DESCONEXION, personaje->simbolo);
 	socket_close(personaje->socket);
 	var(nombre, personaje->nombre);
 	logger_info(get_logger(self), "El personaje %s fue pateado", nombre);
@@ -236,7 +237,7 @@ private void otorgar_turno(tad_planificador* self){
 				SOLICITUD_UBICACION_RECURSO,
 				PERSONAJE_MOVIMIENTO,
 				PERSONAJE_SOLICITUD_RECURSO,
-				PERSONAJE_FINALIZO_NIVEL);
+				PERSONAJE_DESCONEXION);
 		var(tipo_mensaje, package_get_data_type(paquete));
 
 		//el personaje solicita la posicion de un recurso
@@ -270,9 +271,8 @@ private void otorgar_turno(tad_planificador* self){
 			bloquear_personaje(self, personaje);
 			quantum = 0;
 		//el personaje finalizo el nivel y se desconecta
-		}else if(tipo_mensaje == PERSONAJE_FINALIZO_NIVEL){
+		}else if(tipo_mensaje == PERSONAJE_DESCONEXION){
 			logger_info(logger, "El personaje %s completo el nivel", nombre);
-			socket_send_char(socket_nivel, PERSONAJE_FINALIZO_NIVEL, simbolo);
 			planificador_liberar_personaje(self, personaje);
 			quantum = 0;
 		}

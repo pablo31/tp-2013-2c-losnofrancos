@@ -240,7 +240,7 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 			SOLICITUD_UBICACION_RECURSO,
 			PERSONAJE_MOVIMIENTO,
 			PERSONAJE_SOLICITUD_RECURSO,
-			PERSONAJE_FINALIZO_NIVEL);
+			PERSONAJE_DESCONEXION);
 	var(tipo, package_get_data_type(paquete));
 
 
@@ -295,7 +295,7 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 
 		nivel_otorgar_recurso_con_error(self,simbolo_personaje,simbolo_recurso);
 
-	}else if(tipo == PERSONAJE_FINALIZO_NIVEL){ // o si el personaje murio
+	}else if(tipo == PERSONAJE_DESCONEXION){ // o si el personaje murio
 		char simbolo = package_get_char(paquete);
 
 		bool personaje_buscado(void* ptr){
