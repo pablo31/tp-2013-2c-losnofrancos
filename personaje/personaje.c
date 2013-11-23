@@ -256,8 +256,8 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 	socket_send_vector2(socket, POSICION_INICIAL, posicionPersonaje);
 	logger_info(logger_nivel, "Posicion inicial seteada en (%d,%d)", posicionPersonaje.x, posicionPersonaje.y);
 
-	vector2 posicionDelProximoRecurso = vector2_new();
-	vector2 posicion_de_comparacion = vector2_new();
+	vector2 posicionDelProximoRecurso = vector2_new(-1, -1);
+	vector2 posicion_de_comparacion = vector2_new(-1, -1);
 
 
 	int objetivosConseguidos = 0;
@@ -313,8 +313,8 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 			logger_info(logger_nivel, "Recurso otorgado");
 			objetivosConseguidos++;
 			i++;
-			posicionDelProximoRecurso = vector2_new();
-			posicion_de_comparacion = vector2_new(); //TODO que pasaria si la proxima caja esta en 1,1????
+			posicionDelProximoRecurso = vector2_new(-1, -1);
+			posicion_de_comparacion = vector2_new(-1, -1);
 		}
 	}
 

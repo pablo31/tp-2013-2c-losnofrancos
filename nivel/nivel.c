@@ -400,7 +400,9 @@ void nivel_otorgar_recurso_con_error(tad_nivel* self, char simbolo_personaje, ch
 	}
 	mutex_close(self->semaforo_personajes);
 	tad_personaje* personaje_solicitud = list_find(self->personajes, personaje_buscado);
-	personaje_solicitud->recurso_pedido->simbolo = simbolo_recurso;
+	alloc(recurso_pedido, tad_recurso);
+	recurso_pedido->simbolo = simbolo_recurso;
+	personaje_solicitud->recurso_pedido = recurso_pedido;
 	mutex_open(self->semaforo_personajes);
 
 	mutex_close(self->semaforo_cajas);
