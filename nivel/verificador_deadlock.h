@@ -14,6 +14,4 @@ class (t_personaje_bloqueado){
 
 
 void verificador_deadlock(PACKED_ARGS);
-void liberar_recursos_del_personaje(tad_personaje* personaje, t_list* lista_recursos);
-
 #endif

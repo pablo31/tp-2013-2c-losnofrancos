@@ -193,12 +193,14 @@ private tad_package* esperar_ubicacion_recurso(tad_planificador* self, tad_socke
 	tad_package* paquete;
 
 	while(1){
-		paquete = socket_receive_one_of_this_packages(socket_nivel, 5,
+		paquete = socket_receive_one_of_this_packages(socket_nivel, 7,
 				UBICACION_RECURSO, //este es el unico que nos interesa de verdad
 				RECURSO_OTORGADO,
 				QUANTUM,
 				RETARDO,
-				ALGORITMO);
+				ALGORITMO,
+				MUERTE_POR_DEADLOCK,
+				MUERTE_POR_ENEMIGO);
 		var(tipo, package_get_data_type(paquete));
 
 		if(tipo == UBICACION_RECURSO) break;
@@ -358,24 +360,25 @@ private void manejar_paquete_nivel(tad_planificador* self, tad_package* paquete)
 		socket_send_empty_package(personaje->socket, MUERTE_POR_ENEMIGO);
 
 	}else if(tipo == MUERTE_POR_DEADLOCK){
-			var(simbolo, package_get_char(paquete));
-			free(package_get_data(paquete));
-			var(personaje, buscar_personaje_bloqueado(self, simbolo));
-			logger_info(logger, "El personaje muere %s muere por el algoritmo deadlock.", personaje->nombre);
-			socket_send_empty_package(personaje->socket, MUERTE_POR_DEADLOCK);
-
-		}
+		var(simbolo, package_get_char(paquete));
+		free(package_get_data(paquete));
+		var(personaje, buscar_personaje_bloqueado(self, simbolo));
+		logger_info(logger, "El personaje muere %s muere por el algoritmo deadlock.", personaje->nombre);
+		socket_send_empty_package(personaje->socket, MUERTE_POR_DEADLOCK);
+	}
 }
 
 
 private void paquete_entrante_nivel(PACKED_ARGS){
 	UNPACK_ARG(tad_planificador* self);
 
-	tad_package* paquete = socket_receive_one_of_this_packages(self->nivel->socket, 4,
+	tad_package* paquete = socket_receive_one_of_this_packages(self->nivel->socket, 6,
 			RECURSO_OTORGADO,
 			QUANTUM,
 			RETARDO,
-			ALGORITMO);
+			ALGORITMO,
+			MUERTE_POR_DEADLOCK,
+			MUERTE_POR_ENEMIGO);
 
 	manejar_paquete_nivel(self, paquete);
 	package_dispose(paquete);

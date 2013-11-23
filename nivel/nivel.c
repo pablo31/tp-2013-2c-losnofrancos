@@ -252,7 +252,7 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		alloc(personaje, tad_personaje);
 		personaje->simbolo = simbolo;
 		personaje->pos = pos;
-		personaje->recurso_pedido = '\0';
+		personaje->recurso_pedido = null;
 
 		mutex_close(self->semaforo_personajes);
 		list_add(self->personajes, personaje);
@@ -265,9 +265,11 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		vector2 ubicacion;
 
 		mutex_close(self->semaforo_cajas);
+
 		foreach(caja, self->cajas, tad_caja*)
 			if(caja->simbolo == recurso)
 				ubicacion = caja->pos;
+
 		mutex_open(self->semaforo_cajas);
 
 		socket_send_vector2(socket, UBICACION_RECURSO, ubicacion);
@@ -286,43 +288,12 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		nivel_gui_dibujar(self);
 
 	}else if(tipo == PERSONAJE_SOLICITUD_RECURSO){
-		char simbolo;
-		char recurso;
-		package_get_two_chars(paquete, out simbolo, out recurso);
+		char simbolo_personaje;
+		char simbolo_recurso;
 
-		//Se busca personaje
-		bool personaje_buscado(void* ptr){
-			return ((tad_personaje*)ptr)->simbolo == simbolo;
-		}
-		mutex_close(self->semaforo_personajes);
-		tad_personaje* personaje_solicitud = list_find(self->personajes, personaje_buscado);
-		mutex_open(self->semaforo_personajes);
+		package_get_two_chars(paquete, out simbolo_personaje, out simbolo_recurso);
 
-		mutex_close(self->semaforo_cajas);
-		foreach(caja, self->cajas, tad_caja*){
-			if (personaje_solicitud->simbolo == simbolo){
-			//Se valida que el personaje este en la posicion de la caja
-				int posx_personaje = vector2_get_x (personaje_solicitud->pos);
-				int posy_personaje = vector2_get_y (personaje_solicitud->pos);
-				int posx_caja = vector2_get_x (personaje_solicitud->pos);
-				int posy_caja = vector2_get_y (personaje_solicitud->pos);
-				if ((posx_personaje == posx_caja)
-					&& (posy_personaje == posy_caja)){
-					//Se verifica que haya instancias del recurso para otorgar
-					if (caja->instancias > 0){
-					caja->instancias = caja->instancias - 1;
-					//actualizar lista recursos_asignados del personaje aumentando cant.del recurso
-					//o agregando un nuevo recurso a la lista
-
-					//actualizar recurso_pedido del personaje
-					socket_send_char(socket, RECURSO_OTORGADO, simbolo);
-					}
-					else {} //TODO
-				}
-			}
-		}
-		mutex_open(self->semaforo_cajas);
-
+		nivel_otorgar_recurso_con_error(self,simbolo_personaje,simbolo_recurso);
 
 	}else if(tipo == PERSONAJE_FINALIZO_NIVEL){ // o si el personaje murio
 		char simbolo = package_get_char(paquete);
@@ -333,12 +304,14 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 
 		//Se busca personaje
 		mutex_close(self->semaforo_personajes);
-		//tad_personaje* personaje_fin = list_find(self->personajes, personaje_buscado);
+		tad_personaje* personaje_fin = list_find(self->personajes, personaje_buscado);
 
 		//Se liberan recursos asignados
 		mutex_close(self->semaforo_cajas);
-		//liberar_recursos_del_personaje(tad_personaje* personaje_fin, t_list* self->cajas);
-		mutex_close(self->semaforo_cajas);
+		liberar_recursos_del_personaje(personaje_fin,self->cajas);
+		mutex_open(self->semaforo_cajas);
+
+		//cuando se liberan recursos del personaje asignarselos a algun personaje bloqueado
 
 		//Se elimina personaje de la lista
 		list_remove_by_condition(self->personajes, personaje_buscado);
@@ -417,3 +390,72 @@ private void nivel_finalizar_cerrar_multiplexor(tad_nivel* self, tad_multiplexor
 	self->socket = null;
 	nivel_finalizar(self);
 }
+
+
+void nivel_otorgar_recurso_con_error(tad_nivel* self, char simbolo_personaje, char simbolo_recurso){
+
+	//Se busca personaje
+	bool personaje_buscado(void* ptr){
+		return ((tad_personaje*)ptr)->simbolo == simbolo_personaje;
+	}
+	mutex_close(self->semaforo_personajes);
+	tad_personaje* personaje_solicitud = list_find(self->personajes, personaje_buscado);
+	personaje_solicitud->recurso_pedido->simbolo = simbolo_recurso;
+	mutex_open(self->semaforo_personajes);
+
+	mutex_close(self->semaforo_cajas);
+	bool recurso_buscado(void* ptr){
+		return ((tad_recurso*)ptr)->simbolo == simbolo_recurso;
+	}
+	tad_caja* recurso_caja = list_find(self->cajas, recurso_buscado);
+
+	//Se verifica que haya instancias del recurso para otorgar
+	if(recurso_caja->instancias > 0){
+		recurso_caja->instancias --;
+		//actualizar lista recursos_asignados del personaje aumentando cant.del recurso
+		//o agregando un nuevo recurso a la lista
+
+		//buscar en lista recursos_asignados del personaje
+		mutex_close(self->semaforo_personajes);
+		var(recursos_asignados,personaje_solicitud->recursos_asignados);
+		tad_recurso* recurso_personaje = list_find(recursos_asignados, recurso_buscado);
+
+		//si lo encuentra incrementa la cantidad
+		if (recurso_personaje != NULL){
+			recurso_personaje->cantidad ++;
+		}//si no lo encuentra agrega el recurso a la lista
+		else{
+			recurso_personaje->simbolo = simbolo_recurso;
+			recurso_personaje->cantidad = 1;
+			list_add(personaje_solicitud->recursos_asignados,recurso_personaje);
+		}
+		//actualizar recurso_pedido del personaje
+		personaje_solicitud->recurso_pedido = NULL;
+		mutex_open(self->semaforo_personajes);
+		socket_send_char(self->socket, RECURSO_OTORGADO, simbolo_personaje);
+	}
+
+	mutex_open(self->semaforo_cajas);
+}
+
+
+void liberar_recursos_del_personaje(tad_personaje* personaje, t_list* recursos_disponibles) {
+
+	foreach (recurso_personaje, personaje->recursos_asignados, tad_recurso*){
+
+		tad_recurso* recurso_p = recurso_personaje;
+
+		bool encontre_recurso (tad_recurso* recurso_aux){
+			if (recurso_p->simbolo == recurso_aux->simbolo)
+				return 1;
+			else
+				return 0;
+		}
+
+		tad_recurso* recurso_aux = list_find (recursos_disponibles, (void*) encontre_recurso);
+		recurso_aux->cantidad = recurso_aux->cantidad + recurso_personaje->cantidad;
+	}
+	list_clean(personaje->recursos_asignados);
+}
+
+
