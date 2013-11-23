@@ -26,6 +26,23 @@ void liberar_recursos_del_personaje(tad_personaje* personaje, t_list* recursos_d
 	list_clean(personaje->recursos_asignados);
 }
 
+/* Logica algoritmo de deteccion de deadlock
+ *
+ * Se carga la lista de personajes actuales del nivel y la lista de cajas del nivel en dos lista auxiliares.
+ * Cada personaje conoce su lista de recursos asignados hasta el momento y
+ * su solicitud de recurso actual si es que hubiese.
+ * Primero se detectan los personajes que no tiene ninguna solicitud de recurso actual,
+ * es decir, no estan bloqueados, y que por lo tanto no estaran involucrados en el deadlock,
+ * y se liberan sus recursos asignados cargandolos en la lista auxiliar de recursos disponibles.
+ * Si hay personajes bloqueados entonces se recorre la lista:
+ * aquellos que no tienen recursos asignados no entraran en deadlock,
+ * si tienen recursos y hay 1 instancia al menos del recurso se asume que se otorga la solicitud
+ * y se liberan los recursos asignados, por lo que se recorre nuevamente la lista de personajes
+ * para controlar si se puede desbloquear alguno a partir de los recursos liberados en la anterior vuelta.
+ * Si hay almenos dos personajes que tienen recurso pedido (estan bloqueados) y a la vez recursos asignados,
+ * entonces significa que hay deadlock.
+ * Si el nivel tiene el recovery activado se elige como victima al personaje que haya ingresado primero al nivel
+ */
 
 void verificador_deadlock(PACKED_ARGS){
 	UNPACK_ARGS(tad_nivel* nivel);
@@ -56,7 +73,7 @@ void verificador_deadlock(PACKED_ARGS){
 		//semaforo para acceder a lista de personajes del nivel
 		mutex_close(semaforo_personajes);
 
-		//agrega los personajes del nivel a lista auxiliar lista_personajes
+		//Se agregan los personajes del nivel a lista auxiliar lista_personajes
 		foreach (personaje_nivel, nivel->personajes, tad_personaje*){
 			alloc (personaje, tad_personaje);
 			personaje->nombre = personaje_nivel->nombre;
@@ -70,11 +87,11 @@ void verificador_deadlock(PACKED_ARGS){
 		mutex_open(semaforo_personajes);
 
 
-		//agrega los recursos del nivel a lista auxiliar recursos_disponibles
+		//Se agregan los recursos del nivel a lista auxiliar recursos_disponibles
 
 		if (list_is_empty(lista_personajes)==false){
 
-			//semaforo para acceder a lista de cajas del nivel
+			//Semaforo para acceder a lista de cajas del nivel
 			mutex_close(semaforo_cajas);
 
 			foreach (caja, nivel->cajas, tad_caja*){
@@ -88,9 +105,11 @@ void verificador_deadlock(PACKED_ARGS){
 
 		}
 
-		//libera recursos de los personajes que no estan bloqueados
+
+		//Se liberan recursos de los personajes que no estan bloqueados
 		foreach(personaje, lista_personajes, tad_personaje*){
-			if (personaje->recurso_pedido->cantidad == 0){
+			var(solicitud_recurso, personaje->recurso_pedido->cantidad);
+			if (solicitud_recurso == 0){
 				if (list_size(personaje->recursos_asignados) > 0){
 				liberar_recursos_del_personaje(personaje, recursos_disponibles);
 				}
@@ -100,7 +119,7 @@ void verificador_deadlock(PACKED_ARGS){
 			}
 		}
 
-		//si hay personajes bloqueados
+		//Si hay personajes bloqueados
 
 		if (hay_bloqueados){
 
@@ -108,10 +127,13 @@ void verificador_deadlock(PACKED_ARGS){
 				flag_cambios = 0;
 
 				foreach(personaje, lista_personajes, tad_personaje*){
-					//para los personajes bloqueados con recursos asignados verifico si puedo otorgar el recurso solicitado a aquellos
-					if (list_size(personaje->recursos_asignados) > 0) {
 
-						//busca el recurso solicitado en la lista de recursos disponibles
+					var(recursos_asignados, personaje->recursos_asignados);
+
+					//Para los personajes bloqueados con recursos asignados se verifica si se puede otorgar el recurso solicitado
+					if (list_size(recursos_asignados) > 0) {
+
+						//Se busca el recurso solicitado en la lista de recursos disponibles
 						tad_recurso* recurso_p;
 						recurso_p->simbolo = personaje->recurso_pedido->simbolo;
 						recurso_p->cantidad = 1;
@@ -125,7 +147,7 @@ void verificador_deadlock(PACKED_ARGS){
 
 						tad_recurso* caja_recurso= list_find(recursos_disponibles, (void*) encontre_recurso);
 
-						//si puedo otorgar el recurso solicitado libero los recursos asignados
+						//Si se puede otorgar el recurso solicitado se liberan los recursos asignados
 						if(caja_recurso->cantidad > 0) {
 							liberar_recursos_del_personaje(personaje, recursos_disponibles);
 							personaje->recurso_pedido->cantidad = 0;
@@ -134,16 +156,17 @@ void verificador_deadlock(PACKED_ARGS){
 						}
 					}
 				}
-				//si libere recursos vuelvo a recorrer la lista para ver si puedo desbloquear algun personaje
+				//Si se liberaron recursos se vuelve a recorrer la lista para ver si se puede desbloquear algun personaje
 			} while (flag_cambios != 0);
 
 
 			char *str_personajes_deadlock = string_new();
 
-			//Identifico los personajes en deadlock por tener recurso pedido (bloqueado) y recursos asignados y los cargo en una nueva lista
+			//Se dentifican los personajes en deadlock por tener recurso pedido (bloqueado) y recursos asignados y se cargan en una nueva lista
 			foreach (personaje, lista_personajes, tad_personaje*){
-				if (personaje->recurso_pedido->cantidad == 1
-						&& list_size(personaje->recursos_asignados) > 0) {
+				var(solicitud_recurso, personaje->recurso_pedido->cantidad);
+				var(recursos_asignados, personaje->recursos_asignados);
+				if (solicitud_recurso == 1 && list_size(recursos_asignados) > 0) {
 					alloc (personaje_bloqueado, t_personaje_bloqueado);
 					personaje_bloqueado->simbolo = personaje->simbolo;
 					personaje_bloqueado->nombre = personaje->nombre;
@@ -152,26 +175,26 @@ void verificador_deadlock(PACKED_ARGS){
 				}
 			}
 
-			//si existen por lo menos dos personajes en la lista entonces hay deadlock
+			//Si existen por lo menos dos personajes en la lista entonces hay deadlock
 			if (list_size(personajes_deadlock) > 1)
 				hay_deadlock = true;
 
 			if (hay_deadlock){
 
-				//informar deadlock por archivo log indicando personajes involucrados;
+				//Se informa deadlock por archivo log indicando personajes involucrados;
 				logger_info(get_logger(nivel),
 						"Se detecto deadlock. Personajes involucrados: %s", str_personajes_deadlock);
 
-				//si el recovery esta activado elijo personaje victima e informo al planificador
+				//Si el recovery esta activado se elige personaje victima y se informa al planificador
 				if (nivel->recovery == 1) {
 
-					//elijo como victima al primer personaje de la lista
+					//Se elige como victima al primer personaje de la lista
 					tad_personaje* personaje_victima = list_get(personajes_deadlock, 1);
 
-					//informo por archivo de log
+					//Seinforma por archivo de log
 					logger_info(get_logger(nivel), "El personaje %s ha sido seleccionado como victima del deadlock", personaje_victima->nombre);
 
-					//informo muerte del personaje por deadlock al planificador
+					//Se informa muerte del personaje por deadlock al planificador
 					socket_send_char(nivel->socket, MUERTE_POR_DEADLOCK, personaje_victima->simbolo);
 
 				}
@@ -180,11 +203,8 @@ void verificador_deadlock(PACKED_ARGS){
 			dealloc(str_personajes_deadlock);
 		}
 
-		//libero personajes en deadlock
 		list_clean(personajes_deadlock);
-		//libero recursos disponibles
 		list_clean(recursos_disponibles);
-		//libero personajes del nivel
 		list_clean(lista_personajes);
 
 	}
