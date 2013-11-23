@@ -43,6 +43,7 @@ int vector2_within_map(vector2 v, vector2 mapa);
 
 vector2 vector2_direction_to(vector2 self, vector2 target);
 vector2 vector2_next_step(vector2 origen, vector2 destino);
+vector2 vector2_move_in_L(vector2 enemigo_pos,int random, int cantidad);
 
 
 #endif /* VECTOR2_H_ */

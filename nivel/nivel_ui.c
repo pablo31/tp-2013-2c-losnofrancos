@@ -29,13 +29,13 @@ private void nivel_gui_get_term_size(int as_out rows, int as_out cols){
     set cols = ws.ws_col;
 }
 
-//void nivel_gui_get_area_nivel(int as_out rows, int as_out cols){
-//	int term_rows;
-//	int term_cols;
-//	nivel_gui_get_term_size(out term_rows, out term_cols);
-//	set rows = term_rows - 4;
-//	set cols = term_cols - 2;
-//}
+void nivel_gui_get_area_nivel(int as_out rows, int as_out cols){
+	int term_rows;
+	int term_cols;
+	nivel_gui_get_term_size(out term_rows, out term_cols);
+	set rows = term_rows - 4;
+	set cols = term_cols - 2;
+}
 
 
 void nivel_gui_inicializar(){
