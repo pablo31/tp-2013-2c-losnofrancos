@@ -141,6 +141,7 @@ int fs_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
 	nodo.file_size = 0;
 	strcpy((char *)nodo.fname, directorio);
 	nodo.state = 1; // 0: borrado, 1: archivo, 2: directorio
+	memset(nodo.blk_indirect, 0, sizeof(ptrGBloque) * 1000);
 
 	return agregar_nodo(nodo);
 
@@ -192,8 +193,9 @@ int fs_write(const char *path, const char *buf, size_t size, off_t offset,
 	
 	if (err) // no existe.
 		return -ENOENT;
-	
+	sem_wait(&mutex_nodos);
 	GFile nodo = nodos[indice];
+	sem_post(&mutex_nodos);
 	return guardar_datos(&nodo, buf, size, offset);
 }
 
@@ -202,7 +204,7 @@ int fs_write(const char *path, const char *buf, size_t size, off_t offset,
  */
 int fs_unlink(const char *path) {
 	//logger_info(logger, "Elimino archivo:");
-	logear_path("fs_unlink", path);
+	//logear_path("fs_unlink", path);
 	char* temp = string_from_format(path, "%s"); // no uso string_duplicate para evitar el warning de tipos.
 	int err = 0;
 	uint32_t bloque = 0;
@@ -270,11 +272,11 @@ int fs_getattr(const char * path, struct stat *stat) {
 			sem_wait(&mutex_nodos);
 			stat->st_nlink = nodos[bloque].state;
 			if (nodos[bloque].state == 1) {
-				stat->st_mode = S_IFREG | 0444;
+				stat->st_mode = S_IFREG | 0777;
 				stat->st_size = nodos[bloque].file_size;
 				stat->st_nlink = 1;
 			} else {
-				stat->st_mode = S_IFDIR | 0755;
+				stat->st_mode = S_IFDIR | 0777;
 				stat->st_nlink = 2;
 			}
 			//stat->st_uid = 1000;
@@ -521,14 +523,14 @@ uint get_indice_nodo_vacio(){
 		n bloques del bitmap
 		1024 bloques de nodos
 		1 nodo = 4096 bytes */
-	uint inicio_datos = (header->size_bitmap + 1024 + 1) * TAMANIO_BLOQUE;
+	uint inicio_datos = (header->size_bitmap + 1024 + 1);// * TAMANIO_BLOQUE;
 	bool fin = false;
 
 	while (!fin){
-		if (bitarray_test_bit(bitmap, inicio_datos)){			
-			fin = true;
-		}
 		inicio_datos++;
+		sem_wait(&mutex_mapa);
+		fin = bitarray_test_bit(bitmap, inicio_datos);
+		sem_post(&mutex_mapa);
 	}
 
 
@@ -536,11 +538,15 @@ uint get_indice_nodo_vacio(){
 }
 
 void set_bloque_usado(uint indice_bloque) {
+	sem_wait(&mutex_mapa);
 	bitarray_set_bit(bitmap, indice_bloque);
+	sem_post(&mutex_mapa);
 }
 
 void set_bloque_libre(uint indice_bloque){
-	bitarray_clean_bit(bitmap, indice_bloque);	
+	sem_wait(&mutex_mapa);
+	bitarray_clean_bit(bitmap, indice_bloque);
+	sem_post(&mutex_mapa);
 }
 
 
@@ -559,6 +565,7 @@ uint guardar_datos(GFile* archivo, const char* buffer, size_t size, off_t offset
 	while (!fin && i < 1000){
 		if (!existe_puntero(archivo->blk_indirect[i])){			
 			archivo->blk_indirect[i] = get_indice_nodo_vacio();
+			memset(buscar_nodo(archivo->blk_indirect[i]),0,TAMANIO_BLOQUE);
 			set_bloque_usado(archivo->blk_indirect[i]);
 		}
 
@@ -566,9 +573,10 @@ uint guardar_datos(GFile* archivo, const char* buffer, size_t size, off_t offset
 		memcpy(punteros_a_datos,buscar_nodo(archivo->blk_indirect[i]),TAMANIO_BLOQUE);
 		sem_post(&mutex_datos);
 
-		while(!fin && j < 1024 && existe_puntero(punteros_a_datos[j])){
+		while(!fin && j < 1024 ){//&& existe_puntero(punteros_a_datos[j])){
 			if (!existe_puntero(punteros_a_datos[j])){			
 				punteros_a_datos[j] = get_indice_nodo_vacio();
+				memset(buscar_nodo(punteros_a_datos[j]),0,TAMANIO_BLOQUE);
 				set_bloque_usado(punteros_a_datos[j]);
 			}
 
