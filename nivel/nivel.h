@@ -32,18 +32,18 @@ class(tad_enemigo){
 };
 
 
+class(tad_recurso){
+	char simbolo;
+	int cantidad;
+};
+
+
 class(tad_personaje){
 	char* nombre;
 	char simbolo;
 	vector2 pos;
 	t_list* recursos_asignados;
-	char recurso_pedido;
-};
-
-
-class (tad_recurso){
-	char simbolo;
-	int cantidad;
+	tad_recurso* recurso_pedido;
 };
 
 
