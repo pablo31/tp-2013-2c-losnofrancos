@@ -16,6 +16,7 @@ private WINDOW* secwin;
 private WINDOW* mainwin;
 private int rows, cols;
 private tad_logger* logger;
+private tad_mutex* semaforo_dibujado;
 
 
 private void nivel_gui_get_term_size(int as_out rows, int as_out cols){
@@ -59,6 +60,8 @@ void nivel_gui_inicializar(){
 
 	logger_info(logger, "Inicializada");
 
+	semaforo_dibujado = mutex_create();
+
 	//TODO pokemon-style intro (see ../pruebas/intro.c)
 }
 
@@ -69,6 +72,8 @@ private void nivel_gui_draw_char(char ch, vector2 pos, int color_pair){
 
 void nivel_gui_dibujar(tad_nivel* nivel){
 	int i = 0;
+
+	mutex_close(semaforo_dibujado);
 
 	//limpiamos la pantalla
 	werase(secwin);
@@ -111,6 +116,8 @@ void nivel_gui_dibujar(tad_nivel* nivel){
 	//actualizamos la pantalla
 	wrefresh(secwin);
 	wrefresh(mainwin);
+
+	mutex_open(semaforo_dibujado);
 }
 
 void nivel_gui_terminar(){
@@ -118,6 +125,7 @@ void nivel_gui_terminar(){
 	delwin(secwin);
 	endwin();
 	refresh();
+	mutex_dispose(semaforo_dibujado);
 	logger_info(logger, "Finalizada");
 	logger_dispose_instance(logger);
 }
