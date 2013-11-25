@@ -457,6 +457,8 @@ void liberar_subpath(char** subpath){
 		free(subpath[i]);
 		i++;
 	};
+
+	free(subpath);
 }
 
 // con el path completo busco el bloque en donde esta guardado ese nodo y lo devuelvo
