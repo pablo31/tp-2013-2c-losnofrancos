@@ -56,8 +56,8 @@ void iniciar_semaforos(void){
 }
 
 static void cerrar_logger() {
-	logger_dispose();
-	free(logger);
+    logger_dispose_instance(logger);
+    logger_dispose();
 }
 
 void logear_header(struct grasa_header_t* header) {
