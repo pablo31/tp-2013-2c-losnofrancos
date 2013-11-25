@@ -10,7 +10,7 @@ echo "Montando grasa desde $archivo en $directorio"
 
 #debug
 rm grasa.log #borro el archivo de log anterior asi no se hace muy grande
-#valgrind --tool=memcheck --leak-check=full ./filesystem $archivo $directorio 
+#valgrind --tool=memcheck --leak-check=full --show-reachable=yes ./filesystem $archivo $directorio -d 
 #valgrind --tool=exp-sgcheck ./filesystem $archivo $directorio 
 
 ./filesystem $archivo $directorio -d
