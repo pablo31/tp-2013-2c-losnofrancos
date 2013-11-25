@@ -137,28 +137,16 @@ static void cargar_nodos() {
 }
 
 void liberar_recursos() {
-	if (mmaped_file != NULL ) {
+	if (mmaped_file != NULL) 
 		munmap(mmaped_file, file_size);
-		free(mmaped_file);
-	}
+	
+	if (bitmap != NULL)
+		free(bitmap);
+
+	if (header != NULL)
+		free(header);
 
 	free(file_name);
-	free(bitmap);
-
-	if (header != NULL ) {
-		free(header->padding);
-		free(header->grasa);
-		free(header);
-	}
-
-	if (nodos != NULL){
-		free(nodos);
-	}
-
-	if (header != NULL){
-		free(header);
-	}
-
 	cerrar_logger();
 }
 
