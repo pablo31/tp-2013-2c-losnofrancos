@@ -298,6 +298,7 @@ int fs_getattr(const char * path, struct stat *stat) {
 			stat->st_ctim.tv_sec = nodos[bloque].c_date;
 			sem_post(&mutex_nodos);
 		} else {
+			free(temp);
 			return -ENOENT;
 		}
 	}
@@ -306,6 +307,8 @@ int fs_getattr(const char * path, struct stat *stat) {
 	 stat->st_gid = 1000;
 	 */
 	//logger_info(logger, "nlink =%i, Mode = %i", stat->st_nlink, stat->st_mode);
+
+	free(temp);
 	return EXIT_SUCCESS;
 }
 
@@ -442,6 +445,20 @@ int buscar_bloque_por_padre(char *fname, uint32_t bloque_padre,
 		return EXIT_FAILURE;
 }
 
+/*
+ * Libero todos los strings de un subpath.
+ *
+ * Braulio, hago este metodo porque estaba perdiendo memoria buscar_bloque_nodo.
+ * Si el while encontraba un error y retornaba , no liberaba los siguientes nodos del path.
+ */
+void liberar_subpath(char** subpath){
+	int i = 0;
+	while (subpath[i] != NULL ) {
+		free(subpath[i]);
+		i++;
+	};
+}
+
 // con el path completo busco el bloque en donde esta guardado ese nodo y lo devuelvo
 int buscar_bloque_nodo(char* path, uint32_t *bloque) {
 	char** subpath;
@@ -458,16 +475,17 @@ int buscar_bloque_nodo(char* path, uint32_t *bloque) {
 		//logger_info(logger, "bloque:%i, Padre:%i",*bloque,bloque_padre );
 
 		if (err) {
-			free(subpath);
+			liberar_subpath(subpath);
+			//free(subpath);
 			return EXIT_FAILURE;
 		}
 
-		free(subpath[i]);
+		//free(subpath[i]);
 		i++;
 
 	};
 
-	free(subpath);
+	liberar_subpath(subpath);
 	return EXIT_SUCCESS;
 }
 
