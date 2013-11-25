@@ -44,6 +44,8 @@ int fs_read(const char *path, char *buf, size_t size, off_t offset,
 	uint indice = 0;
 	int retorno = buscar_bloque_nodo(temp, &indice);
 
+	free(temp);
+
 	if (retorno) { // no existe.
 		/*logger_info(logger, "fs_read: no encontre '%s' indice: '%i'.", temp,
 				indice);*/
@@ -161,11 +163,12 @@ int fs_opendir(const char *path, struct fuse_file_info *fi) {
 	int err = 0;
 	uint32_t bloque;
 	if (strcmp(path, "/") == 0) {
+		free(temp);
 		return EXIT_SUCCESS;
 	}
 
 	err = buscar_bloque_nodo(temp, &bloque);
-
+	free(temp);
 	sem_wait(&mutex_nodos);
 	if (!err && nodos[bloque].state == 2) {
 		sem_post(&mutex_nodos);
@@ -323,13 +326,12 @@ int fs_open(const char *path, struct fuse_file_info *fi) {
 	//logger_info(logger, "fs_open: encontre '%s' ? '%s'.", path,
 			//(err) ? "no" : "si");
 	if (err) {
+		free(temp);
 		return -ENOENT;
 	}
 
+	free(temp);
 	return EXIT_SUCCESS;
-
-	/*if ((fi->flags & 3) != O_RDONLY)
-	 return -EACCES;*/
 }
 
 int fs_readdir(const char *path, void *buffer, fuse_fill_dir_t filler,
@@ -354,12 +356,15 @@ int fs_readdir(const char *path, void *buffer, fuse_fill_dir_t filler,
 	if (!rc) {
 		rc = buscar_nodos_por_padre(bloque_padre, buffer, filler);
 		if (rc) {
+			free(temp);
 			return -ENOENT;
 		}
 	} else {
+		free(temp);
 		return -ENOENT;
 	}
 
+	free(temp);
 	return EXIT_SUCCESS;
 }
 

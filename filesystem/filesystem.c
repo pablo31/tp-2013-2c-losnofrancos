@@ -57,6 +57,7 @@ void iniciar_semaforos(void){
 
 static void cerrar_logger() {
 	logger_dispose();
+	free(logger);
 }
 
 void logear_header(struct grasa_header_t* header) {
@@ -123,6 +124,7 @@ static void cargar_bitmap() {
 	char* str_bitmap = string_substring(mmaped_file, TAMANIO_BLOQUE,
 			8 * bitmap_bytes_usados);
 	bitmap = bitarray_create(str_bitmap, sizeof(char*) * bitmap_bytes_usados);
+	free(str_bitmap);
 	logger_bitmap(bitmap);
 }
 
@@ -146,6 +148,14 @@ void liberar_recursos() {
 	if (header != NULL ) {
 		free(header->padding);
 		free(header->grasa);
+		free(header);
+	}
+
+	if (nodos != NULL){
+		free(nodos);
+	}
+
+	if (header != NULL){
 		free(header);
 	}
 
@@ -200,6 +210,7 @@ int main(int argc, char *argv[]) {
 	logger_info(logger, "Fin de fuse_main - %s.",
 			(fuse_retorno == 0) ? "Finalizacion correcta" : "Error");
 
+	liberar_recursos();
 	return EXIT_SUCCESS;
 }
 
