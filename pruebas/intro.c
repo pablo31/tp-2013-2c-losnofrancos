@@ -42,7 +42,7 @@ private void gotopos(vector2 pos){
 	gotoxy(pos.x, pos.y);
 }
 private void add_char(char c){
-	waddch(mainwin, c);
+	waddch(mainwin, c | COLOR_PAIR(2));
 }
 
 
@@ -115,7 +115,7 @@ void draw_block(vector2 screen_pos, float block_width, float block_height){
 	for(x = 0; x < block_width + deltaw; x++){
 		for(y = 0; y < block_height + deltah; y++){
 			gotoxy(screen_pos.x + x, screen_pos.y + y);
-			add_char('0');
+			add_char(' ');
 		}
 	}
 	wrefresh(mainwin);

@@ -14,12 +14,11 @@
 
 private int a; //variable global con threads......combinacion letal
 
-
 private void foo(PACKED_ARGS){
 	UNPACK_ARG(int* thread_numero);
 
 	a++;
-	printf("Thread %d > a=%d\n", *thread_numero, a);
+	printf("Thread numero %d > a=%d\n", *thread_numero, a);
 }
 
 int main(void){
@@ -35,14 +34,14 @@ int main(void){
 	int i = 1;
 	tad_thread thread1 = thread_begin(foo, 1, &i);
 
-	i = 2;
-	tad_thread thread2 = thread_begin(foo, 1, &i);
+	int ii = 2;
+	tad_thread thread2 = thread_begin(foo, 1, &ii);
 
-	i = 3;
-	tad_thread thread3 = thread_begin(foo, 1, &i);
+	int iii = 3;
+	tad_thread thread3 = thread_begin(foo, 1, &iii);
 
-	i = 4;
-	tad_thread thread4 = thread_begin(foo, 1, &i);
+	int iv = 4;
+	tad_thread thread4 = thread_begin(foo, 1, &iv);
 
 	thread_join(thread4);
 	thread_join(thread3);

@@ -23,5 +23,8 @@ void thread_free_begin(void* function, int numargs, ...);
 //Bloquea el programa hasta que el thread finalize
 void thread_join(tad_thread thread);
 
+//Devuelve el thread
+tad_thread thread_self();
+
 
 #endif /* THREAD_H_ */

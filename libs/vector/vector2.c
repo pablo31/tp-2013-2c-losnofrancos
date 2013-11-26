@@ -134,6 +134,8 @@ vector2 vector2_next_step(vector2 origin, vector2 target){
 
 
 vector2 vector2_move_in_L(vector2 enemigo_pos,int random, int cantidad){
+	//padre nuestro que estas en los cielos santificado sea tu nombre......
+	//perdona *sus* ifs
 
 	if (random ==1){
 		//horrible, si, feo muy feo, también, pero es simple... =)
