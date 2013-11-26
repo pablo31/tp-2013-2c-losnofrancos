@@ -102,7 +102,8 @@ int main(void){
 	//ejemplo de uso del bloque try catch
 	TRY{
 		printf("Entrando a un bloque TRY\n");
-		problematic_function(); //esta funcion arroja excepcion 69
+		//llamamos a una funcion que arroja una excepcion
+		problematic_function();
 		printf("Se arrojo excepcion 12 pero no fue atrapada!\n");
 	}
 	CATCH(12){
@@ -114,8 +115,8 @@ int main(void){
 		THROW(12);
 	}
 	CATCH_OTHER{
-		//para saber que excepcion atrapamos usamos el int exno
-		printf("Atrapada excepcion %d!\n", exno);
+		//para saber que excepcion atrapamos usamos la variable excno
+		printf("Atrapada excepcion %d!\n", excno);
 	}
 
 	return EXIT_SUCCESS;

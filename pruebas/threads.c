@@ -28,9 +28,11 @@ private void path_to_problems(PACKED_ARGS){
 
 	TRY{
 		printf("Thread %d > A punto de arrojar excepcion %d\n", *thread_numero, excepcion_a_arrojar);
+		//llamamos a una funcion que arroja una excepcion
 		problematic_function(excepcion_a_arrojar);
 	}CATCH_OTHER{
-		printf("Thread %d > Excepcion %d atrapada!\n", *thread_numero, exno);
+		//para saber que excepcion atrapamos usamos la variable excno
+		printf("Thread %d > Excepcion %d atrapada!\n", *thread_numero, excno);
 	}
 }
 
@@ -45,6 +47,7 @@ int main(void){
 	printf("\n > Prueba de ejecucion de hilos\n");
 	printf(" > \tMuestra como crear y esperar la finalizacion de varios threads.\n");
 	printf(" > \tPermite observar la planificacion desordenada de la libreria pthread.\n");
+	printf(" > \tImplementa excepciones para aplicaciones multi hilo.\n");
 
 	printf("Prueba de threads iniciada.\n");
 
