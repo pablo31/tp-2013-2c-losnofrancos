@@ -10,7 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../libs/error/error_management.h"
+//#include "../libs/error/error_management.h"
+#include "../libs/error/exception.h"
 #include "../libs/common.h"
 
 
@@ -48,6 +49,15 @@ int min(int a, int b, int c){
  ***************************************************************/
 void foo(int as_out i){
 	set i = 2;
+}
+
+
+/***************************************************************
+ * Ejemplo de funcion que arroja una excepcion
+ ***************************************************************/
+void problematic_function(){
+	printf("Funcion problematica arroja excepcion 69.\n");
+	THROW(69);
 }
 
 
@@ -91,21 +101,21 @@ int main(void){
 
 	//ejemplo de uso del bloque try catch
 	TRY{
-		printf("Entrando al bloque TRY\n");
-		THROW(75);
+		printf("Entrando a un bloque TRY\n");
+		problematic_function(); //esta funcion arroja excepcion 69
 		printf("Se arrojo excepcion 12 pero no fue atrapada!\n");
 	}
 	CATCH(12){
-		printf("Atrapada excepcion 12!\n");
+		printf("Atrapada excepcion 12! Arrojada excepcion 99.\n");
 		THROW(99);
 	}
-	CATCH(75){
-		printf("Atrapada excepcion 75!\n");
+	CATCH(69){
+		printf("Atrapada excepcion 69! Arrojada excepcion 12.\n");
 		THROW(12);
 	}
 	CATCH_OTHER{
-		//para saber que excepcion atrapamos usamos el int __ex_num
-		printf("Atrapada excepcion %d!\n", __ex_num);
+		//para saber que excepcion atrapamos usamos el int exno
+		printf("Atrapada excepcion %d!\n", exno);
 	}
 
 	return EXIT_SUCCESS;

@@ -43,6 +43,10 @@ void thread_join(tad_thread thread){
 	pthread_detach(thread);
 }
 
+tad_thread thread_self(){
+	return pthread_self();
+}
+
 /********************************************************
  * THREAD BEGIN & EXECUTION *****************************
  ********************************************************/

@@ -54,7 +54,7 @@ typedef jmp_buf process_status;
 
 
 
-//Try Catch Block (beta, do not use it)
+//Local Try Catch Block (non-local coming soon [using pthread ids])
 #define TRY \
 	jmp_buf __r_md_tjb; \
 	int __ex_num = setjmp(__r_md_tjb); \

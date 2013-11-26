@@ -17,11 +17,11 @@
 #include "signal.h"
 
 
-struct s_signal_command{
+
+class(signal_command){
 	int signal_id;
 	tad_command* command;
 };
-typedef struct s_signal_command signal_command;
 
 
 
