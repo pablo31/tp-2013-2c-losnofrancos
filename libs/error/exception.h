@@ -6,6 +6,8 @@
  */
 
 
+#include <unistd.h>
+
 #include "jump.h"
 //#include "../libs/thread/thread.h"
 
@@ -16,9 +18,10 @@
 		//exceptions for mono-thread programs
 
 		process_status __try_ps;
+		int excno;
 
 		#define TRY \
-			int excno = save_process_status(__try_ps); \
+			excno = save_process_status(__try_ps); \
 			if(!excno)
 		#define CATCH(ex) \
 			else if(excno == ex)
@@ -33,12 +36,20 @@
 
 		tad_mutex __try_mutex = mutex_static;
 		tad_thread_key __try_key;
+		tad_thread_key __try_excno;
 		int __try_init = 0;
+
+		#define ptr_to_int(ptr) (int)(intptr_t)ptr
+		#define int_to_ptr(value) (void*)(intptr_t)value
+
+		#define excno ptr_to_int(thread_get_variable(__try_excno))
+		#define set_excno(value) thread_set_variable(__try_excno, int_to_ptr(value))
 
 		void __initialize_try(){
 			if(!__try_init){
 				__try_init = 1;
 				__try_key = thread_create_variable();
+				__try_excno = thread_create_variable();
 			}
 		}
 
@@ -61,7 +72,7 @@
 			process_status ps; \
 			thread_set_variable(__try_key, &ps); \
 			mutex_open(&__try_mutex); \
-			int excno = save_process_status(ps); \
+			set_excno(save_process_status(ps)); \
 			if(!excno)
 
 
