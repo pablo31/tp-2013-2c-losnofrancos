@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 #include "../libs/thread/thread.h"
+#include "../libs/thread/mutex.h"
 #include "../libs/common.h"
 #include "../libs/error/exception.h"
 

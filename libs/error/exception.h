@@ -31,6 +31,7 @@
 	#else
 		//exceptions for multi-thread programs
 
+		tad_mutex try_mutex = mutex_static;
 		tad_thread_key try_ps_key;
 		int trys_initialized = 0;
 
@@ -42,9 +43,11 @@
 		}
 
 		#define TRY \
+			mutex_close(&try_mutex); \
 			initialize_trycatch(); \
 			process_status ps; \
 			thread_set_variable(try_ps_key, &ps); \
+			mutex_open(&try_mutex); \
 			int exno = save_process_status(ps); \
 			if(!exno)
 		#define CATCH(ex) \
