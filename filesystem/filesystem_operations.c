@@ -39,7 +39,8 @@ int fs_read(const char *path, char *buf, size_t size, off_t offset,
 		struct fuse_file_info *fi) {
 	char* temp = string_from_format(path, "%s"); // no uso string_duplicate para evitar el warning de tipos.
 	//logear_path("fs_read", path);
-	//logger_info(logger,"fs_read: '%s' %zu bytes desde byte %i.", path, size,offset);
+	logger_info(logger, "fs_read: '%s' %zu bytes desde byte %i.", path, size,
+			offset);
 
 	uint indice = 0;
 	int retorno = buscar_bloque_nodo(temp, &indice);
@@ -48,7 +49,7 @@ int fs_read(const char *path, char *buf, size_t size, off_t offset,
 
 	if (retorno) { // no existe.
 		/*logger_info(logger, "fs_read: no encontre '%s' indice: '%i'.", temp,
-				indice);*/
+		 indice);*/
 		return -ENOENT;
 	}
 	sem_wait(&mutex_nodos);
@@ -64,11 +65,12 @@ int fs_read(const char *path, char *buf, size_t size, off_t offset,
  directory type bits use mode|S_IFDIR
  */
 int fs_mkdir(const char *path, mode_t mode) {
-	char* temp = string_from_format(path, "%s"); // no uso string_duplicate para evitar el warning de tipos.
+	char* temp;// = string_from_format(path, "%s"); // no uso string_duplicate para evitar el warning de tipos.
 	char** subpath;
 	char* directorio = NULL;
 	int i = 0;
 	int err = 0;
+	int ret = 0;
 	GFile nodo;
 	uint32_t bloque_padre = 0;
 
@@ -77,26 +79,34 @@ int fs_mkdir(const char *path, mode_t mode) {
 	if (strcmp(path, "/") == 0) {
 		return -EPERM;
 	}
+	temp = string_from_format(path, "%s");
 	subpath = string_split(temp, "/");
+	free(temp);
 	while (subpath[i] != NULL ) {
+		if(i == 2)
+			ret = -EPERM;
 
 		bloque_padre = nodo.parent_dir_block;
 		directorio = subpath[i];
 		err = buscar_bloque_por_padre(directorio, bloque_padre,
 				&nodo.parent_dir_block);
-		if (err && subpath[i + 1] != NULL ) {
-			return -ENOENT;
-		};
+		if (err && subpath[i + 1] != NULL )
+			ret = -ENOENT;
 
 		i++;
 	};
+	strcpy((char *) nodo.fname, directorio);
+	while (subpath[i] != NULL ) {
+		free(subpath[i]);
+	}
+	free(subpath);
+	if (ret) return ret;
 	if (err == 0) { //Si la ultima busqueda no fallo significa que ya existe
 		return -EEXIST;
 	}
 	nodo.c_date = time(NULL );
 	nodo.m_date = nodo.c_date;
 	nodo.file_size = 0;
-	strcpy((char *) nodo.fname, directorio);
 	nodo.state = 2; // 0: borrado, 1: archivo, 2: directorio
 
 	return agregar_nodo(nodo);
@@ -110,11 +120,12 @@ int fs_mkdir(const char *path, mode_t mode) {
  If this method is not implemented or under Linux kernel versions earlier than 2.6.15, the mknod() and open() methods will be called instead.
  */
 int fs_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
-	char* temp = string_from_format(path, "%s"); // no uso string_duplicate para evitar el warning de tipos.
+	char* temp;// = string_from_format(path, "%s"); // no uso string_duplicate para evitar el warning de tipos.
 	char** subpath;
 	char* directorio = NULL;
 	int i = 0;
 	int err = 0;
+	int ret = 0;
 	GFile nodo;
 	uint32_t bloque_padre = 0;
 
@@ -124,26 +135,31 @@ int fs_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
 	if (strcmp(path, "/") == 0) {
 		return -EPERM;
 	}
+	temp = string_from_format(path, "%s");
 	subpath = string_split(temp, "/");
+	free(temp);
 	while (subpath[i] != NULL ) {
-
 		bloque_padre = nodo.parent_dir_block;
 		directorio = subpath[i];
 		err = buscar_bloque_por_padre((char *) directorio, bloque_padre,
 				&nodo.parent_dir_block);
 		if (err && subpath[i + 1] != NULL ) {
-			return -ENOENT;
+			ret = -ENOENT;
 		};
-
 		i++;
 	};
+	strcpy((char *) nodo.fname, directorio);
+		while (subpath[i] != NULL ) {
+			free(subpath[i]);
+		}
+		free(subpath);
+		if (ret) return ret;
 	if (err == 0) { //Si la ultima busqueda no fallo significa que ya existe
 		return -EEXIST;
 	}
 	nodo.c_date = time(NULL );
 	nodo.m_date = nodo.c_date;
 	nodo.file_size = 0;
-	strcpy((char *) nodo.fname, directorio);
 	nodo.state = 1; // 0: borrado, 1: archivo, 2: directorio
 	memset(nodo.blk_indirect, 0, sizeof(ptrGBloque) * 1000);
 
@@ -195,23 +211,27 @@ int fs_write(const char *path, const char *buf, size_t size, off_t offset,
 
 	uint indice = 0;
 	int err = buscar_bloque_nodo(temp, &indice);
+	free(temp);
 	logger_info(logger, "fs_write: encontre el nodo? :%s indice:%u",
 			(err) ? "no" : "si", indice);
 
-	if (err) // no existe.
-		return -ENOENT;
+	if (err) { // no existe.}
+		return 0;
+	}
 	sem_wait(&mutex_nodos);
 	GFile nodo = nodos[indice];
 	sem_post(&mutex_nodos);
-	ret =  guardar_datos(&nodo, buf, size, offset);
-	logger_info(logger,"escribo");
-	if(!ret){
-		logger_info(logger,"escribo");
+	ret = guardar_datos(&nodo, buf, size, offset);
+	if (!ret) {
 		sem_wait(&mutex_nodos);
 		nodos[indice] = nodo;
 		sem_post(&mutex_nodos);
+		logger_info(logger, "escribo");
+		return size;
+	} else {
+		return 0;
 	}
-	return ret;
+
 }
 
 /*
@@ -225,6 +245,7 @@ int fs_unlink(const char *path) {
 	uint32_t bloque = 0;
 
 	err = buscar_bloque_nodo(temp, &bloque);
+	free(temp);
 	if (err) {
 		return -ENOENT;
 	}
@@ -246,8 +267,16 @@ int fs_unlink(const char *path) {
 int fs_rmdir(const char *path) {
 	char* temp = string_from_format(path, "%s"); // no uso string_duplicate para evitar el warning de tipos.
 	int err = 0;
+	int hijos = 0;
 	uint32_t bloque = 0;
 
+	int filler(void *buf, const char *name,
+	const struct stat *stbuf, off_t off){
+		int *i;
+		i = buf;
+		*i = *name;
+		return 0;
+	}
 	//logger_info(logger, "Elimino directorio");
 	//logear_path("fs_rmdir", temp);
 	if (strcmp(path, "/") == 0) {
@@ -255,10 +284,14 @@ int fs_rmdir(const char *path) {
 	}
 
 	err = buscar_bloque_nodo(temp, &bloque);
+	free(temp);
 	if (err) {
 		return -ENOENT;
 	}
-	//logger_info(logger, "bloque:%i", bloque);
+	err = buscar_nodos_por_padre(bloque,(void *)&hijos,filler);
+	if (err || hijos)
+		return -EPERM;
+
 	sem_wait(&mutex_nodos);
 	if (nodos[bloque].state != 2) {
 		sem_post(&mutex_nodos);
@@ -310,7 +343,6 @@ int fs_getattr(const char * path, struct stat *stat) {
 	 stat->st_gid = 1000;
 	 */
 	//logger_info(logger, "nlink =%i, Mode = %i", stat->st_nlink, stat->st_mode);
-
 	free(temp);
 	return EXIT_SUCCESS;
 }
@@ -324,7 +356,7 @@ int fs_open(const char *path, struct fuse_file_info *fi) {
 	temp = string_from_format(path, "%s");
 	err = buscar_bloque_nodo(temp, &bloque);
 	//logger_info(logger, "fs_open: encontre '%s' ? '%s'.", path,
-			//(err) ? "no" : "si");
+	//(err) ? "no" : "si");
 	if (err) {
 		free(temp);
 		return -ENOENT;
@@ -368,11 +400,24 @@ int fs_readdir(const char *path, void *buffer, fuse_fill_dir_t filler,
 	return EXIT_SUCCESS;
 }
 
-int fs_truncate(const char * path, off_t offset) {
-	// why? because 'fuck you'. That's why	
-	//                               -FUSE
-	// funcion dummy para que no se queje de "function not implemented"
-	return 0;
+int fs_truncate(const char * path, off_t size) {
+	logger_info(logger, "path:%s /noffset:%i", path, size);
+
+	char* temp = string_from_format(path, "%s");
+	uint32_t bloque = 0;
+	int rc = 0; //Return code
+
+	rc = buscar_bloque_nodo(temp, &bloque);
+	free(temp);
+	if (!rc) {
+		sem_wait(&mutex_nodos);
+		nodos[bloque].file_size = size;
+		sem_post(&mutex_nodos);
+	} else {
+		return EXIT_FAILURE;
+	}
+
+	return EXIT_SUCCESS;
 }
 
 //-------------------------------------------------------------------
@@ -456,7 +501,7 @@ int buscar_bloque_por_padre(char *fname, uint32_t bloque_padre,
  * Braulio, hago este metodo porque estaba perdiendo memoria buscar_bloque_nodo.
  * Si el while encontraba un error y retornaba , no liberaba los siguientes nodos del path.
  */
-void liberar_subpath(char** subpath){
+void liberar_subpath(char** subpath) {
 	int i = 0;
 	while (subpath[i] != NULL ) {
 		free(subpath[i]);
@@ -563,14 +608,16 @@ uint get_indice_nodo_vacio() {
 	uint inicio_datos = (header->size_bitmap + 1024 + 1);	// * TAMANIO_BLOQUE;
 	bool fin = false;
 
-	while (!fin && bitmap_bytes_usados > inicio_datos) {
+	while (!fin && (bitmap_bytes_usados * 8) > inicio_datos) {
 		inicio_datos++;
 		sem_wait(&mutex_mapa);
 		fin = !bitarray_test_bit(bitmap, inicio_datos);
 		sem_post(&mutex_mapa);
 	}
-
+	if(fin)
 	return inicio_datos;
+	else
+		return 0;
 }
 
 void set_bloque_usado(uint indice_bloque) {
@@ -585,7 +632,7 @@ void set_bloque_libre(uint indice_bloque) {
 	sem_post(&mutex_mapa);
 }
 
-uint guardar_datos(GFile* archivo, const char* buffer, size_t size,
+int guardar_datos(GFile* archivo, const char* buffer, size_t size,
 		off_t offset) {
 	if (archivo == NULL )
 		return EXIT_FAILURE;
@@ -604,6 +651,9 @@ uint guardar_datos(GFile* archivo, const char* buffer, size_t size,
 	while (!fin && i < 1000) {
 		if (!existe_puntero(archivo->blk_indirect[i])) {
 			archivo->blk_indirect[i] = get_indice_nodo_vacio();
+			if(archivo->blk_indirect[i] == 0)
+				return -ENOSPC;
+
 			logger_info(logger, "bloque indirecto:%i",
 					archivo->blk_indirect[i]);
 			memset(buscar_nodo(archivo->blk_indirect[i]), 0, TAMANIO_BLOQUE);
@@ -620,6 +670,8 @@ uint guardar_datos(GFile* archivo, const char* buffer, size_t size,
 		while (!fin && j < 1024) { //&& existe_puntero(punteros_a_datos[j])){
 			if (!existe_puntero(punteros_a_datos[j])) {
 				punteros_a_datos[j] = get_indice_nodo_vacio();
+				if(punteros_a_datos[j] == 0)
+					return -ENOSPC;
 				logger_info(logger, "bloque datos: %i", punteros_a_datos[j]);
 				memset(buscar_nodo(punteros_a_datos[j]), 0, TAMANIO_BLOQUE);
 				logger_info(logger, "memset");
@@ -661,7 +713,8 @@ uint guardar_datos(GFile* archivo, const char* buffer, size_t size,
 			logger_info(logger, "fin:%i, k: %i,", fin, k);
 		}
 		sem_wait(&mutex_datos);
-		memcpy(buscar_nodo(archivo->blk_indirect[i]),punteros_a_datos, TAMANIO_BLOQUE);
+		memcpy(buscar_nodo(archivo->blk_indirect[i]), punteros_a_datos,
+				TAMANIO_BLOQUE);
 		sem_post(&mutex_datos);
 		j = 0;
 		i++;
@@ -672,13 +725,16 @@ uint guardar_datos(GFile* archivo, const char* buffer, size_t size,
 	 uint j = get_nodo_datos_inicial(i,inicio);// Indice de los punteros a bloques de datos. Max 1024
 	 bool fin = false;
 	 */
+	if (archivo->file_size < (size + offset)) {
+		archivo->file_size = (size + offset);
+	}
 	return EXIT_SUCCESS;
 }
 
 /*
  * Cargo los datos del archivo de grasa en el buffer , con offset e inicio especificados.	
  */
-uint cargar_datos(GFile archivo, char* buffer, size_t offset, off_t inicio) {
+uint cargar_datos(GFile archivo, char* buffer, size_t size, off_t inicio) {
 	uint i = get_nodo_punteros_inicial(inicio); // Indice de los punteros a bloques de punteros. Max 1000.
 	uint j = get_nodo_datos_inicial(i, inicio); // Indice de los punteros a bloques de datos. Max 1024
 	uint k = 0; // Hasta donde cargue en el buffer. Max valor del offset.
@@ -703,11 +759,14 @@ uint cargar_datos(GFile archivo, char* buffer, size_t offset, off_t inicio) {
 			//logger_info(logger,"fs_read: estoy_en_rango:%s inicio:%u offset:%u j:%u",
 			//	estoy_en_rango(inicio, offset, offset_bytes_archivo + j) ? "si":"no" , inicio,offset,offset_bytes_archivo + j);
 
-			if (estoy_en_rango(inicio, offset, offset_bytes_archivo + j)) {
+			if (estoy_en_rango(inicio, size, offset_bytes_archivo + j)) {
 				uint cuantos_bytes_cargar = 0;
 
-				if ((offset - k) < 4096)
-					cuantos_bytes_cargar = (offset - k); //Lo que me falta para el offset.
+				if ((size - k) <= 4096)
+					if (archivo.file_size < size)
+						cuantos_bytes_cargar = archivo.file_size;
+					else
+						cuantos_bytes_cargar = (size - k); //Lo que me falta para el offset.
 				else
 					cuantos_bytes_cargar = 4096; //cargo todo el bloque.
 
@@ -719,7 +778,7 @@ uint cargar_datos(GFile archivo, char* buffer, size_t offset, off_t inicio) {
 			}
 
 			j++;
-			fin = k >= (inicio + offset); //estamos leyendo datos mas alla de lo pedido?
+			fin = k >= (inicio + size) || k >= archivo.file_size; //estamos leyendo datos mas alla de lo pedido?
 
 			//if (fin)	
 			//logger_info(logger,"fs_read: fin lectura");
