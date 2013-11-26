@@ -29,48 +29,31 @@
 
 
 	#else
-		//exceptions for multi-thread programs (NOT WORKING)
+		//exceptions for multi-thread programs
 
-		typedef struct s_thread_try{
-			tad_thread		t;
-			process_status	ps;
-		} thread_try;
+		tad_thread_key try_ps_key;
+		int trys_initialized = 0;
 
-		thread_try	thread_trys[256];
-		int			thread_trys_length = 0;
-
-		static void expand_tta(){
-			thread_trys_length++;
+		void initialize_trycatch(){
+			if(!trys_initialized){
+				trys_initialized = 1;
+				try_ps_key = thread_create_variable();
+			}
 		}
-
-		static thread_try* create_tt(tad_thread t){
-			expand_tta();
-			thread_trys[thread_trys_length].t = t;
-			return &(thread_trys[thread_trys_length]);
-		}
-
-		thread_try* get_tt(tad_thread t){
-			int i;
-			for(i = 0; i < thread_trys_length; i++)
-				if(thread_trys[i].t == t)
-					return thread_trys + i;
-			return create_tt(t);
-		}
-
 
 		#define TRY \
-			tad_thread t = thread_self(); \
-			thread_try* tt = get_tt(t); \
-			int exno = save_process_status(tt->ps); \
+			initialize_trycatch(); \
+			process_status ps; \
+			thread_set_variable(try_ps_key, &ps); \
+			int exno = save_process_status(ps); \
 			if(!exno)
 		#define CATCH(ex) \
 			else if(exno == ex)
 		#define CATCH_OTHER \
 			else
 		#define THROW(ex) \
-			tad_thread t = thread_self(); \
-			thread_try* tt = get_tt(t); \
-			throw_process_status(tt->ps, ex); \
+			process_status* ps = thread_get_variable(try_ps_key); \
+			throw_process_status(*ps, ex); \
 
 
 	#endif /* ifndef THREAD_H_ */
