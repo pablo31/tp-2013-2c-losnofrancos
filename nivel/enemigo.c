@@ -47,18 +47,18 @@ void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self){
 		vector2 nuevaPosicion = vector2_next_step(self->pos,posicion_personaje);
 
 		//controlo si en la posicion a moverse se encuentra una caja
+		/*			if (posicion_sin_caja(nivel,nueva_pos)){
 
-		/*if (posicion_sin_caja(nivel,nuevaPosicion)){
-			self->pos= nuevaPosicion;
-			sleep(1);
-			nivel_gui_dibujar(nivel);
-		}else{
-			self->pos.x --;
-			sleep(1);
-			nivel_gui_dibujar(nivel);
-		}
+						movimientos_faltantes --;
+						self->pos = nueva_pos;
+						sleep(1);
+						//usleep(nivel->sleep_enemigos * 600); //esto es lo que va
+						nivel_gui_dibujar(nivel);
+					}
 		*/
-
+		self->pos= nuevaPosicion;
+		sleep(1);
+		nivel_gui_dibujar(nivel);
 	}
 
 	//cuando sale del while, significa que no tiene personajes el nivel, se invoca a mover en L
