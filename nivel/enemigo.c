@@ -23,9 +23,10 @@ void movimiento_permitido_enemigo(PACKED_ARGS){
 	int cantidad_personajes = list_size(nivel->personajes);
 	mutex_open(nivel->semaforo_personajes);
 
-	if(cantidad_personajes > 0)
+	if(cantidad_personajes > 0){
+		logger_info(nivel->logger, "ENEMIGO: Al ataque!!!.");
 		atacar_al_personaje(nivel,self);
-	else{
+	}else{
 		logger_info(nivel->logger, "ENEMIGO: Nivel sin personajes.");
 		mover_en_L(nivel,self);
 	}
@@ -35,15 +36,33 @@ void movimiento_permitido_enemigo(PACKED_ARGS){
 void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self){
 	//se carga la posicion del personaje que esta mas cerca.
 
-	vector2 posicion_personaje;
+	mutex_close(nivel->semaforo_personajes);
+	int cantidad_personajes = list_size(nivel->personajes);
+	mutex_open(nivel->semaforo_personajes);
 
-	posicion_personaje= buscar_Personaje_Mas_Cercano(nivel,self);
+	while(cantidad_personajes>0){
+		logger_info(nivel->logger, "ENEMIGO: Nivel tiene %d personajes para atacar.", cantidad_personajes);
+		vector2 posicion_personaje;
+		posicion_personaje= buscar_Personaje_Mas_Cercano(nivel,self);
+		vector2 nuevaPosicion = vector2_next_step(self->pos,posicion_personaje);
 
-	vector2 nuevaPosicion = vector2_next_step(self->pos,posicion_personaje);
+		//controlo si en la posicion a moverse se encuentra una caja
 
-	self->pos= nuevaPosicion;
+		/*if (posicion_sin_caja(nivel,nuevaPosicion)){
+			self->pos= nuevaPosicion;
+			sleep(1);
+			nivel_gui_dibujar(nivel);
+		}else{
+			self->pos.x --;
+			sleep(1);
+			nivel_gui_dibujar(nivel);
+		}
+		*/
 
-	nivel_gui_dibujar(nivel);
+	}
+
+	//cuando sale del while, significa que no tiene personajes el nivel, se invoca a mover en L
+	mover_en_L(nivel,self);
 
 }
 
@@ -86,35 +105,50 @@ void mover_en_L(tad_nivel* nivel, tad_enemigo* self){
 
 	int movimientos_faltantes=3;
 
-	while(1){
+	mutex_close(nivel->semaforo_personajes);
+	int cantidad_personajes = list_size(nivel->personajes);
+	mutex_open(nivel->semaforo_personajes);
+
+	while(cantidad_personajes==0){
 
 		while(movimientos_faltantes>0){
 
-				vector2 nueva_pos = vector2_move_in_L(self->pos,random,movimientos_faltantes);
+			//esto es para que cuando ingrese un personaje, salga de los 2 while
+			mutex_close(nivel->semaforo_personajes);
+			cantidad_personajes = list_size(nivel->personajes);
+			mutex_open(nivel->semaforo_personajes);
 
-				//si la posicion esta dentro del mapa se grafica
-				if(vector2_within_map(nueva_pos, limite_mapa)){
+			if(cantidad_personajes > 0){
+				logger_info(nivel->logger, "ENEMIGO: Al ataque Rom rom rooommmmmm.....!!!.");
+				atacar_al_personaje(nivel,self);
+				movimientos_faltantes=0;
+			}
 
-					//controlo si en la posicion a moverse se encuentra una caja
-					if (posicion_sin_caja(nivel,nueva_pos)){
+			vector2 nueva_pos = vector2_move_in_L(self->pos,random,movimientos_faltantes);
 
-						movimientos_faltantes --;
-						self->pos = nueva_pos;
-						sleep(1);
-						//usleep(nivel->sleep_enemigos * 1000); //esto es lo que va
-						nivel_gui_dibujar(nivel);
-					}
-					else{
-						//sino completo la L por esquivar una caja tiene que empezar de nuevo y buscar otra L al azar
-						movimientos_faltantes=0;
-					}
+			//si la posicion esta dentro del mapa se grafica
+			if(vector2_within_map(nueva_pos, limite_mapa)){
 
-				}else{
-					//sino completo la L porque se iba fuera del mapa tiene que empezar de nuevo y buscar otra L al azar
+			//controlo si en la posicion a moverse se encuentra una caja
+				if (posicion_sin_caja(nivel,nueva_pos)){
+
+					movimientos_faltantes --;
+					self->pos = nueva_pos;
+					sleep(1);
+					//usleep(nivel->sleep_enemigos * 600); //esto es lo que va
+					nivel_gui_dibujar(nivel);
+				}
+				else{
+					//sino completo la L por esquivar una caja tiene que empezar de nuevo y buscar otra L al azar
 					movimientos_faltantes=0;
 				}
+
+			}else{
+				//sino completo la L porque se iba fuera del mapa tiene que empezar de nuevo y buscar otra L al azar
+				movimientos_faltantes=0;
+			}
 		}
-		sleep(2); // lo agrego nada mas para visualizar mejor los movimientos cuando pruebo
+		sleep(1); // lo agrego nada mas para visualizar mejor los movimientos cuando pruebo
 		movimientos_faltantes=3;
 		random = rand()%9;
 	}
