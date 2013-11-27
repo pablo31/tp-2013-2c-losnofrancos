@@ -88,6 +88,10 @@ int vector2_between(vector2 v, vector2 min, vector2 max){
 	return v.x > min.x && v.y > min.y && v.x < max.x && v.y < max.y;
 }
 
+int vector2_between_or_equals(vector2 v, vector2 min, vector2 max){
+	return v.x >= min.x && v.y >= min.y && v.x <= max.x && v.y <= max.y;
+}
+
 int vector2_within_map(vector2 v, vector2 map_limits){
 	return vector2_between(v, vector2_new(0,0), map_limits);
 }

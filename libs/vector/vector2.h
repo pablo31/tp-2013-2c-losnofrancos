@@ -33,6 +33,7 @@ int vector2_get_y(vector2 v);
 //Comparacion
 int vector2_equals(vector2 a, vector2 b);
 int vector2_between(vector2 v, vector2 min, vector2 max);
+int vector2_between_or_equals(vector2 v, vector2 min, vector2 max);
 int vector2_within_map(vector2 v, vector2 mapa);
 
 //Operaciones
