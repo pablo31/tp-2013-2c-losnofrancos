@@ -284,7 +284,7 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 			if(personaje->simbolo == simbolo)
 				personaje->pos = pos;
 		mutex_open(self->semaforo_personajes);
-		sleep(1);
+
 		nivel_gui_dibujar(self);
 
 	}else if(tipo == PERSONAJE_SOLICITUD_RECURSO){

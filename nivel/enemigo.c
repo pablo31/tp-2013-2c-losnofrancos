@@ -47,18 +47,38 @@ void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self){
 		vector2 nuevaPosicion = vector2_next_step(self->pos,posicion_personaje);
 
 		//controlo si en la posicion a moverse se encuentra una caja
-		/*			if (posicion_sin_caja(nivel,nueva_pos)){
+		if (posicion_sin_caja(nivel,nuevaPosicion)){
+			self->pos = nuevaPosicion;
+			sleep(1);
+			nivel_gui_dibujar(nivel);
+		}else{
+			self->pos.x = self->pos.x +2; //todo anto cambia esto por favor
+			sleep(1);
+			nivel_gui_dibujar(nivel);
+		}
 
-						movimientos_faltantes --;
-						self->pos = nueva_pos;
-						sleep(1);
-						//usleep(nivel->sleep_enemigos * 600); //esto es lo que va
-						nivel_gui_dibujar(nivel);
-					}
-		*/
-		self->pos= nuevaPosicion;
-		sleep(1);
-		nivel_gui_dibujar(nivel);
+		//si la nueva posicion esta el personaje, encontes matarlo.... MUEJEJEJE... MUEJEJEJE
+		if (vector2_equals(posicion_personaje,self->pos)){
+
+			logger_info(nivel->logger, "ENEMIGO: ATACA HULK CONTENTO!!!!");
+			logger_info(nivel->logger, "ENEMIGO: cantidad de enemimos para aplastar %d", list_size(nivel->personajes));
+
+			//todo desde aca...
+			bool personaje_buscado(void* ptr){
+				return vector2_equals(((tad_personaje*)ptr)->pos, posicion_personaje);
+			}
+
+			//Se busca personaje
+			mutex_close(nivel->semaforo_personajes);
+			tad_personaje* personaje_muerto = list_find(nivel->personajes, personaje_buscado);
+			mutex_open(nivel->semaforo_personajes);
+
+			//todo hasta aca nombre...
+			logger_info(nivel->logger, "ENEMIGO: ATACA HULK CONTENTO personaje aplastado %c !!!!", personaje_muerto->nombre);
+			//se avisa la muerte del personaje por enemigo al planificador
+			socket_send_char(nivel->socket, MUERTE_POR_ENEMIGO, personaje_muerto->simbolo);
+		}
+
 	}
 
 	//cuando sale del while, significa que no tiene personajes el nivel, se invoca a mover en L
