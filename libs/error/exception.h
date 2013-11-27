@@ -18,18 +18,29 @@
 	 * General exception handling
 	 ***************************************************************/
 
-	//public macros
+	//java-style macros
 	#define TRY \
-		PREPARE_TRY; \
+		SAVE_PS; \
 		if(!excno || excno == RETRY_EXCEPTION)
 	#define CATCH(ex) \
 		else if(excno == ex)
 	#define CATCH_OTHER \
 		else
 	#define THROW(ex) \
-		THROW_impl(ex)
+		LOAD_PS(ex)
+
+	//ruby-style macros
 	#define RETRY \
 		THROW(RETRY_EXCEPTION)
+
+	//vb-style macros
+	#define ON \
+		SAVE_PS; \
+		if(excno && excno != RETRY_EXCEPTION)
+	#define EXCEPTION(ex) \
+		if(excno == ex)
+	#define OTHER_EXCEPTION \
+		else
 
 
 	//predefined exceptions
@@ -46,13 +57,13 @@
 		process_status __try_ps;
 		int excno;
 
-		//prepare try implementation macro
-		#define PREPARE_TRY \
+		//try implementation macro
+		#define SAVE_PS \
 			excno = save_process_status(__try_ps)
 
 		//throw implementation macro
-		#define THROW_impl(ex) \
-			throw_process_status(__try_ps, ex)
+		#define LOAD_PS(ex) \
+			set_process_status(__try_ps, ex)
 
 	#else
 
@@ -76,21 +87,22 @@
 		#define excno ptr_to_int(thread_get_variable(__try_excno))
 		#define set_excno(value) thread_set_variable(__try_excno, int_to_ptr(value))
 
-		//prepare try implementation macro
-		#define PREPARE_TRY \
-			PREPARE_TRY_impl1(__LINE__)
-		#define PREPARE_TRY_impl1(line) \
-			PREPARE_TRY_impl2(line)
-		#define PREPARE_TRY_impl2(line) \
-			PREPARE_TRY_impl3(__try_ps ## line)
-		#define PREPARE_TRY_impl3(ps) \
+		//try implementation macro
+		#define SAVE_PS \
+			SAVE_PS_1(__LINE__)
+		#define SAVE_PS_1(unique_id) \
+			SAVE_PS_2(unique_id)
+		#define SAVE_PS_2(unique_id) \
+			SAVE_PS_3(__try_ps ## unique_id)
+		#define SAVE_PS_3(ps) \
 			mutex_close(&__try_mutex); \
-			TRY_initialize \
+			INIT_PS_THREAD_VARIABLES \
 			process_status ps; \
 			thread_set_variable(__try_key, &ps); \
 			mutex_open(&__try_mutex); \
 			set_excno(save_process_status(ps))
-		#define TRY_initialize \
+
+		#define INIT_PS_THREAD_VARIABLES \
 			if(!__try_init){ \
 				__try_init = 1; \
 				__try_key = thread_create_variable(); \
@@ -98,16 +110,16 @@
 			}
 
 		//throw implementation macro
-		#define THROW_impl(ex) \
-			THROW_impl1(ex, __LINE__)
-		#define THROW_impl1(ex, line) \
-			THROW_impl2(ex, line)
-		#define THROW_impl2(ex, line) \
-			THROW_impl3(ex, __throw_ps ## line)
-		#define THROW_impl3(ex, ps) \
+		#define LOAD_PS(ex) \
+			LOAD_PS_1(ex, __LINE__)
+		#define LOAD_PS_1(ex, unique_id) \
+			LOAD_PS_2(ex, unique_id)
+		#define LOAD_PS_2(ex, unique_id) \
+			LOAD_PS_3(ex, __throw_ps ## unique_id)
+		#define LOAD_PS_3(ex, ps) \
 			do{ \
 				process_status* ps = thread_get_variable(__try_key); \
-				throw_process_status(*ps, ex); \
+				set_process_status(*ps, ex); \
 			}while(0)
 
 	#endif /* ifndef THREAD_H_ */

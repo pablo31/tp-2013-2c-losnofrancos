@@ -14,7 +14,7 @@
 //Methods
 #define save_process_status(status) setjmp(status)
 #define load_process_status(status) longjmp(status, 1)
-#define throw_process_status(status, result) longjmp(status, result)
+#define set_process_status(status, result) longjmp(status, result)
 
 //Typedef
 typedef jmp_buf process_status;
