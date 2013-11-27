@@ -147,7 +147,7 @@ void draw(){
 	int collision;
 
 
-	while(block.x >= min.x && block.x <= max.x && block.y >= min.y && block.y <= max.y){
+	while(vector2_between_or_equals(block, min, max)){
 		vector2 real_pos;
 		real_pos.x = block_width * block.x;
 		real_pos.y = block_height * block.y;
