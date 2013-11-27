@@ -10,6 +10,7 @@
 void movimiento_permitido_enemigo(PACKED_ARGS);
 void mover_en_L(tad_nivel* nivel,tad_enemigo* self);
 void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self);
+bool posicion_sin_caja(tad_nivel* nivel, vector2 nueva_pos);
 
 #endif
 

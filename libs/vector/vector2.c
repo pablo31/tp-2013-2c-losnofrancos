@@ -135,8 +135,9 @@ vector2 vector2_next_step(vector2 origin, vector2 target){
 
 vector2 vector2_move_in_L(vector2 enemigo_pos,int random, int cantidad){
 
-	if (random ==1){
-		//horrible, si, feo muy feo, también, pero es simple... =)
+	switch (random) {
+
+	case 1:
 		if (cantidad==1){
 			enemigo_pos.y ++;
 		}else if (cantidad==2){
@@ -144,9 +145,8 @@ vector2 vector2_move_in_L(vector2 enemigo_pos,int random, int cantidad){
 		}else if (cantidad==3){
 			enemigo_pos.x --;
 		}
-		//copiar, pegar...copiar, pegar.... jorge piensa menos...=)   jorge contento como Hulk
-	}else if (random ==2){
-		//horrible, si, feo muy feo, también, pero es simple... =)
+		 break;
+	case 2:
 		if (cantidad==1){
 			enemigo_pos.y ++;
 		}else if (cantidad==2){
@@ -154,9 +154,8 @@ vector2 vector2_move_in_L(vector2 enemigo_pos,int random, int cantidad){
 		}else if (cantidad==3){
 			enemigo_pos.x ++;
 		}
-		//copiar, pegar...copiar, pegar.... jorge piensa menos...=)   jorge contento como Hulk
-	}else if (random ==3){
-		//horrible, si, feo muy feo, también, pero es simple... =)
+		break;
+	case 3:
 		if (cantidad==1){
 			enemigo_pos.y --;
 		}else if (cantidad==2){
@@ -164,9 +163,8 @@ vector2 vector2_move_in_L(vector2 enemigo_pos,int random, int cantidad){
 		}else if (cantidad==3){
 			enemigo_pos.x ++;
 		}
-		//copiar, pegar...copiar, pegar.... jorge piensa menos...=)   jorge contento como Hulk
-	}else if (random ==4){
-		//horrible, si, feo muy feo, también, pero es simple... =)
+		break;
+	case 4:
 		if (cantidad==1){
 			enemigo_pos.y --;
 		}else if (cantidad==2){
@@ -174,9 +172,8 @@ vector2 vector2_move_in_L(vector2 enemigo_pos,int random, int cantidad){
 		}else if (cantidad==3){
 			enemigo_pos.x --;
 		}
-		//copiar, pegar...copiar, pegar.... jorge piensa menos...=)   jorge contento como Hulk
-	}else if (random ==5){
-		//horrible, si, feo muy feo, también, pero es simple... =)
+		break;
+	case 5:
 		if (cantidad==1){
 			enemigo_pos.x ++;
 		}else if (cantidad==2){
@@ -184,8 +181,8 @@ vector2 vector2_move_in_L(vector2 enemigo_pos,int random, int cantidad){
 		}else if (cantidad==3){
 			enemigo_pos.y ++;
 		}
-	}else if (random ==6){
-		//horrible, si, feo muy feo, también, pero es simple... =)
+		break;
+	case 6:
 		if (cantidad==1){
 			enemigo_pos.x ++;
 		}else if (cantidad==2){
@@ -193,9 +190,8 @@ vector2 vector2_move_in_L(vector2 enemigo_pos,int random, int cantidad){
 		}else if (cantidad==3){
 			enemigo_pos.y --;
 		}
-		//copiar, pegar...copiar, pegar.... jorge piensa menos...=)   jorge contento como Hulk
-	}else if (random ==7){
-		//horrible, si, feo muy feo, también, pero es simple... =)
+		break;
+	case 7:
 		if (cantidad==1){
 			enemigo_pos.x --;
 		}else if (cantidad==2){
@@ -203,9 +199,8 @@ vector2 vector2_move_in_L(vector2 enemigo_pos,int random, int cantidad){
 		}else if (cantidad==3){
 			enemigo_pos.y ++;
 		}
-		//copiar, pegar...copiar, pegar.... jorge piensa menos...=)   jorge contento como Hulk
-	}else if (random ==8){
-		//horrible, si, feo muy feo, también, pero es simple... =)
+		break;
+	case 8:
 		if (cantidad==1){
 			enemigo_pos.x --;
 		}else if (cantidad==2){
@@ -213,8 +208,9 @@ vector2 vector2_move_in_L(vector2 enemigo_pos,int random, int cantidad){
 		}else if (cantidad==3){
 			enemigo_pos.y --;
 		}
+
 	}
-	//copiar, pegar...copiar, pegar.... jorge piensa menos...=)   jorge contento como Hulk
+
 	return enemigo_pos;
 }
 

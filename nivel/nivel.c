@@ -295,7 +295,7 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 
 		nivel_otorgar_recurso_con_error(self,simbolo_personaje,simbolo_recurso);
 
-	}else if(tipo == PERSONAJE_DESCONEXION){ // o si el personaje murio
+	}else if(tipo == PERSONAJE_DESCONEXION){
 		char simbolo = package_get_char(paquete);
 
 		bool personaje_buscado(void* ptr){

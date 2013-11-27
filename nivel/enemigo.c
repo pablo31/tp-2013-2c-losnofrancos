@@ -19,26 +19,32 @@ void movimiento_permitido_enemigo(PACKED_ARGS){
 		//salga del mapa
 		//pase por arriba de una caja
 
-	if(list_size(nivel->personajes) > 0)
-			atacar_al_personaje(nivel,self);
-		else{
-			logger_info(nivel->logger, "ENEMIGO: Nivel sin enemigos.");
-			mover_en_L(nivel,self);
-		}
+	mutex_close(nivel->semaforo_personajes);
+	int cantidad_personajes = list_size(nivel->personajes);
+	mutex_open(nivel->semaforo_personajes);
+
+	if(cantidad_personajes > 0)
+		atacar_al_personaje(nivel,self);
+	else{
+		logger_info(nivel->logger, "ENEMIGO: Nivel sin personajes.");
+		mover_en_L(nivel,self);
+	}
 
 }
 
 void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self){
 	//se carga la posicion del personaje que esta mas cerca.
+
 	vector2 posicion_personaje;
-		posicion_personaje= buscar_Personaje_Mas_Cercano(nivel,self);
 
-		vector2 nuevaPosicion = vector2_next_step(self->pos,posicion_personaje);
+	posicion_personaje= buscar_Personaje_Mas_Cercano(nivel,self);
 
-		self->pos= nuevaPosicion;
+	vector2 nuevaPosicion = vector2_next_step(self->pos,posicion_personaje);
 
+	self->pos= nuevaPosicion;
 
 	nivel_gui_dibujar(nivel);
+
 }
 
 vector2 buscar_Personaje_Mas_Cercano(tad_nivel* nivel,tad_enemigo* self){
@@ -78,35 +84,59 @@ void mover_en_L(tad_nivel* nivel, tad_enemigo* self){
 
 	int random = rand()%9; //random 0,8
 
-	int completo_movimiento_L=1;
-	int cantidad_movimiento=3;
+	int movimientos_faltantes=3;
 
 	while(1){
 
-		while(cantidad_movimiento>0){
+		while(movimientos_faltantes>0){
 
-					if (completo_movimiento_L){
-						vector2 nueva_pos = vector2_move_in_L(self->pos,random,cantidad_movimiento);
+				vector2 nueva_pos = vector2_move_in_L(self->pos,random,movimientos_faltantes);
 
-						//si la posicion esta dentro del mapa se grafica, sino no, contando el movimiento en L
-						if(vector2_within_map(nueva_pos, limite_mapa)){
-							cantidad_movimiento --;
-							self->pos = nueva_pos;
-							sleep(1);
-							//usleep(nivel->sleep_enemigos * 1000);
-							nivel_gui_dibujar(nivel);
-						}else{
-							//sino completo la L, tiene que buscar otra L azar
-							cantidad_movimiento=0;
-							completo_movimiento_L =0;
-						}
+				//si la posicion esta dentro del mapa se grafica
+				if(vector2_within_map(nueva_pos, limite_mapa)){
 
+					//controlo si en la posicion a moverse se encuentra una caja
+					if (posicion_sin_caja(nivel,nueva_pos)){
+
+						movimientos_faltantes --;
+						self->pos = nueva_pos;
+						sleep(1);
+						//usleep(nivel->sleep_enemigos * 1000); //esto es lo que va
+						nivel_gui_dibujar(nivel);
 					}
-			}
-		completo_movimiento_L=1;
-		cantidad_movimiento=3;
+					else{
+						//sino completo la L por esquivar una caja tiene que empezar de nuevo y buscar otra L al azar
+						movimientos_faltantes=0;
+					}
+
+				}else{
+					//sino completo la L porque se iba fuera del mapa tiene que empezar de nuevo y buscar otra L al azar
+					movimientos_faltantes=0;
+				}
+		}
+		sleep(2); // lo agrego nada mas para visualizar mejor los movimientos cuando pruebo
+		movimientos_faltantes=3;
+		random = rand()%9;
 	}
 
+}
+
+bool posicion_sin_caja(tad_nivel* nivel, vector2 nueva_pos){
+
+	mutex_close(nivel->semaforo_cajas);
+
+	bool caja_buscada(void* ptr){
+		return vector2_equals(((tad_caja*)ptr)->pos, nueva_pos);
+	}
+	tad_caja* caja_a_esquivar = list_find(nivel->cajas, caja_buscada);
+
+	mutex_open(nivel->semaforo_cajas);
+
+	if (caja_a_esquivar == NULL)
+		return true;
+	else
+		logger_info(nivel->logger, "ENEMIGO: Esquivo caja: %s.", caja_a_esquivar->nombre);
+		return false;
 
 }
 
