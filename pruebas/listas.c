@@ -23,10 +23,10 @@ int main(void){
 	alloc(elem, int);
 	*elem = 1;
 	round_add(round, elem);
-	ralloc(elem);
+	alloc(elem);
 	*elem = 2;
 	round_add(round, elem);
-	ralloc(elem);
+	alloc(elem);
 	*elem = 3;
 	round_add(round, elem);
 

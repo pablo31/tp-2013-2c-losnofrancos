@@ -27,7 +27,6 @@ class(my_class){
 /***************************************************************
  * Ejemplo de funcion con sobrecarga en cantidad de parametros
  ***************************************************************/
-#include "../libs/overload.h"
 #define min(args...) overload(min, args)
 
 int min(){

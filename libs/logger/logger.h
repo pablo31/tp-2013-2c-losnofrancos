@@ -10,6 +10,7 @@
 
 #include <stdarg.h>
 
+#include "../common.h"
 
 
 struct s_logger{
@@ -20,7 +21,6 @@ typedef struct s_logger tad_logger;
 
 
 //overloads
-#include "../overload.h"
 #define logger_initialize(args...) overload(logger_initialize, args)
 #define logger_new_instance(args...) overload_hasargs(logger_new_instance, args)
 

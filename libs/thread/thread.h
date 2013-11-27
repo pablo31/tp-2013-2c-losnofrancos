@@ -11,7 +11,7 @@
 #include <pthread.h>
 
 #include "../command/command.h"
-#include "../overload.h"
+#include "../common.h"
 
 #define thread_create_variable(args...) overload(thread_create_variable, args)
 
