@@ -11,6 +11,8 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
+#include "../common.h"
+
 #include "arguments.h"
 
 
@@ -44,7 +46,6 @@ void command_dispose(tad_command* command);
 	__arg = get_next_argument(__r_md_argsptr)
 
 
-#include "../overload.h"
 //overloaded packed-args macro
 #define UNPACK_ARGS(...) \
 	overload(UNPACK_ARGS, __VA_ARGS__)

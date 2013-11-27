@@ -23,5 +23,8 @@ void mutex_open(tad_mutex* mutex);
 //Libera los recursos del semaforo
 void mutex_dispose(tad_mutex* mutex);
 
+//Semaforos estaticos
+#define mutex_static PTHREAD_MUTEX_INITIALIZER
+
 
 #endif /* SEMAFORO_H_ */

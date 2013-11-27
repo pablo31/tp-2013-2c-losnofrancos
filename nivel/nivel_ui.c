@@ -2,6 +2,7 @@
 #include <sys/ioctl.h>
 #include <curses.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "nivel.h"
 #include "nivel_ui.h"
@@ -38,6 +39,146 @@ void nivel_gui_get_area_nivel(int as_out rows, int as_out cols){
 }
 
 
+
+/***************************************************************
+ * INTRO
+ ***************************************************************/
+
+enum DIRECTIONS {
+	UP = 0,
+	RIGHT = 1,
+	DOWN = 2,
+	LEFT = 3
+};
+private int direction;
+
+private void gotoxy(int x, int y){
+	wmove(mainwin, y, x);
+}
+private void add_char(char c){
+	waddch(mainwin, c | COLOR_PAIR(4));
+}
+
+private vector2 get_next_block(vector2 block, vector2 min, vector2 max, int as_out up_collision){
+	set up_collision = 0;
+
+	vector2 next_block = block;
+
+	direction--;
+
+	do{
+		direction++;
+		if(direction > 3) direction = 0;
+
+		vector2 movement;
+
+		switch(direction){
+		case UP: movement = vector2_new(0, -1); break;
+		case RIGHT: movement = vector2_new(1, 0); break;
+		case DOWN: movement = vector2_new(0, 1); break;
+		case LEFT: movement = vector2_new(-1, 0); break;
+		}
+
+		next_block = vector2_add(block, movement);
+
+	}while(!vector2_between_or_equals(next_block, min, max));
+
+	if(vector2_equals(next_block, min)){
+		next_block = vector2_new(min.x + 1, min.y + 1);
+		set up_collision = 1;
+	}
+
+	return next_block;
+}
+
+private int wacum = 0;
+private int hacum = 0;
+private void draw_block(vector2 screen_pos, float block_width, float block_height){
+	wacum = block_width - (int)block_width;
+	int deltaw;
+	if(wacum >= 1){
+		deltaw = 1;
+		wacum--;
+	}else
+		deltaw = 0;
+
+	hacum = block_width - (int)block_width;
+	int deltah;
+	if(hacum >= 1){
+		deltah = 1;
+		hacum--;
+	}else
+		deltah = 0;
+
+	int x; int y;
+	for(x = 0; x < block_width + deltaw; x++){
+		for(y = 0; y < block_height + deltah; y++){
+			gotoxy(screen_pos.x + x, screen_pos.y + y);
+			add_char(' ');
+		}
+	}
+	wrefresh(mainwin);
+}
+
+private void nivel_gui_do_intro(){
+	werase(mainwin);
+
+	//user-def constants
+	int blocks = 20; //grid
+	int total_time = 2400; //miliseconds
+
+	//constants
+	vector2 win_bounds = vector2_new(cols, rows);
+	int width = win_bounds.x - 1;
+	int height = win_bounds.y - 1;
+	float block_width = (float)width / blocks;
+	float block_height = (float)height / blocks;
+
+	int area = blocks * blocks;
+	int u_total_time = total_time * 1000;
+	int interval = u_total_time / area;
+
+	//initial pos & direction
+	direction = RIGHT;
+	vector2 min = vector2_new(0, 0);
+	vector2 max = vector2_new(blocks - 1, blocks - 1);
+	vector2 block = min;
+	int collision;
+
+	//imprimimos un texto en el centro
+	vector2 pos = vector2_divide(win_bounds, 2);
+	char* text = "LosNoFrancos 2013";
+	pos.x -= strlen(text) / 2;
+	gotoxy(pos.x, pos.y);
+	wprintw(mainwin, text);
+
+
+	while(vector2_between_or_equals(block, min, max)){
+		vector2 real_pos;
+		real_pos.x = block_width * block.x;
+		real_pos.y = block_height * block.y;
+		draw_block(real_pos, block_width, block_height);
+
+		usleep(interval);
+
+		block = get_next_block(block, min, max, out collision);
+		if(collision){
+			min.x++;
+			min.y++;
+			max.x--;
+			max.y--;
+		}
+	}
+}
+
+
+
+
+/***************************************************************
+ * LOGICA
+ ***************************************************************/
+
+
 void nivel_gui_inicializar(){
 	logger = logger_new_instance("GUI");
 
@@ -48,10 +189,16 @@ void nivel_gui_inicializar(){
 	init_pair(1,COLOR_GREEN, COLOR_BLACK);
 	init_pair(2,COLOR_WHITE, COLOR_BLACK);
 	init_pair(3,COLOR_BLACK, COLOR_YELLOW);
+	init_pair(4, COLOR_BLACK, COLOR_RED);
+
+	nivel_gui_get_term_size(out rows, out cols);
+
+	nivel_gui_do_intro();
+
+	werase(mainwin);
 	box(stdscr, 0, 0);
 	refresh();
 
-	nivel_gui_get_term_size(out rows, out cols);
 	logger_info(logger, "Consola de %d filas y %d columnas", rows, cols);
 
 	secwin = newwin(rows - 2, cols, 0, 0);

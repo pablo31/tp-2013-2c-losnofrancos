@@ -14,13 +14,13 @@
 
 
 
-
-typedef struct s_phone{
+class(phone){
 	void* object;
 	int (*id_getter)(void*);
 	void (*destroyer)(void*);
 	tad_command* command;
-} phone;
+};
+
 
 
 //Devuelve el puntero a la tabla de fds del multiplexor

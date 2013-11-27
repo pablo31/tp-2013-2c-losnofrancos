@@ -88,6 +88,10 @@ int vector2_between(vector2 v, vector2 min, vector2 max){
 	return v.x > min.x && v.y > min.y && v.x < max.x && v.y < max.y;
 }
 
+int vector2_between_or_equals(vector2 v, vector2 min, vector2 max){
+	return v.x >= min.x && v.y >= min.y && v.x <= max.x && v.y <= max.y;
+}
+
 int vector2_within_map(vector2 v, vector2 map_limits){
 	return vector2_between(v, vector2_new(0,0), map_limits);
 }
@@ -134,6 +138,8 @@ vector2 vector2_next_step(vector2 origin, vector2 target){
 
 
 vector2 vector2_move_in_L(vector2 enemigo_pos,int random, int cantidad){
+	//padre nuestro que estas en los cielos santificado sea tu nombre......
+	//perdona *sus* ifs
 
 	switch (random) {
 

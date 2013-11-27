@@ -42,7 +42,7 @@ private void gotopos(vector2 pos){
 	gotoxy(pos.x, pos.y);
 }
 private void add_char(char c){
-	waddch(mainwin, c);
+	waddch(mainwin, c | COLOR_PAIR(2));
 }
 
 
@@ -58,37 +58,37 @@ int direction;
 vector2 win_bounds;
 
 
+
 vector2 get_next_block(vector2 block, vector2 min, vector2 max, int as_out up_collision){
 	set up_collision = 0;
-	//horrible
-	switch(direction){
-	case UP:
-		if(block.y == min.y + 1){
-			set up_collision = 1;
-			direction = RIGHT;
-			return vector2_add_x(block, 1);
-		}else
-			return vector2_add_y(block, -1);
-	case DOWN:
-		if(block.y == max.y){
-			direction = LEFT;
-			return vector2_add_x(block, -1);
-		}else
-			return vector2_add_y(block, 1);
-	case RIGHT:
-		if(block.x == max.x){
-			direction = DOWN;
-			return vector2_add_y(block, 1);
-		}else
-			return vector2_add_x(block, 1);
-	case LEFT:
-		if(block.x == min.x){
-			direction = UP;
-			return vector2_add_y(block, -1);
-		}else
-			return vector2_add_x(block, -1);
+
+	vector2 next_block = block;
+
+	direction--;
+
+	do{
+		direction++;
+		if(direction > 3) direction = 0;
+
+		vector2 movement;
+
+		switch(direction){
+		case UP: movement = vector2_new(0, -1); break;
+		case RIGHT: movement = vector2_new(1, 0); break;
+		case DOWN: movement = vector2_new(0, 1); break;
+		case LEFT: movement = vector2_new(-1, 0); break;
+		}
+
+		next_block = vector2_add(block, movement);
+
+	}while(!vector2_between_or_equals(next_block, min, max));
+
+	if(vector2_equals(next_block, min)){
+		next_block = vector2_new(min.x + 1, min.y + 1);
+		set up_collision = 1;
 	}
-	return block;
+
+	return next_block;
 }
 
 
@@ -115,7 +115,7 @@ void draw_block(vector2 screen_pos, float block_width, float block_height){
 	for(x = 0; x < block_width + deltaw; x++){
 		for(y = 0; y < block_height + deltah; y++){
 			gotoxy(screen_pos.x + x, screen_pos.y + y);
-			add_char('0');
+			add_char(' ');
 		}
 	}
 	wrefresh(mainwin);
@@ -142,12 +142,12 @@ void draw(){
 	//initial pos & direction
 	direction = RIGHT;
 	vector2 min = vector2_new(0, 0);
-	vector2 max = vector2_new(blocks, blocks);
+	vector2 max = vector2_new(blocks - 1, blocks - 1);
 	vector2 block = min;
 	int collision;
 
 
-	while(block.x >= min.x && block.x <= max.x && block.y >= min.y && block.y <= max.y){
+	while(vector2_between_or_equals(block, min, max)){
 		vector2 real_pos;
 		real_pos.x = block_width * block.x;
 		real_pos.y = block_height * block.y;

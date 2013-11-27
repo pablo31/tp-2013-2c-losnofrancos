@@ -19,10 +19,10 @@ void signal_dispose_all();
 
 //handler dynamic declaration
 #define signal_dynamic_handler(signal_id, call) \
-	void __r_md_shf##signal_id(void){ \
+	void __r_md_shf_##signal_id(void){ \
 		call; \
 	} \
-	signal_declare_handler(signal_id, __r_md_shf##signal_id, 0);
+	signal_declare_handler(signal_id, __r_md_shf_##signal_id, 0);
 
 
 #endif /* SIGNAL_H_ */

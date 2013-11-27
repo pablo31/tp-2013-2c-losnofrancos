@@ -43,6 +43,33 @@ void thread_join(tad_thread thread){
 	pthread_detach(thread);
 }
 
+tad_thread thread_self(){
+	return pthread_self();
+}
+
+int thread_equals(tad_thread a, tad_thread b){
+	return pthread_equal(a, b);
+}
+
+tad_thread_key thread_create_variable(void(*destroyer)(void*)){
+	pthread_key_t key;
+	pthread_key_create(&key, destroyer);
+	return key;
+}
+
+tad_thread_key thread_create_variable(){
+	return thread_create_variable(null);
+}
+
+void* thread_get_variable(tad_thread_key key){
+	return pthread_getspecific(key);
+}
+
+void thread_set_variable(tad_thread_key key, void* pointer){
+	pthread_setspecific(key, pointer);
+}
+
+
 /********************************************************
  * THREAD BEGIN & EXECUTION *****************************
  ********************************************************/
