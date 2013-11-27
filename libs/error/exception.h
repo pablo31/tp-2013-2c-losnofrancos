@@ -13,6 +13,29 @@
 
 #ifndef EXCEPTION_H_
 #define EXCEPTION_H_
+
+	/***************************************************************
+	 * General exception handling
+	 ***************************************************************/
+
+	//public macros
+	#define TRY \
+		PREPARE_TRY; \
+		if(!excno || excno == RETRY_EXCEPTION)
+	#define CATCH(ex) \
+		else if(excno == ex)
+	#define CATCH_OTHER \
+		else
+	#define THROW(ex) \
+		THROW_impl(ex)
+	#define RETRY \
+		THROW(RETRY_EXCEPTION)
+
+
+	//predefined exceptions
+	#define RETRY_EXCEPTION 1
+
+
 	#ifndef THREAD_H_
 
 	/***************************************************************
@@ -23,17 +46,13 @@
 		process_status __try_ps;
 		int excno;
 
-		//public macros
-		#define TRY \
-			excno = save_process_status(__try_ps); \
-			if(!excno)
-		#define CATCH(ex) \
-			else if(excno == ex)
-		#define CATCH_OTHER \
-			else
-		#define THROW(ex) \
-			throw_process_status(__try_ps, ex)
+		//prepare try implementation macro
+		#define PREPARE_TRY \
+			excno = save_process_status(__try_ps)
 
+		//throw implementation macro
+		#define THROW_impl(ex) \
+			throw_process_status(__try_ps, ex)
 
 	#else
 
@@ -53,47 +72,43 @@
 		#define ptr_to_int(ptr) (int)(intptr_t)ptr
 		#define int_to_ptr(value) (void*)(intptr_t)value
 
-		//exception number macros
+		//exception number implementation macro
 		#define excno ptr_to_int(thread_get_variable(__try_excno))
 		#define set_excno(value) thread_set_variable(__try_excno, int_to_ptr(value))
 
-		//public macros
-		#define TRY \
-			TRY_impl1(__LINE__)
-		#define CATCH(ex) \
-			else if(excno == ex)
-		#define CATCH_OTHER \
-			else
-		#define THROW(ex) \
-			THROW_impl1(ex, __LINE__)
-
-		//private macros
-		#define TRY_impl1(line) \
-			TRY_impl2(line)
-		#define TRY_impl2(line) \
-			TRY_impl3(__try_ps ## line)
-		#define TRY_impl3(ps) \
+		//prepare try implementation macro
+		#define PREPARE_TRY \
+			PREPARE_TRY_impl1(__LINE__)
+		#define PREPARE_TRY_impl1(line) \
+			PREPARE_TRY_impl2(line)
+		#define PREPARE_TRY_impl2(line) \
+			PREPARE_TRY_impl3(__try_ps ## line)
+		#define PREPARE_TRY_impl3(ps) \
 			mutex_close(&__try_mutex); \
 			TRY_initialize \
 			process_status ps; \
 			thread_set_variable(__try_key, &ps); \
 			mutex_open(&__try_mutex); \
-			set_excno(save_process_status(ps)); \
-			if(!excno)
+			set_excno(save_process_status(ps))
 		#define TRY_initialize \
 			if(!__try_init){ \
 				__try_init = 1; \
 				__try_key = thread_create_variable(); \
 				__try_excno = thread_create_variable(); \
 			}
+
+		//throw implementation macro
+		#define THROW_impl(ex) \
+			THROW_impl1(ex, __LINE__)
 		#define THROW_impl1(ex, line) \
 			THROW_impl2(ex, line)
 		#define THROW_impl2(ex, line) \
 			THROW_impl3(ex, __throw_ps ## line)
 		#define THROW_impl3(ex, ps) \
-			process_status* ps = thread_get_variable(__try_key); \
-			throw_process_status(*ps, ex);
-
+			do{ \
+				process_status* ps = thread_get_variable(__try_key); \
+				throw_process_status(*ps, ex); \
+			}while(0)
 
 	#endif /* ifndef THREAD_H_ */
 #endif /* ifndef EXCEPTION_H_ */
