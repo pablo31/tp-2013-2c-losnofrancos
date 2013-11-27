@@ -13,7 +13,6 @@
 #include "../libs/common.h"
 #include "../libs/error/exception.h"
 
-
 private int a; //variable global con threads......combinacion letal
 
 private void problematic_function(int excepcion_a_arrojar){

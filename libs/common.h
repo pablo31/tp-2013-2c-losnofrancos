@@ -81,7 +81,7 @@ typedef unsigned short int uint16;
 
 	//private macros
 	#define alloc1(obj) \
-			obj = malloc(sizeof(typeof(obj)))
+		obj = malloc(sizeof(typeof(obj)))
 	#define alloc2(obj, type) \
 		type* obj = malloc(sizeof(type))
 
@@ -147,7 +147,7 @@ typedef unsigned short int uint16;
 		*
 
 /***************************************
- * Foreach macro
+ * List Foreach macro
  ***************************************/
 	/* ejemplo de uso de foreach ************
 	 * t_list* mi_lista;
@@ -169,7 +169,7 @@ typedef unsigned short int uint16;
 		for(elem_ptr = list->head; elem_ptr != null; elem_ptr = elem_ptr->next, item = elem_ptr?elem_ptr->data:null)
 
 /***************************************
- * Remove Where macro
+ * List Remove Where macro
  ***************************************/
 	/* ejemplo de uso de list_remove_where ***********************
 	 * list_remove_where(lista, tipo* nombre_item, condicion)
