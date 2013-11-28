@@ -74,7 +74,9 @@ class(tad_nivel){
 
 tad_logger* get_logger(tad_nivel* self);
 char* get_config_path(tad_nivel* self);
-void liberar_recursos_del_personaje(tad_personaje* personaje, t_list* lista_recursos);
-void nivel_otorgar_recurso_con_error(tad_nivel* self, char simbolo_personaje, char simbolo_recurso);
+void evaluar_solicitud_recurso(tad_nivel* self, char simbolo_personaje, char simbolo_recurso);
+void otorgar_recurso(tad_nivel* self, tad_personaje* personaje_solicitud, char simbolo_recurso);
+void liberar_y_reasignar_recursos(tad_nivel* self, tad_personaje* personaje_muerto);
+
 #endif
  

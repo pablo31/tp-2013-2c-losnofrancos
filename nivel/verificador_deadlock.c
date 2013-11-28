@@ -6,6 +6,24 @@
 #include "../libs/protocol/protocol.h"
 #include "verificador_deadlock.h"
 
+void liberar_recursos_del_personaje(tad_personaje* personaje, t_list* recursos_disponibles) {
+
+	foreach (recurso_personaje, personaje->recursos_asignados, tad_recurso*){
+
+		tad_recurso* recurso_p = recurso_personaje;
+
+		bool encontre_recurso (tad_recurso* recurso_aux){
+			return (recurso_p->simbolo == recurso_aux->simbolo);
+		}
+
+		tad_recurso* recurso_aux = list_find (recursos_disponibles, (void*) encontre_recurso);
+
+		recurso_aux->cantidad += recurso_personaje->cantidad;
+	}
+	list_clean(personaje->recursos_asignados);
+}
+
+
 
 /* Logica algoritmo de deteccion de deadlock
  *
@@ -120,10 +138,7 @@ void verificador_deadlock(PACKED_ARGS){
 						recurso_p->cantidad = 1;
 
 						int encontre_recurso (tad_recurso* caja_recurso){
-							if (recurso_p->simbolo == caja_recurso->simbolo)
-								return 1;
-							else
-								return 0;
+							return (recurso_p->simbolo == caja_recurso->simbolo);
 						}
 
 						tad_recurso* caja_recurso= list_find(recursos_disponibles, (void*) encontre_recurso);
