@@ -11,10 +11,17 @@
 #include "../libs/protocol/protocol.h"
 #include "../libs/common/collections/list.h"
 
+#define ARRIBA 0
+#define ABAJO 1
+#define IZQUIERDA 2
+#define DERECHA 3
+
 void movimiento_permitido_enemigo(PACKED_ARGS);
 void mover_en_L(tad_nivel* nivel,tad_enemigo* self);
 void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self);
 bool posicion_sin_caja(tad_nivel* nivel, vector2 nueva_pos);
+vector2 esquivar_caja (vector2 posicion_actual,vector2 nueva_posicion, tad_nivel* nivel);
+int calcular_direccion_movimiento(vector2 pos1, vector2 pos2);
 
 #endif
 

@@ -36,6 +36,8 @@ void movimiento_permitido_enemigo(PACKED_ARGS){
 void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self){
 	//se carga la posicion del personaje que esta mas cerca.
 
+	vector2 posicion_actual;
+
 	mutex_close(nivel->semaforo_personajes);
 	int cantidad_personajes = list_size(nivel->personajes);
 	mutex_open(nivel->semaforo_personajes);
@@ -43,27 +45,33 @@ void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self){
 	while(cantidad_personajes>0){
 		logger_info(nivel->logger, "ENEMIGO: Nivel tiene %d personajes para atacar.", cantidad_personajes);
 		vector2 posicion_personaje;
+
+		mutex_close(nivel->semaforo_personajes);
+		mutex_close(nivel->semaforo_enemigos);
 		posicion_personaje= buscar_Personaje_Mas_Cercano(nivel,self);
-		vector2 nuevaPosicion = vector2_next_step(self->pos,posicion_personaje);
+		posicion_actual= self->pos;
+		vector2 nueva_posicion = vector2_next_step(posicion_actual,posicion_personaje);
 
 		//controlo si en la posicion a moverse se encuentra una caja
-		if (posicion_sin_caja(nivel,nuevaPosicion)){
-			self->pos = nuevaPosicion;
+		if (posicion_sin_caja(nivel,nueva_posicion)){
+			self->pos = nueva_posicion;
 			sleep(1);
-			nivel_gui_dibujar(nivel);
-		}else{
-			self->pos.x = self->pos.x +2; //todo anto cambia esto por favor
+		}else{ //si hay una caja busco un movimiento alternativo para esquivarla
+			vector2 posicion_alternativa = esquivar_caja(posicion_actual,nueva_posicion,nivel);
 			sleep(1);
-			nivel_gui_dibujar(nivel);
+			self->pos = posicion_alternativa;
 		}
+		mutex_open(nivel->semaforo_enemigos);
+		mutex_open(nivel->semaforo_personajes);
 
-		//si la nueva posicion esta el personaje, encontes matarlo.... MUEJEJEJE... MUEJEJEJE
+		nivel_gui_dibujar(nivel);
+
+		//si en la nueva posicion se encuentra el personaje se considera atrapado y se informa su muerte.
+
+		mutex_close(nivel->semaforo_enemigos);
 		if (vector2_equals(posicion_personaje,self->pos)){
+			logger_info(nivel->logger, "ENEMIGO: un personaje fue alcanzado.");
 
-			logger_info(nivel->logger, "ENEMIGO: ATACA HULK CONTENTO!!!!");
-			logger_info(nivel->logger, "ENEMIGO: cantidad de enemimos para aplastar %d", list_size(nivel->personajes));
-
-			//todo desde aca...
 			bool personaje_buscado(void* ptr){
 				return vector2_equals(((tad_personaje*)ptr)->pos, posicion_personaje);
 			}
@@ -73,14 +81,12 @@ void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self){
 			tad_personaje* personaje_muerto = list_find(nivel->personajes, personaje_buscado);
 			mutex_open(nivel->semaforo_personajes);
 
+			logger_info(nivel->logger, "ENEMIGO: murio el personaje %s al ser atrapado por un enemigo.", personaje_muerto->nombre);
 
-
-			//todo hasta aca nombre...
-			logger_info(nivel->logger, "ENEMIGO: ATACA HULK CONTENTO personaje aplastado %c !!!!", personaje_muerto->nombre);
 			//se avisa la muerte del personaje por enemigo al planificador
 			socket_send_char(nivel->socket, MUERTE_POR_ENEMIGO, personaje_muerto->simbolo);
 		}
-
+		mutex_open(nivel->semaforo_enemigos);
 	}
 
 	//cuando sale del while, significa que no tiene personajes el nivel, se invoca a mover en L
@@ -144,8 +150,9 @@ void mover_en_L(tad_nivel* nivel, tad_enemigo* self){
 				atacar_al_personaje(nivel,self);
 				movimientos_faltantes=0;
 			}
-
+			mutex_close(nivel->semaforo_enemigos);
 			vector2 nueva_pos = vector2_move_in_L(self->pos,random,movimientos_faltantes);
+			mutex_open(nivel->semaforo_enemigos);
 
 			//si la posicion esta dentro del mapa se grafica
 			if(vector2_within_map(nueva_pos, limite_mapa)){
@@ -199,6 +206,71 @@ bool posicion_sin_caja(tad_nivel* nivel, vector2 nueva_pos){
 		return false;
 
 }
+
+vector2 esquivar_caja (vector2 posicion_actual,vector2 nueva_posicion, tad_nivel* nivel){
+
+	bool posicion_no_disponible = true;
+	vector2 posicion_alternativa;
+	int direccion_movimiento;
+	int movimiento_incorrecto;
+
+	movimiento_incorrecto = calcular_direccion_movimiento(posicion_actual, nueva_posicion);
+
+	while (posicion_no_disponible){
+		switch (movimiento_incorrecto){
+			case ARRIBA:
+				//intenta moverse hacia la izquierda
+				posicion_alternativa = vector2_add_x(posicion_actual, -1);
+				direccion_movimiento = IZQUIERDA;
+				break;
+			case IZQUIERDA:
+				//intenta moverse hacia abajo
+				posicion_alternativa = vector2_add_y(posicion_actual, 1);
+				direccion_movimiento = ABAJO;
+				break;
+			case ABAJO:
+				//intenta moverse hacia la derecha
+				posicion_alternativa = vector2_add_x(posicion_actual, 1);
+				direccion_movimiento = DERECHA;
+				break;
+			case DERECHA:
+				//intenta moverse hacia arriba
+				posicion_alternativa = vector2_add_y(posicion_actual, -1);
+				direccion_movimiento = ARRIBA;
+				break;
+		}
+
+		if (posicion_sin_caja(nivel, posicion_alternativa)){
+			posicion_no_disponible = false;
+		}
+		else{
+			posicion_no_disponible = true;
+			movimiento_incorrecto = direccion_movimiento;
+
+		}
+
+	}
+	return posicion_alternativa;
+}
+
+
+int calcular_direccion_movimiento(vector2 pos1, vector2 pos2) {
+	if (pos1.x != pos2.x){
+		if (pos1.x < pos2.x)
+			return DERECHA;
+		else
+			return IZQUIERDA;
+		}
+	else {
+		if (pos1.y < pos2.y)
+			return ARRIBA;
+		else
+			return ABAJO;
+	}
+}
+
+
+
 
 	//dependiendo de la posicion que se encuentre en el mapa
 	//tiene que mover al enemigo
