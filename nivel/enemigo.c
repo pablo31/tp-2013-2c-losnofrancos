@@ -73,6 +73,8 @@ void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self){
 			tad_personaje* personaje_muerto = list_find(nivel->personajes, personaje_buscado);
 			mutex_open(nivel->semaforo_personajes);
 
+
+
 			//todo hasta aca nombre...
 			logger_info(nivel->logger, "ENEMIGO: ATACA HULK CONTENTO personaje aplastado %c !!!!", personaje_muerto->nombre);
 			//se avisa la muerte del personaje por enemigo al planificador
@@ -121,11 +123,10 @@ void mover_en_L(tad_nivel* nivel, tad_enemigo* self){
 	nivel_gui_get_area_nivel(out rows, out cols);
 	vector2 limite_mapa = vector2_new(cols, rows);
 
-	int random = rand()%9; //random 0,8
+	int random = rand()%8; //random 0,7
 
 	int movimientos_faltantes=3;
 
-	mutex_close(nivel->semaforo_personajes);
 	int cantidad_personajes = list_size(nivel->personajes);
 	mutex_open(nivel->semaforo_personajes);
 
@@ -153,10 +154,15 @@ void mover_en_L(tad_nivel* nivel, tad_enemigo* self){
 				if (posicion_sin_caja(nivel,nueva_pos)){
 
 					movimientos_faltantes --;
+					mutex_close(nivel->semaforo_enemigos);
 					self->pos = nueva_pos;
+					logger_info(nivel->logger, "ENEMIGO: moviendose en L a (%d,%d)", self->pos.x,self->pos.y);
 					sleep(1);
+					mutex_open(nivel->semaforo_enemigos);
 					//usleep(nivel->sleep_enemigos * 600); //esto es lo que va
+
 					nivel_gui_dibujar(nivel);
+
 				}
 				else{
 					//sino completo la L por esquivar una caja tiene que empezar de nuevo y buscar otra L al azar
@@ -170,7 +176,7 @@ void mover_en_L(tad_nivel* nivel, tad_enemigo* self){
 		}
 		sleep(1); // lo agrego nada mas para visualizar mejor los movimientos cuando pruebo
 		movimientos_faltantes=3;
-		random = rand()%9;
+		random = rand()%8;
 	}
 
 }

@@ -143,77 +143,78 @@ vector2 vector2_move_in_L(vector2 enemigo_pos,int random, int cantidad){
 
 	switch (random) {
 
-	case 1:
-		if (cantidad==1){
+	case 0:
+		if (cantidad==3){
 			enemigo_pos.y ++;
 		}else if (cantidad==2){
 			enemigo_pos.y ++;
-		}else if (cantidad==3){
+		}else if (cantidad==1){
 			enemigo_pos.x --;
 		}
 		 break;
-	case 2:
-		if (cantidad==1){
+	case 1:
+		if (cantidad==3){
 			enemigo_pos.y ++;
 		}else if (cantidad==2){
 			enemigo_pos.y ++;
-		}else if (cantidad==3){
+		}else if (cantidad==1){
+			enemigo_pos.x ++;
+		}
+		break;
+	case 2:
+		if (cantidad==3){
+			enemigo_pos.y --;
+		}else if (cantidad==2){
+			enemigo_pos.y --;
+		}else if (cantidad==1){
 			enemigo_pos.x ++;
 		}
 		break;
 	case 3:
-		if (cantidad==1){
+		if (cantidad==3){
 			enemigo_pos.y --;
 		}else if (cantidad==2){
 			enemigo_pos.y --;
-		}else if (cantidad==3){
-			enemigo_pos.x ++;
+		}else if (cantidad==1){
+			enemigo_pos.x --;
 		}
 		break;
 	case 4:
-		if (cantidad==1){
-			enemigo_pos.y --;
+		if (cantidad==3){
+			enemigo_pos.x ++;
 		}else if (cantidad==2){
-			enemigo_pos.y --;
-		}else if (cantidad==3){
-			enemigo_pos.x --;
+			enemigo_pos.x ++;
+		}else if (cantidad==1){
+			enemigo_pos.y ++;
 		}
 		break;
 	case 5:
-		if (cantidad==1){
+		if (cantidad==3){
 			enemigo_pos.x ++;
 		}else if (cantidad==2){
-			enemigo_pos.y ++;
-		}else if (cantidad==3){
-			enemigo_pos.y ++;
+			enemigo_pos.x ++;
+		}else if (cantidad==1){
+			enemigo_pos.y --;
 		}
 		break;
 	case 6:
-		if (cantidad==1){
-			enemigo_pos.x ++;
+		if (cantidad==3){
+			enemigo_pos.x --;
 		}else if (cantidad==2){
-			enemigo_pos.y --;
-		}else if (cantidad==3){
-			enemigo_pos.y --;
+			enemigo_pos.x --;
+		}else if (cantidad==1){
+			enemigo_pos.y ++;
 		}
 		break;
 	case 7:
-		if (cantidad==1){
+		if (cantidad==3){
 			enemigo_pos.x --;
 		}else if (cantidad==2){
-			enemigo_pos.y ++;
-		}else if (cantidad==3){
-			enemigo_pos.y ++;
+			enemigo_pos.x --;
+		}else if (cantidad==1){
+			enemigo_pos.y --;
 		}
 		break;
-	case 8:
-		if (cantidad==1){
-			enemigo_pos.x --;
-		}else if (cantidad==2){
-			enemigo_pos.y --;
-		}else if (cantidad==3){
-			enemigo_pos.y --;
-		}
 
 	}
 
