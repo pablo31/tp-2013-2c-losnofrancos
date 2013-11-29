@@ -74,7 +74,7 @@ void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self){
 
 			var(personaje_muerto, self->blanco);
 
-			logger_info(nivel->logger, "ENEMIGO: murio el personaje %s al ser atrapado por un enemigo.", personaje_muerto->nombre);
+			logger_info(nivel->logger, "ENEMIGO: murio el personaje %c al ser atrapado por un enemigo.", personaje_muerto->simbolo);
 
 			//se avisa la muerte del personaje por enemigo al planificador
 			socket_send_char(nivel->socket, MUERTE_POR_ENEMIGO, personaje_muerto->simbolo);
