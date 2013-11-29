@@ -24,14 +24,6 @@ class(tad_caja){
 };
 
 
-class(tad_enemigo){
-	char simbolo;
-	vector2 pos;
-	int detecta_personaje;
-	vector2 posicion_personaje;
-};
-
-
 class(tad_recurso){
 	char simbolo;
 	int cantidad;
@@ -44,6 +36,15 @@ class(tad_personaje){
 	vector2 pos;
 	t_list* recursos_asignados;
 	tad_recurso* recurso_pedido;
+};
+
+
+class(tad_enemigo){
+	char simbolo;
+	vector2 pos;
+	tad_personaje* blanco;
+	//int detecta_personaje;
+	//vector2 posicion_personaje;
 };
 
 
