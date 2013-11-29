@@ -251,8 +251,8 @@ vector2 vector2_move_in_L(vector2 enemigo_pos, int random, int cantidad){
 		case 6:
 		case 7:
 
-			// movimiento en L: me muevo dos posiciones en el eje X hacia Izquierda y una en el eje Y (Arriba o Abajo)
-			movimiento_en_L(enemigo_pos, EJE_X, 1, random, cantidad);
+			// movimiento en L: me muevo dos posiciones en el eje X hacia la Izquierda y una en el eje Y (Arriba o Abajo)
+			movimiento_en_L(enemigo_pos, EJE_X, -1, random, cantidad);
     		break;
 
 	}
