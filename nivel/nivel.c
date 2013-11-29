@@ -253,6 +253,7 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		personaje->simbolo = simbolo;
 		personaje->pos = pos;
 		personaje->recurso_pedido = null;
+		personaje->recursos_asignados = list_create();
 
 		mutex_close(self->semaforo_personajes);
 		list_add(self->personajes, personaje);
@@ -453,15 +454,16 @@ void otorgar_recurso(tad_nivel* self, tad_personaje* personaje_solicitud, char s
 		}
 	}
 
+	alloc(nuevo_recurso, tad_recurso);
 	//si no lo encontro lo agrega a la lista de recursos asignados
 	if (encontre_recurso == false) {
-		recurso_personaje->simbolo = simbolo_recurso;
-		recurso_personaje->cantidad = 1;
-		list_add(personaje_solicitud->recursos_asignados, recurso_personaje);
+		nuevo_recurso->simbolo = simbolo_recurso;
+		nuevo_recurso->cantidad = 1;
+		list_add(personaje_solicitud->recursos_asignados, nuevo_recurso);
 	}
 
 	//actualizar recurso_pedido del personaje
-	personaje_solicitud->recurso_pedido = NULL;
+	personaje_solicitud->recurso_pedido = null;
 	mutex_open(self->semaforo_personajes);
 	var (personaje_simbolo, personaje_solicitud->simbolo);
 	logger_info(get_logger(self), "Se otorga el recurso %c al personaje %c", simbolo_recurso, personaje_simbolo);
