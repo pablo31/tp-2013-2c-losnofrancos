@@ -162,7 +162,7 @@ void mover_en_L(tad_nivel* nivel, tad_enemigo* self){
 				movimientos_faltantes=0;
 			}
 			mutex_close(nivel->semaforo_enemigos);
-			vector2 nueva_pos = vector2_move_in_L(self->pos,random,movimientos_faltantes);
+			vector2 nueva_pos = vector2_move_in_L(self->pos, random, movimientos_faltantes);
 			mutex_open(nivel->semaforo_enemigos);
 
 			//si la posicion esta dentro del mapa se grafica

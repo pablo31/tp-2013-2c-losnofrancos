@@ -136,7 +136,7 @@ vector2 vector2_next_step(vector2 origin, vector2 target){
 	return vector2_add(origin, movement);
 }
 
-
+/*
 vector2 vector2_move_in_L(vector2 enemigo_pos,int random, int cantidad){
 	//padre nuestro que estas en los cielos santificado sea tu nombre......
 	//perdona *sus* ifs
@@ -221,7 +221,85 @@ vector2 vector2_move_in_L(vector2 enemigo_pos,int random, int cantidad){
 	return enemigo_pos;
 }
 
+*/
 
+vector2 vector2_move_in_L(vector2 enemigo_pos, int random, int cantidad){
+
+	switch (random) {
+
+		case 0:
+		case 1:
+
+			//movimiento en L: me muevo dos posiciones en el eje Y hacia Abajo y una en el eje X (Izq. o Der.)
+			movimiento_en_L(enemigo_pos, EJE_Y, 1, random, cantidad);
+			break;
+
+		case 2:
+		case 3:
+
+			//movimiento en L: me muevo dos posiciones en el eje Y hacia Arriba y una en el eje X (Izq. o Der.)
+			movimiento_en_L(enemigo_pos, EJE_Y, -1, random, cantidad);
+			break;
+
+		case 4:
+		case 5:
+
+			//movimiento en L: me muevo dos posiciones en el eje X hacia la Derecha y una en el eje Y (Arriba o Abajo)
+			movimiento_en_L(enemigo_pos, EJE_X, 1, random, cantidad);
+			break;
+
+		case 6:
+		case 7:
+
+			// movimiento en L: me muevo dos posiciones en el eje X hacia Izquierda y una en el eje Y (Arriba o Abajo)
+			movimiento_en_L(enemigo_pos, EJE_X, 1, random, cantidad);
+    		break;
+
+	}
+
+	return enemigo_pos;
+
+}
+
+
+void moverse_una_posicion (vector2 posicion, int eje, int sentido){
+
+    if (eje == EJE_X)
+    	vector2_add_x(posicion, sentido);
+    if (eje == EJE_Y)
+    	vector2_add_x(posicion, sentido);
+
+}
+
+
+void movimiento_en_L (vector2 enemigo_pos, int eje, int sentido, int random, int cantidad){
+
+	int eje_alterno;
+
+	if (cantidad > 1){
+		moverse_una_posicion (enemigo_pos, eje, sentido);
+    }else{
+
+    	eje_alterno = get_eje_alterno (eje);
+
+    	if (random%2==0){
+    		moverse_una_posicion (enemigo_pos, eje_alterno, 1);
+    	}else{
+    		moverse_una_posicion (enemigo_pos, eje_alterno, -1);
+    	}
+
+    }
+}
+
+
+int get_eje_alterno(int eje) {
+
+	if (eje == EJE_X)
+		return EJE_Y;
+	else
+		return EJE_X;
+
+}
 
 
 

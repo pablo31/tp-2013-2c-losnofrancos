@@ -16,6 +16,7 @@
 #define IZQUIERDA 2
 #define DERECHA 3
 
+
 void movimiento_permitido_enemigo(PACKED_ARGS);
 void mover_en_L(tad_nivel* nivel,tad_enemigo* self);
 void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self);
@@ -24,6 +25,7 @@ vector2 esquivar_caja(vector2 posicion_actual,vector2 nueva_posicion, tad_nivel*
 int calcular_direccion_movimiento(vector2 pos1, vector2 pos2);
 int calcular_distancia (vector2 posicion_a, vector2 posicion_b);
 vector2 buscar_personaje_mas_cercano(tad_nivel* nivel, tad_enemigo* self);
+
 
 #endif
 

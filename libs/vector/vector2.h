@@ -8,6 +8,8 @@
 #ifndef VECTOR2_H_
 #define VECTOR2_H_
 
+#define EJE_X 0
+#define EJE_Y 1
 
 #include "../common.h"
 
@@ -50,7 +52,12 @@ vector2 vector2_maximize(vector2 a, vector2 b);
 //Metodos especificos del TP
 vector2 vector2_direction_to(vector2 self, vector2 target);
 vector2 vector2_next_step(vector2 origen, vector2 destino);
-vector2 vector2_move_in_L(vector2 enemigo_pos,int random, int cantidad);
+
+
+vector2 vector2_move_in_L(vector2 enemigo_pos, int random, int cantidad);
+void moverse_una_posicion (vector2 posicion, int eje, int sentido);
+void movimiento_en_L (vector2 enemigo_pos, int eje, int sentido, int random, int cantidad);
+int get_eje_alterno(int eje);
 
 
 #endif /* VECTOR2_H_ */
