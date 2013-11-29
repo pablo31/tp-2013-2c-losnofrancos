@@ -273,7 +273,7 @@ vector2 esquivar_caja(vector2 posicion_actual,vector2 nueva_posicion, tad_nivel*
 }
 */
 
-vector2 esquivar_caja(vector2 posicion_actual, vector2 nueva_posicion, vector2 posicion_personaje)){
+vector2 esquivar_caja(vector2 posicion_actual, vector2 nueva_posicion, vector2 posicion_personaje){
 
     	vector2 posicion_alternativa;
     	int movimiento_incorrecto;
