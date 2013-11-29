@@ -1,4 +1,3 @@
-
 #include "../libs/vector/vector2.h"
 #include <unistd.h>
 #include "nivel.h"
@@ -52,19 +51,18 @@ void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self){
 		posicion_personaje = buscar_personaje_mas_cercano(nivel, self);
 		posicion_actual = self->pos;
 		vector2 nueva_posicion = vector2_next_step(posicion_actual, posicion_personaje);
-
+		
 		//controlo si en la posicion a moverse se encuentra una caja
 		if (posicion_sin_caja(nivel, nueva_posicion)){
 			self->pos = nueva_posicion;
-			sleep(1);
 		}else{ //si hay una caja busco un movimiento alternativo para esquivarla
-			vector2 posicion_alternativa = esquivar_caja(posicion_actual, nueva_posicion, nivel);
-			sleep(1);
+			vector2 posicion_alternativa = esquivar_caja(posicion_actual, nueva_posicion, posicion_personaje);
 			self->pos = posicion_alternativa;
 		}
 		mutex_open(nivel->semaforo_enemigos);
 		mutex_open(nivel->semaforo_personajes);
-
+		
+		sleep(1);
 		nivel_gui_dibujar(nivel);
 
 		//si en la nueva posicion se encuentra el personaje se considera atrapado y se informa su muerte.
@@ -104,10 +102,10 @@ int calcular_distancia (vector2 posicion_a, vector2 posicion_b){
 vector2 buscar_personaje_mas_cercano(tad_nivel* nivel, tad_enemigo* self){
 
 	int distancia_del_enemigo;
-    int distancia_aux;
-    bool sin_objetivo = true;
+	int distancia_aux;
+    	bool sin_objetivo = true;
 
-    var(pos_enemigo, self->pos);
+    	var(pos_enemigo, self->pos);
 
     foreach(personaje, nivel->personajes, tad_personaje*){
 
@@ -120,8 +118,8 @@ vector2 buscar_personaje_mas_cercano(tad_nivel* nivel, tad_enemigo* self){
        }else{
     	   distancia_aux = calcular_distancia(pos_enemigo, pos_personaje);
            if (distancia_aux < distancia_del_enemigo){
-        	   distancia_del_enemigo = distancia_aux;
-               self->blanco = personaje;
+        	distancia_del_enemigo = distancia_aux;
+		self->blanco = personaje;
            }
        }
     }
@@ -140,11 +138,13 @@ void mover_en_L(tad_nivel* nivel, tad_enemigo* self){
 	int cols;
 	nivel_gui_get_area_nivel(out rows, out cols);
 	vector2 limite_mapa = vector2_new(cols, rows);
+	vector2 nueva_pos;
 
 	int random = rand()%8; //random 0,7
 
 	int movimientos_faltantes=3;
-
+	
+	mutex_close(nivel->semaforo_personajes);
 	int cantidad_personajes = list_size(nivel->personajes);
 	mutex_open(nivel->semaforo_personajes);
 
@@ -153,16 +153,16 @@ void mover_en_L(tad_nivel* nivel, tad_enemigo* self){
 		while(movimientos_faltantes>0){
 
 			//esto es para que cuando ingrese un personaje, salga de los 2 while
-			mutex_close(nivel->semaforo_personajes);
-			cantidad_personajes = list_size(nivel->personajes);
-			mutex_open(nivel->semaforo_personajes);
+			//mutex_close(nivel->semaforo_personajes);
+			//cantidad_personajes = list_size(nivel->personajes);
+			//mutex_open(nivel->semaforo_personajes);
 
-			if(cantidad_personajes > 0){
-				atacar_al_personaje(nivel,self);
-				movimientos_faltantes=0;
-			}
+			//if(cantidad_personajes > 0){
+			//	atacar_al_personaje(nivel,self);
+			//	movimientos_faltantes=0;
+			//}
 			mutex_close(nivel->semaforo_enemigos);
-			vector2 nueva_pos = vector2_move_in_L(self->pos, random, movimientos_faltantes);
+			nueva_pos = vector2_move_in_L(self->pos, random, movimientos_faltantes);
 			mutex_open(nivel->semaforo_enemigos);
 
 			//si la posicion esta dentro del mapa se grafica
@@ -175,28 +175,35 @@ void mover_en_L(tad_nivel* nivel, tad_enemigo* self){
 					mutex_close(nivel->semaforo_enemigos);
 					self->pos = nueva_pos;
 					//logger_info(nivel->logger, "ENEMIGO: moviendose en L a (%d,%d)", self->pos.x,self->pos.y);
-					sleep(1);
 					mutex_open(nivel->semaforo_enemigos);
 					//usleep(nivel->sleep_enemigos * 600); //esto es lo que va
-
+					sleep(1);
 					nivel_gui_dibujar(nivel);
-
 				}
 				else{
-					//sino completo la L por esquivar una caja tiene que empezar de nuevo y buscar otra L al azar
-					movimientos_faltantes=0;
+					//si no completo la L por esquivar una caja tiene que empezar de nuevo y buscar otra L al azar
+					movimientos_faltantes=0; 
 				}
+				
 
 			}else{
 				//sino completo la L porque se iba fuera del mapa tiene que empezar de nuevo y buscar otra L al azar
 				movimientos_faltantes=0;
 			}
+			mutex_close(nivel->semaforo_personajes);
+			cantidad_personajes = list_size(nivel->personajes);
+			mutex_open(nivel->semaforo_personajes);
+
+			if(cantidad_personajes > 0){
+				movimientos_faltantes=0;
+			}
+			
 		}
-		sleep(1); // lo agrego nada mas para visualizar mejor los movimientos cuando pruebo
 		movimientos_faltantes=3;
 		random = rand()%8;
 	}
-
+	
+	atacar_al_personaje(nivel,self);
 }
 
 bool posicion_sin_caja(tad_nivel* nivel, vector2 nueva_pos){
@@ -266,20 +273,23 @@ vector2 esquivar_caja(vector2 posicion_actual,vector2 nueva_posicion, tad_nivel*
 }
 */
 
-vector2 esquivar_caja(vector2 posicion_actual, vector2 nueva_posicion, tad_nivel* nivel){
+vector2 esquivar_caja(vector2 posicion_actual, vector2 nueva_posicion, vector2 posicion_personaje)){
 
-	vector2 posicion_alternativa;
-    int movimiento_incorrecto;
+    	vector2 posicion_alternativa;
+    	int movimiento_incorrecto;
 
-    movimiento_incorrecto = calcular_direccion_movimiento(posicion_actual, nueva_posicion);
+    	//para esquivar la caja veo en que direccion me iba a mover y calculo una posicion alternativa 
+    	//moviendome en el eje contrario, elijo el sentido segun la posicion del personaje
 
+	movimiento_incorrecto = calcular_direccion_movimiento(posicion_actual, nueva_posicion);
 
-    switch (movimiento_incorrecto){
+	
+    	switch (movimiento_incorrecto){
 
            case ARRIBA:
            case ABAJO:
 
-        	   if (posicion_actual.x > nueva_posicion.x) {
+        	   if (posicion_actual.x > posicion_personaje.x) {
         		   //se mueve hacia la izquierda
         		   posicion_alternativa = vector2_add_x(posicion_actual, -1);
         	   }else{
@@ -291,7 +301,7 @@ vector2 esquivar_caja(vector2 posicion_actual, vector2 nueva_posicion, tad_nivel
            case IZQUIERDA:
            case DERECHA:
 
-        	   if (posicion_actual.y > nueva_posicion.y) {
+        	   if (posicion_actual.y > posicion_personaje.y) {
         		   //se mueve  hacia arriba
         		   posicion_alternativa = vector2_add_y(posicion_actual, -1);
         	   }else{
@@ -299,9 +309,9 @@ vector2 esquivar_caja(vector2 posicion_actual, vector2 nueva_posicion, tad_nivel
         		   posicion_alternativa = vector2_add_y(posicion_actual, 1);
         	   }
         	   break;
-     }
+     	}
 
-    return posicion_alternativa;
+	return posicion_alternativa;
 
 }
 
