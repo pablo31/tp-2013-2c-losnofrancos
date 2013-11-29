@@ -218,6 +218,7 @@ bool posicion_sin_caja(tad_nivel* nivel, vector2 nueva_pos){
 
 }
 
+/*
 vector2 esquivar_caja(vector2 posicion_actual,vector2 nueva_posicion, tad_nivel* nivel){
 
 	bool posicion_no_disponible = true;
@@ -263,7 +264,46 @@ vector2 esquivar_caja(vector2 posicion_actual,vector2 nueva_posicion, tad_nivel*
 	}
 	return posicion_alternativa;
 }
+*/
 
+vector2 esquivar_caja(vector2 posicion_actual, vector2 nueva_posicion, tad_nivel* nivel){
+
+	vector2 posicion_alternativa;
+    int movimiento_incorrecto;
+
+    movimiento_incorrecto = calcular_direccion_movimiento(posicion_actual, nueva_posicion);
+
+
+    switch (movimiento_incorrecto){
+
+           case ARRIBA:
+           case ABAJO:
+
+        	   if (posicion_actual.x > nueva_posicion.x) {
+        		   //se mueve hacia la izquierda
+        		   posicion_alternativa = vector2_add_x(posicion_actual, -1);
+        	   }else{
+        		  //se mueve hacia la derecha
+        		   posicion_alternativa = vector2_add_x(posicion_actual, 1);
+        	   }
+        	   break;
+
+           case IZQUIERDA:
+           case DERECHA:
+
+        	   if (posicion_actual.y > nueva_posicion.y) {
+        		   //se mueve  hacia arriba
+        		   posicion_alternativa = vector2_add_y(posicion_actual, -1);
+        	   }else{
+        		   //se mueve hacia abajo
+        		   posicion_alternativa = vector2_add_y(posicion_actual, 1);
+        	   }
+        	   break;
+     }
+
+    return posicion_alternativa;
+
+}
 
 int calcular_direccion_movimiento(vector2 pos1, vector2 pos2) {
 	if (pos1.x != pos2.x){
