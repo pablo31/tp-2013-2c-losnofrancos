@@ -148,6 +148,8 @@ void mover_en_L(tad_nivel* nivel, tad_enemigo* self){
 	int cantidad_personajes = list_size(nivel->personajes);
 	mutex_open(nivel->semaforo_personajes);
 
+	logger_info(nivel->logger, "ENEMIGO: empieza a moverse en L");
+
 	while(cantidad_personajes==0){
 
 		while(movimientos_faltantes>0){

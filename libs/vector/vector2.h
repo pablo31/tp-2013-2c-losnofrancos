@@ -55,8 +55,8 @@ vector2 vector2_next_step(vector2 origen, vector2 destino);
 
 
 vector2 vector2_move_in_L(vector2 enemigo_pos, int random, int cantidad);
-void moverse_una_posicion (vector2 posicion, int eje, int sentido);
-void movimiento_en_L (vector2 enemigo_pos, int eje, int sentido, int random, int cantidad);
+vector2 moverse_una_posicion (vector2 posicion, int eje, int sentido);
+vector2 movimiento_en_L (vector2 enemigo_pos, int eje, int sentido, int random, int cantidad);
 int get_eje_alterno(int eje);
 
 
