@@ -218,8 +218,8 @@ private tad_package* esperar_paquete_del_planificador(t_personaje* self, byte ti
 	if(tipo == tipo_esperado) return paquete;
 
 	//informamos el motivo de la muerte
-	if(tipo == MUERTE_POR_DEADLOCK) logger_info(logger, "Muerte por enemigo");
-	else logger_info(logger, "Muerte por deadlock");
+	if(tipo == MUERTE_POR_DEADLOCK) logger_info(logger, "Muerte por deadlock");
+	else logger_info(logger, "Muerte por enemigo");
 
 	morir(self);
 
