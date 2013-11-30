@@ -33,3 +33,4 @@ uint cargar_datos(GFile archivo, char* buffer, size_t size, off_t offset);
 int guardar_datos(GFile* archivo, const char* buffer, size_t size, off_t inicio);
 void liberar_subpath(char** subpath);
 #endif
+

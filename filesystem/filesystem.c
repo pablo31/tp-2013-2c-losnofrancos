@@ -14,7 +14,6 @@
 #include "../libs/common/collections/list.h"
 #include <sys/stat.h>
 
-
 #define LOG_FILE              "grasa.log" //el archivo donde se va a guardar el log.
 struct fuse_operations grasa_operations = {
 		.mkdir = fs_mkdir,

@@ -722,6 +722,7 @@ int guardar_datos(GFile* archivo, const char* buffer, size_t size,
 	 uint j = get_nodo_datos_inicial(i,inicio);// Indice de los punteros a bloques de datos. Max 1024
 	 bool fin = false;
 	 */
+
 	if (archivo->file_size < (size + offset)) {
 		archivo->file_size = (size + offset);
 	}
