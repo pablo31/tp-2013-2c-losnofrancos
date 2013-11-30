@@ -129,10 +129,11 @@ static void cargar_bitmap() {
 	logger_info(logger, "Cantidad de bytes usados en bitmap :%i",
 			bitmap_bytes_usados);
 
-	char* str_bitmap = string_substring(mmaped_file, TAMANIO_BLOQUE,
+	/*char* str_bitmap = string_substring(mmaped_file, TAMANIO_BLOQUE,
 			8 * bitmap_bytes_usados);
 	bitmap = bitarray_create(str_bitmap, sizeof(char*) * bitmap_bytes_usados);
-	free(str_bitmap);
+	free(str_bitmap);*/
+	bitmap = bitarray_create(mmaped_file + TAMANIO_BLOQUE,bitmap_bytes_usados);
 	logger_bitmap(bitmap);
 }
 

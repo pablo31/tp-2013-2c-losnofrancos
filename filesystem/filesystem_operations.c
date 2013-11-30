@@ -149,10 +149,7 @@ int fs_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
 		i++;
 	};
 	strcpy((char *) nodo.fname, directorio);
-		while (subpath[i] != NULL ) {
-			free(subpath[i]);
-		}
-		free(subpath);
+	liberar_subpath(subpath);
 		if (ret) return ret;
 	if (err == 0) { //Si la ultima busqueda no fallo significa que ya existe
 		return -EEXIST;
@@ -440,7 +437,7 @@ int agregar_nodo(const GFile nodo) {
 	if (fin)
 		return EXIT_SUCCESS;
 	else
-		return EXIT_FAILURE;
+		return -ENOSPC;
 
 }
 
