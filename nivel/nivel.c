@@ -509,13 +509,13 @@ void liberar_y_reasignar_recursos(tad_nivel* self, tad_personaje* personaje_muer
 
 			tad_recurso* recurso_p = recurso_personaje;
 
-			bool encontre_recurso (tad_recurso* recurso_aux){
-				return (recurso_p->simbolo == recurso_aux->simbolo);
+			bool caja_buscada (tad_caja* caja){
+				return (recurso_p->simbolo == caja->simbolo);
 			}
 
-			tad_recurso* recurso_aux = list_find (self->cajas, (void*) encontre_recurso);
+			tad_caja* caja = list_find (self->cajas, (void*)caja_buscada);
 
-			recurso_aux->cantidad += recurso_personaje->cantidad;
+			caja->instancias += recurso_personaje->cantidad;
 
 			logger_info(get_logger(self), "Se actualiza la lista de cajas del nivel");
 		}
