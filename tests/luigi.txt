@@ -9,6 +9,6 @@ objs[nivel8]=2
 obj[nivel8]=[C, d]
 
 vidas=5
-orquestador=1.92.168.3.89:27015
+orquestador=192.168.3.89:27015
 logFile=luigi.log
 logLevel=INFO
