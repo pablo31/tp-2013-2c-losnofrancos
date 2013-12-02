@@ -15,7 +15,6 @@
 #include "nivel_ui.h"
 #include "nivel_configuracion.h"
 
-
 static tad_caja* crear_caja(char* nombre,char simbolo, int instancias, int pos_x, int pos_y){
 	alloc(ret, tad_caja);
 	
@@ -52,10 +51,13 @@ static void crear_enemigos(tad_nivel* nivel, int cantidad){
 
 private void cargar_configuracion_cambiante(tad_nivel* nvl, t_config* config,
 		char* as_out algoritmo, int as_out quantum, int as_out retardo){
+	set retardo = config_get_int_value(config,"Retardo");
+	set algoritmo = string_duplicate(config_get_string_value(config,"Algoritmo"));
 
-	set quantum = config_get_int_value(config,"quantum");
-	set retardo = config_get_int_value(config,"retardo");
-	set algoritmo = string_duplicate(config_get_string_value(config,"algoritmo"));
+	if (string_equals_ignore_case(*algoritmo, "RR"))
+		set quantum = config_get_int_value(config,"Quantum");
+	else
+		set quantum = 0;
 }
 
 void recargar_configuracion_nivel(tad_nivel* nvl, char* config_file,
@@ -71,16 +73,27 @@ void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 	var(config_path, get_config_path(self));
 	var(config, config_create(config_path));
 
-	char* log_file = config_get_string_value(config, "logFile");
-	char* log_level = config_get_string_value(config, "logLevel");
-	logger_initialize(log_file, "nivel.sh", log_level, 0); //no logea en consola
+	self->nombre = string_duplicate(config_get_string_value(config, "Nombre"));
+	char* log_file;
+	if(config_has_property(config,"LogFile"))
+		log_file = config_get_string_value(config, "LogFile");
+	else 
+		log_file = string_from_format("%s.log", self->nombre);
+
+	char* log_level; 
+	if(config_has_property(config,"LogLevel"))
+	 	log_level = config_get_string_value(config, "LogLevel");		
+	else 
+		log_level = "INFO";		
+
+	logger_initialize(log_file, "nivel.sh", log_level, 1); //no logea en consola
 	var(logger, logger_new_instance());
 	self->logger = logger;
 
 	logger_info(logger, "Cargando configuracion del nivel");
 
 
-	self->nombre = string_duplicate(config_get_string_value(config, "Nombre"));
+	
 	logger_info(logger, "Nombre:%s", self->nombre);
 
 	self->tiempo_deadlock = config_get_int_value(config,"TiempoChequeoDeadlock");
@@ -103,6 +116,8 @@ void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 	logger_info(logger, "Algoritmo:%s", self->algoritmo);
 	logger_info(logger, "Quantum:%i", self->quantum);
 	logger_info(logger, "Retardo:%i", self->retardo);
+	logger_info(logger, "Log File:%s", log_file);
+	logger_info(logger, "Log Level:%s", log_level);
 	
 
 	uint  numero_caja = 1;
@@ -144,6 +159,8 @@ void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 	
 	config_destroy(config);
 }
+
+
 
 void destruir_nivel(tad_nivel* self){
 	//liberamos strings varios
