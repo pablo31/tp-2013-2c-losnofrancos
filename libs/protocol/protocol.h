@@ -30,7 +30,6 @@ enum DATA_TYPE_PROTOCOL {
 	//personaje a planificador
 	PERSONAJE_MOVIMIENTO = 105,
 	PERSONAJE_SOLICITUD_RECURSO = 106,
-	POSICION_INICIAL = 107,
 
 	//nivel a planificador
 	NIVEL_NUMERO = 150,

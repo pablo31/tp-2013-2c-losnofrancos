@@ -23,7 +23,7 @@ vector2 vector2_new(int x, int y){
 }
 
 vector2 vector2_new(){
-	return vector2_new(1, 1);
+	return vector2_new(0, 0);
 }
 
 

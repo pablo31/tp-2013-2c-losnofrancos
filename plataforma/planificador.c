@@ -104,7 +104,7 @@ void planificador_agregar_personaje(tad_planificador* self, char* nombre, char s
 	//nos presentamos
 	socket_send_empty_package(socket, PRESENTACION_PLANIFICADOR);
 	//recibimos la posicion inicial del personaje
-	vector2 pos = socket_receive_expected_vector2(socket, POSICION_INICIAL);
+	vector2 pos = socket_receive_expected_vector2(socket, PERSONAJE_POSICION);
 
 	//informamos al nivel y le pasamos los datos del personaje
 	var(socket_nivel, self->nivel->socket);
