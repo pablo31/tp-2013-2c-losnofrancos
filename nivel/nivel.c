@@ -280,10 +280,22 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		vector2 pos;
 		package_get_char_and_vector2(paquete, out simbolo, out pos);
 
+		tad_personaje* personaje_en_movimiento;
+
 		mutex_close(self->semaforo_personajes);
-		foreach(personaje, self->personajes, tad_personaje*)
-			if(personaje->simbolo == simbolo)
+		foreach(personaje, self->personajes, tad_personaje*){
+			if(personaje->simbolo == simbolo){
 				personaje->pos = pos;
+				personaje_en_movimiento = personaje;
+			}
+		}
+
+		//controlar si al moverse fue atrapado por un enemigo
+		mutex_close(self->semaforo_enemigos);
+		foreach (enemigo, self->enemigos, tad_enemigo*){
+			verificar_muerte_por_enemigo(personaje_en_movimiento, enemigo->pos, self);
+		}
+		mutex_open(self->semaforo_enemigos);
 		mutex_open(self->semaforo_personajes);
 
 		nivel_gui_dibujar(self);
@@ -521,6 +533,20 @@ void liberar_y_reasignar_recursos(tad_nivel* self, tad_personaje* personaje_muer
 		}
 	}
 	list_clean(personaje_muerto->recursos_asignados);
+}
+
+void verificar_muerte_por_enemigo(tad_personaje* personaje, vector2 pos_enemigo, tad_nivel* self){
+
+	if (vector2_equals(personaje->pos, pos_enemigo)){
+
+		var(personaje_muerto, personaje->simbolo);
+
+		logger_info(self->logger, "murio el personaje %c al ser atrapado por un enemigo.", personaje_muerto);
+
+		//se avisa la muerte del personaje por enemigo al planificador
+		socket_send_char(self->socket, MUERTE_POR_ENEMIGO, personaje_muerto);
+	}
+
 }
 
 

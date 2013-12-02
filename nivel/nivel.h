@@ -78,6 +78,7 @@ char* get_config_path(tad_nivel* self);
 void evaluar_solicitud_recurso(tad_nivel* self, char simbolo_personaje, char simbolo_recurso);
 void otorgar_recurso(tad_nivel* self, tad_personaje* personaje_solicitud, char simbolo_recurso);
 void liberar_y_reasignar_recursos(tad_nivel* self, tad_personaje* personaje_muerto);
+void verificar_muerte_por_enemigo(tad_personaje* personaje, vector2 pos_enemigo, tad_nivel* self);
 
 #endif
  
