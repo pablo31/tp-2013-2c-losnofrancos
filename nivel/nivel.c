@@ -234,6 +234,7 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 	UNPACK_ARGS(tad_nivel* self);
 
 	var(socket, self->socket);
+	var(logger, self->logger);
 
 	tad_package* paquete = socket_receive_one_of_this_packages(socket, 5,
 			PERSONAJE_CONECTADO,
@@ -245,12 +246,15 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 
 
 	if(tipo == PERSONAJE_CONECTADO){
-		char simbolo;
-		vector2 pos;
-		package_get_char_and_vector2(paquete, out simbolo, out pos);
+		char simbolo = socket_receive_expected_char(socket, PERSONAJE_SIMBOLO);
+		char* nombre = socket_receive_expected_string(socket, PERSONAJE_NOMBRE);
+		vector2 pos = socket_receive_expected_vector2(socket, PERSONAJE_POSICION);
+
+		logger_info(logger, "El personaje %s entro al nivel", nombre);
 
 		alloc(personaje, tad_personaje);
 		personaje->simbolo = simbolo;
+		personaje->nombre = nombre;
 		personaje->pos = pos;
 		personaje->recurso_pedido = null;
 		personaje->recursos_asignados = list_create();

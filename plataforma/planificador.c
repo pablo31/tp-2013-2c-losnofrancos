@@ -103,12 +103,15 @@ void planificador_agregar_personaje(tad_planificador* self, char* nombre, char s
 	logger_info(get_logger(self), "El personaje %s entro al nivel", nombre);
 	//nos presentamos
 	socket_send_empty_package(socket, PRESENTACION_PLANIFICADOR);
-	//le informamos al nivel
+	//recibimos la posicion inicial del personaje
 	vector2 pos = socket_receive_expected_vector2(socket, POSICION_INICIAL);
-	tad_package* paquete = package_create_char_and_vector2(PERSONAJE_CONECTADO, simbolo, pos);
-	socket_send_package(self->nivel->socket, paquete);
-	free(package_get_data(paquete)); //TODO metodo package_dispose_and_dispose_data
-	package_dispose(paquete);
+
+	//informamos al nivel y le pasamos los datos del personaje
+	var(socket_nivel, self->nivel->socket);
+	socket_send_empty_package(socket_nivel, PERSONAJE_CONECTADO);
+	socket_send_char(socket_nivel, PERSONAJE_SIMBOLO, simbolo);
+	socket_send_string(socket_nivel, PERSONAJE_NOMBRE, nombre);
+	socket_send_vector2(socket_nivel, PERSONAJE_POSICION, pos);
 }
 
 private void planificador_liberar_personaje(tad_planificador* self, tad_personaje* personaje){
