@@ -1,0 +1,14 @@
+nombre=nivel3
+Caja1=Bombas, B, 2, 9, 5
+Caja2=Telefonos, T, 3, 20, 15
+Caja3=Relojes, R, 2, 17, 3
+Enemigos=2
+Plataforma=192.168.3.89:27015
+Sleep_Enemigos=2000
+Algoritmo=SRDF
+retardo=500
+quantum=3
+Recovery=1
+TiempoChequeoDeadlock=20000
+logFile=nivel3.log
+logLevel=INFO

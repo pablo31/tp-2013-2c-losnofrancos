@@ -1,0 +1,18 @@
+nombre=Koopa
+simbolo=#
+
+niveles=4
+planDeNiveles=[nivel1, nivel2, nivel3, nivel8]
+objs[nivel1]=5
+obj[nivel1]=[H, M, V, B, F]
+objs[nivel2]=6
+obj[nivel2]=[C, F, C, F, C, F]
+objs[nivel3]=6
+obj[nivel3]=[B, T, B, T, R, T]
+objs[nivel8]=2
+obj[nivel8]=[D, C]
+
+vidas=10
+orquestador=192.168.3.89:27015
+logFile=koopa.log
+logLevel=INFO

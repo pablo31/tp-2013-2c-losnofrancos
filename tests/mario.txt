@@ -1,0 +1,16 @@
+nombre=Mario
+simbolo=@
+
+niveles=3
+planDeNiveles=[nivel1, nivel3, nivel8]
+objs[nivel1]=5
+obj[nivel1]=[F,H,M,H,B]
+objs[nivel3]=4
+obj[nivel3]=[B,T,R,B]
+objs[nivel8]=2
+obj[nivel8]=[D,C]
+
+vidas=5
+orquestador=192.168.3.89:27015
+logFile=mario.log
+logLevel=INFO

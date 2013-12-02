@@ -1,0 +1,13 @@
+nombre=nivel8
+Caja1=Calaveras, C, 1, 75, 22
+Caja2=Diablitos, D, 1, 10, 2
+Enemigos=9
+Sleep_Enemigos=500
+Plataforma=192.168.3.89:27015
+Algoritmo=RR
+Quantum=1
+Retardo=500
+Recovery=1
+TiempoChequeoDeadlock=10000
+logFile=nivel8.log
+logLevel=INFO
