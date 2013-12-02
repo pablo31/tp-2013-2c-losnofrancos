@@ -117,6 +117,13 @@ vector2 vector2_direction_to(vector2 self, vector2 target){
 	return diff;
 }
 
+int vector2_distance_to(vector2 origin, vector2 target){
+	vector2 delta = vector2_subtract(target, origin);
+	int abs_x = abs(delta.x);
+	int abs_y = abs(delta.y);
+	return abs_x + abs_y;
+}
+
 vector2 vector2_next_step(vector2 origin, vector2 target){
 	if(vector2_equals(origin, target)) return origin;
 
@@ -224,63 +231,47 @@ vector2 vector2_move_in_L(vector2 enemigo_pos,int random, int cantidad){
 */
 
 vector2 vector2_move_in_L(vector2 enemigo_pos, int random, int cantidad){
-
 	vector2 posicion_final;
 
-	switch (random) {
-
+	switch (random){
 		case 0:
 		case 1:
-
 			//movimiento en L: me muevo dos posiciones en el eje Y hacia Abajo y una en el eje X (Izq. o Der.)
 			posicion_final = movimiento_en_L(enemigo_pos, EJE_Y, 1, random, cantidad);
 			break;
-
 		case 2:
 		case 3:
-
 			//movimiento en L: me muevo dos posiciones en el eje Y hacia Arriba y una en el eje X (Izq. o Der.)
 			posicion_final = movimiento_en_L(enemigo_pos, EJE_Y, -1, random, cantidad);
 			break;
-
 		case 4:
 		case 5:
-
 			//movimiento en L: me muevo dos posiciones en el eje X hacia la Derecha y una en el eje Y (Arriba o Abajo)
 			posicion_final = movimiento_en_L(enemigo_pos, EJE_X, 1, random, cantidad);
 			break;
-
 		case 6:
 		case 7:
-
 			// movimiento en L: me muevo dos posiciones en el eje X hacia la Izquierda y una en el eje Y (Arriba o Abajo)
 			posicion_final = movimiento_en_L(enemigo_pos, EJE_X, -1, random, cantidad);
     		break;
-
 	}
 
 	return posicion_final;
-
 }
 
 
 vector2 moverse_una_posicion (vector2 posicion, int eje, int sentido){
-
 	vector2 pos;
 
-    if (eje == EJE_X){
+    if (eje == EJE_X)
     	pos = vector2_add_x(posicion, sentido);
-    }
-    if (eje == EJE_Y){
+    if (eje == EJE_Y)
     	pos = vector2_add_y(posicion, sentido);
-    }
     return pos;
-
 }
 
 
 vector2 movimiento_en_L(vector2 enemigo_pos, int eje, int sentido, int random, int cantidad){
-
 	int eje_alterno;
 	vector2 posicion_final;
 
@@ -288,25 +279,20 @@ vector2 movimiento_en_L(vector2 enemigo_pos, int eje, int sentido, int random, i
 	if (cantidad > 1){
 		posicion_final = moverse_una_posicion(enemigo_pos, eje, sentido);
     }else{
-
     	eje_alterno = get_eje_alterno (eje);
 
-    	if (random%2==0){
+    	if (random%2==0)
     		posicion_final = moverse_una_posicion(enemigo_pos, eje_alterno, 1);
-    	}else{
+    	else
     		posicion_final = moverse_una_posicion(enemigo_pos, eje_alterno, -1);
-    	}
-
     }
 	return posicion_final;
 }
 
 
 int get_eje_alterno(int eje) {
-
 	if (eje == EJE_X)
 		return EJE_Y;
 	else
 		return EJE_X;
-
 }

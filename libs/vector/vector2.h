@@ -50,8 +50,9 @@ vector2 vector2_minimize(vector2 a, vector2 b);
 vector2 vector2_maximize(vector2 a, vector2 b);
 
 //Metodos especificos del TP
-vector2 vector2_direction_to(vector2 self, vector2 target);
-vector2 vector2_next_step(vector2 origen, vector2 destino);
+vector2 vector2_direction_to(vector2 origin, vector2 target);
+int vector2_distance_to(vector2 origin, vector2 target);
+vector2 vector2_next_step(vector2 origin, vector2 target);
 
 
 vector2 vector2_move_in_L(vector2 enemigo_pos, int random, int cantidad);
