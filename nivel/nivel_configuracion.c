@@ -68,6 +68,18 @@ void recargar_configuracion_nivel(tad_nivel* nvl, char* config_file,
 	config_destroy(config);
 }
 
+static void liberar_valores_cajas(char** valores){
+	if (NULL == valores)
+		return;
+
+	uint i = 0;
+	while(valores[i] != NULL){
+		free(valores[i]);
+		i++;
+	}
+
+	free(valores);
+}
 
 void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 	var(config_path, get_config_path(self));
@@ -128,11 +140,12 @@ void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 
 	logger_info(logger ,"Cajas");
 	logger_info(logger ,"");
+	char** valores;
 	while(config_has_property(config, nombre_caja)){
 
 		logger_info(logger, "\t%s", nombre_caja);
 
-		char** valores = config_get_array_value(config, nombre_caja);
+		valores = config_get_array_value(config, nombre_caja);
 		
 		char* nombre = valores[0];
 		logger_info(logger ,"\tNombre:%s",nombre);
@@ -154,6 +167,9 @@ void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 		free(nombre_caja);
 		nombre_caja = string_from_format("Caja%i", numero_caja);
 	}
+	
+	free(nombre_caja);
+	liberar_valores_cajas(valores);
 
 	crear_enemigos(self,enemigos);
 	
