@@ -12,6 +12,18 @@
 
 #include "personaje.h"
 
+static void liberar_niveles(char** niveles){
+	if (NULL == niveles)
+		return;
+
+	uint i = 0;
+	while(niveles[i] != NULL){
+		free(niveles[i]);
+		i++;
+	}
+
+	free(niveles);
+}
 
 t_personaje* personaje_crear(char* config_path){
 	//creamos una instancia de personaje
@@ -65,7 +77,7 @@ t_personaje* personaje_crear(char* config_path){
 
 		logger_info(self->logger, "Nivel: %s Objetivos:%s", nivel->nombre, objetivos);
 		int ii = 0;
-		while('\0' != objetivos[ii]){
+		while(objetivos != NULL && '\0' != objetivos[ii]){
 			char* objetivo = string_from_format("%c" , objetivos[ii]);
 			list_add(nivel->objetivos, objetivo);
 
@@ -77,13 +89,16 @@ t_personaje* personaje_crear(char* config_path){
 
 		list_add(niveles, nivel);
 	}
+
 	self->niveles = niveles;
 
 	logger_info(self->logger, "Log File:%s", log_file);
 	logger_info(self->logger, "Log Level:%s", log_level);
+	free(log_file);
 
 	//liberamos recursos
 	config_destroy(config);
+	liberar_niveles(nombres_niveles);
 
 	return self;
 }
