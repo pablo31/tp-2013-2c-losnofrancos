@@ -60,19 +60,19 @@ t_personaje* personaje_crear(char* config_path){
 		nivel->nombre = nombre_nivel;
 		nivel->objetivos = list_create();
 
-		char* key_cantidad_objetivos = string_from_format("objs[%s]", nombre_nivel);
 		char* key_objetivos = string_from_format("obj[%s]", nombre_nivel);
+		char* objetivos = config_get_string_value(config, key_objetivos);
 
-		int cantidad_objetivos = config_get_int_value(config, key_cantidad_objetivos);
-		char** objetivos = config_get_array_value(config, key_objetivos);
-
-		int ii;
-		for(ii = 0; ii < cantidad_objetivos; ii++){
-			char* objetivo = objetivos[ii];
+		logger_info(self->logger, "Nivel: %s Objetivos:%s", nivel->nombre, objetivos);
+		int ii = 0;
+		while('\0' != objetivos[ii]){
+			char* objetivo = string_from_format("%c" , objetivos[ii]);
 			list_add(nivel->objetivos, objetivo);
+
+			logger_info(self->logger, "Objetivo:%s", objetivo);
+			ii++;
 		}
 
-		free(key_cantidad_objetivos);
 		free(key_objetivos);
 
 		list_add(niveles, nivel);
