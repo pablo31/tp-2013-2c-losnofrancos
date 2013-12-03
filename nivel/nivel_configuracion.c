@@ -86,7 +86,7 @@ void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 	else 
 		log_level = "INFO";		
 
-	logger_initialize(log_file, "nivel.sh", log_level); //no logea en consola
+	logger_initialize(log_file, "nivel.sh", log_level, 0); //no logea en consola
 	var(logger, logger_new_instance());
 	self->logger = logger;
 
