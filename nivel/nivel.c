@@ -298,11 +298,11 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		mutex_open(self->semaforo_personajes);
 
 		//controlar si al moverse fue atrapado por un enemigo
+		mutex_close(self->semaforo_enemigos);
 		foreach (enemigo, self->enemigos, tad_enemigo*){
-			mutex_close(self->semaforo_enemigos);
 			verificar_muerte_por_enemigo(personaje_en_movimiento, enemigo->pos, self);
-			mutex_open(self->semaforo_enemigos);
 		}
+		mutex_open(self->semaforo_enemigos);
 
 		nivel_gui_dibujar(self);
 
@@ -312,7 +312,7 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 
 		package_get_two_chars(paquete, out simbolo_personaje, out simbolo_recurso);
 
-		evaluar_solicitud_recurso(self,simbolo_personaje,simbolo_recurso);
+		evaluar_solicitud_recurso(self, simbolo_personaje, simbolo_recurso);
 
 	}else if(tipo == PERSONAJE_DESCONEXION){
 		char simbolo = package_get_char(paquete);
@@ -457,15 +457,14 @@ void evaluar_solicitud_recurso(tad_nivel* self, char simbolo_personaje, char sim
 
 
 void otorgar_recurso(tad_nivel* self, tad_personaje* personaje_solicitud, char simbolo_recurso){
-
+	bool encontre_recurso = false;
 	//actualizar lista recursos_asignados del personaje aumentando cant.del recurso
 	//o agregando un nuevo recurso a la lista
 
 	//buscar en lista recursos_asignados del personaje
-	var(recursos_asignados, personaje_solicitud->recursos_asignados);
-	bool encontre_recurso = false;
-
 	mutex_close(self->semaforo_personajes);
+	var(recursos_asignados, personaje_solicitud->recursos_asignados);
+
 	foreach (recurso_personaje, recursos_asignados, tad_recurso*){
 		//si lo encuentra incrementa la cantidad
 		if (recurso_personaje->simbolo == simbolo_recurso){
@@ -487,18 +486,20 @@ void otorgar_recurso(tad_nivel* self, tad_personaje* personaje_solicitud, char s
 	}
 
 	//actualizar recurso_pedido del personaje
-	mutex_open(self->semaforo_personajes);
+	mutex_close(self->semaforo_personajes);
 	personaje_solicitud->recurso_pedido = null;
+	var(personaje_simbolo, personaje_solicitud->simbolo);
 	mutex_open(self->semaforo_personajes);
 
-	var(personaje_simbolo, personaje_solicitud->simbolo);
 	logger_info(get_logger(self), "Se otorga el recurso %c al personaje %c", simbolo_recurso, personaje_simbolo);
 	socket_send_char(self->socket, RECURSO_OTORGADO, personaje_simbolo);
 }
 
 
 void liberar_y_reasignar_recursos(tad_nivel* self, tad_personaje* personaje_muerto) {
+	mutex_close(self->semaforo_personajes);
 	t_list* lista_personajes = self->personajes;
+	mutex_open(self->semaforo_personajes);
 
 	bool esta_bloqueado (tad_personaje* personaje){
 		return (personaje->recurso_pedido != NULL);
@@ -558,8 +559,9 @@ void verificar_muerte_por_enemigo(tad_personaje* personaje, vector2 pos_enemigo,
 	mutex_open(self->semaforo_personajes);
 
 	if (atrapado_por_enemigo){
-
+		mutex_close(self->semaforo_personajes);
 		var(personaje_muerto, personaje->simbolo);
+		mutex_open(self->semaforo_personajes);
 		logger_info(self->logger, "murio el personaje %c al ser atrapado por un enemigo.", personaje_muerto);
 		//se avisa la muerte del personaje por enemigo al planificador
 		socket_send_char(self->socket, MUERTE_POR_ENEMIGO, personaje_muerto);

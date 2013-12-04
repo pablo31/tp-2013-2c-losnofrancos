@@ -12,19 +12,18 @@ void movimiento_permitido_enemigo(PACKED_ARGS){
 	logger_info(nivel->logger, "ENEMIGO: Se cargo el enemigo %c. Posicion: (%d,%d)", self->simbolo, self->pos.x, self->pos.y);
 
 	srand(time(NULL)); //seed para random
-	//teniendo en cuenta que no:
-		//salga del mapa
-		//pase por arriba de una caja
 
-	mutex_close(nivel->semaforo_personajes);
-	int cantidad_personajes = list_size(nivel->personajes);
-	mutex_open(nivel->semaforo_personajes);
+	while(true){
+		mutex_close(nivel->semaforo_personajes);
+		int cantidad_personajes = list_size(nivel->personajes);
+		mutex_open(nivel->semaforo_personajes);
 
-	if(cantidad_personajes > 0){
-		atacar_al_personaje(nivel, self);
-	}else{
-		logger_info(nivel->logger, "ENEMIGO: Nivel sin personajes.");
-		moverse_sin_personajes(nivel, self);
+		if(cantidad_personajes > 0){
+			atacar_al_personaje(nivel, self);
+		}else{
+			//logger_info(nivel->logger, "ENEMIGO: Nivel sin personajes.");
+			moverse_sin_personajes(nivel, self);
+		}
 	}
 }
 
@@ -34,21 +33,23 @@ void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self){
 	vector2 posicion_actual;
 	int eje_prox_mov;
 
-	mutex_close(nivel->semaforo_personajes);
-	int cantidad_personajes = list_size(nivel->personajes);
-	mutex_open(nivel->semaforo_personajes);
+	//mutex_close(nivel->semaforo_personajes);
+	//int cantidad_personajes = list_size(nivel->personajes);
+	//mutex_open(nivel->semaforo_personajes);
 
-	logger_info(nivel->logger, "ENEMIGO: Al ataque!!!.");
-	logger_info(nivel->logger, "ENEMIGO: EL nivel tiene %d personaje/s para atacar.", cantidad_personajes);
+	//logger_info(nivel->logger, "ENEMIGO: Al ataque!!");
+	//logger_info(nivel->logger, "ENEMIGO: EL nivel tiene %d personaje/s para atacar.", cantidad_personajes);
 
-	while(cantidad_personajes>0){
+	//while(cantidad_personajes>0){
 
 		vector2 posicion_personaje;
 
-		mutex_close(nivel->semaforo_personajes);
-		mutex_close(nivel->semaforo_enemigos);
+		//mutex_close(nivel->semaforo_personajes);
+		//mutex_close(nivel->semaforo_enemigos);
 		posicion_personaje = buscar_personaje_mas_cercano(nivel, self);
+		mutex_close(nivel->semaforo_enemigos);
 		posicion_actual = self->pos;
+		mutex_open(nivel->semaforo_enemigos);
 		
 		//si el personaje no está en la misma posicion que el enemigo
 		if(!(vector2_equals(posicion_actual, posicion_personaje))){
@@ -58,28 +59,34 @@ void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self){
 
 			//controlo si en la posicion a moverse se encuentra una caja
 			if (posicion_sin_caja(nivel, nueva_posicion)){
+				mutex_close(nivel->semaforo_enemigos);
 				self->pos = nueva_posicion;
+				mutex_open(nivel->semaforo_enemigos);
 			}else{ //si hay una caja busco un movimiento alternativo para esquivarla
 				vector2 posicion_alternativa = esquivar_caja(posicion_actual, nueva_posicion, posicion_personaje);
+				mutex_close(nivel->semaforo_enemigos);
 				self->pos = posicion_alternativa;
+				mutex_open(nivel->semaforo_enemigos);
 			}
 		}
 
 		//si en la nueva posicion se encuentra el personaje se considera atrapado y se informa su muerte.
+		mutex_close(nivel->semaforo_enemigos);
 		verificar_muerte_por_enemigo(self->blanco, self->pos, nivel);
-
 		mutex_open(nivel->semaforo_enemigos);
-		mutex_open(nivel->semaforo_personajes);
+
+		//mutex_open(nivel->semaforo_enemigos);
+		//mutex_open(nivel->semaforo_personajes);
 		
 		sleep(1);
 		nivel_gui_dibujar(nivel);
 
-        mutex_close(nivel->semaforo_personajes);
-        cantidad_personajes = list_size(nivel->personajes);
-        mutex_open(nivel->semaforo_personajes);
-	}
+      //  mutex_close(nivel->semaforo_personajes);
+        //cantidad_personajes = list_size(nivel->personajes);
+        //mutex_open(nivel->semaforo_personajes);
+	//}
 	//cuando sale del while, significa que no tiene personajes el nivel, se invoca a mover en L
-	moverse_sin_personajes(nivel,self);
+	//moverse_sin_personajes(nivel,self);
 }
 
 
@@ -97,27 +104,37 @@ vector2 buscar_personaje_mas_cercano(tad_nivel* nivel, tad_enemigo* self){
 	int distancia_aux;
     bool sin_objetivo = true;
 
+    mutex_close(nivel->semaforo_enemigos);
     var(pos_enemigo, self->pos);
+    mutex_open(nivel->semaforo_enemigos);
 
+    mutex_close(nivel->semaforo_personajes);
     foreach(personaje, nivel->personajes, tad_personaje*){
 
        var(pos_personaje, personaje->pos);
 
        if (sin_objetivo){
     	   distancia_del_enemigo = calcular_distancia(pos_enemigo, pos_personaje);
-           self->blanco = personaje;
+    	   mutex_close(nivel->semaforo_enemigos);
+    	   self->blanco = personaje;
+    	   mutex_open(nivel->semaforo_enemigos);
            sin_objetivo = false;
        }else{
     	   distancia_aux = calcular_distancia(pos_enemigo, pos_personaje);
            if (distancia_aux < distancia_del_enemigo){
         	   distancia_del_enemigo = distancia_aux;
+        	   mutex_close(nivel->semaforo_enemigos);
         	   self->blanco = personaje;
+        	   mutex_open(nivel->semaforo_enemigos);
            }
        }
     }
+    mutex_open(nivel->semaforo_personajes);
 
+    mutex_close(nivel->semaforo_enemigos);
     var(blanco_pos, self->blanco->pos);
     var(blanco_simbolo, self->blanco->simbolo);
+    mutex_open(nivel->semaforo_enemigos);
     logger_info(nivel->logger, "ENEMIGO: personaje a atrapar: %c. Posicion: (%d,%d)", blanco_simbolo, blanco_pos.x, blanco_pos.y);
 
     return blanco_pos;
@@ -139,50 +156,49 @@ void moverse_sin_personajes(tad_nivel* nivel, tad_enemigo* self){
 	int cantidad_personajes = list_size(nivel->personajes);
 	mutex_open(nivel->semaforo_personajes);
 
-	logger_info(nivel->logger, "ENEMIGO: empieza a moverse en L");
+	//logger_info(nivel->logger, "ENEMIGO: empieza a moverse en L");
 
-	while(cantidad_personajes==0){
+	//while(cantidad_personajes==0){
 
-		while(movimientos_faltantes>0){
+	while(movimientos_faltantes>0){
 
-			mutex_close(nivel->semaforo_enemigos);
-			nueva_pos = movimiento_random(self->pos, random, movimientos_faltantes);
-			mutex_open(nivel->semaforo_enemigos);
+		mutex_close(nivel->semaforo_enemigos);
+		nueva_pos = movimiento_random(self->pos, random, movimientos_faltantes);
+		mutex_open(nivel->semaforo_enemigos);
 
-			//si la posicion esta dentro del mapa se grafica
-			if(vector2_within_map(nueva_pos, limite_mapa)){
-				//controlo si en la posicion a moverse se encuentra una caja
-				if (posicion_sin_caja(nivel,nueva_pos)){
-					movimientos_faltantes --;
-					mutex_close(nivel->semaforo_enemigos);
-					self->pos = nueva_pos;
-					//logger_info(nivel->logger, "ENEMIGO: moviendose en L a (%d,%d)", self->pos.x,self->pos.y);
-					mutex_open(nivel->semaforo_enemigos);
-					//usleep(nivel->sleep_enemigos * 600); //esto es lo que va
-					sleep(1);
-					nivel_gui_dibujar(nivel);
-				}
-				else{
-					//si no completo la L por esquivar una caja tiene que empezar de nuevo y buscar otra L al azar
-					movimientos_faltantes=0; 
-				}
-			}else{
-				//sino completo la L porque se iba fuera del mapa tiene que empezar de nuevo y buscar otra L al azar
-				movimientos_faltantes=0;
-				logger_info(nivel->logger, "ENEMIGO: esquiva borde en (%d,%d)", nueva_pos.x, nueva_pos.y);
+		//si la posicion esta dentro del mapa se grafica
+		if(vector2_within_map(nueva_pos, limite_mapa)){
+			//controlo si en la posicion a moverse se encuentra una caja
+			if (posicion_sin_caja(nivel,nueva_pos)){
+				movimientos_faltantes --;
+				mutex_close(nivel->semaforo_enemigos);
+				self->pos = nueva_pos;
+				logger_info(nivel->logger, "ENEMIGO: moviendose en L a (%d,%d)", self->pos.x,self->pos.y);
+				mutex_open(nivel->semaforo_enemigos);
+				//usleep(nivel->sleep_enemigos * 600); //esto es lo que va
+				sleep(1);
+				nivel_gui_dibujar(nivel);
 			}
-			mutex_close(nivel->semaforo_personajes);
-			cantidad_personajes = list_size(nivel->personajes);
-			mutex_open(nivel->semaforo_personajes);
-
-			if(cantidad_personajes > 0){
+			else{
+			//si no completo la L por esquivar una caja tiene que empezar de nuevo y buscar otra L al azar
 				movimientos_faltantes=0;
 			}
+		}else{
+			//sino completo la L porque se iba fuera del mapa tiene que empezar de nuevo y buscar otra L al azar
+			movimientos_faltantes=0;
+			logger_info(nivel->logger, "ENEMIGO: esquiva borde en (%d,%d)", nueva_pos.x, nueva_pos.y);
 		}
-		movimientos_faltantes=3;
-		random = rand()%8;
+		mutex_close(nivel->semaforo_personajes);
+		cantidad_personajes = list_size(nivel->personajes);
+		mutex_open(nivel->semaforo_personajes);
+
+		if(cantidad_personajes > 0)
+			movimientos_faltantes=0;
 	}
-	atacar_al_personaje(nivel,self);
+	//	movimientos_faltantes=3;
+	//	random = rand()%8;
+	//}
+	//atacar_al_personaje(nivel,self);
 }
 
 
