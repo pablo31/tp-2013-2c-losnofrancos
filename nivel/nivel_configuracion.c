@@ -38,8 +38,8 @@ static void crear_enemigos(tad_nivel* nivel, int cantidad){
 
 		srand (++seed); //le agrego una a la semilla para que no genere siempre lo mismo en cada iteracion
 
-		int pos_x = 1 + (rand() % 15); //le sumo 1 porque no puede ser 0 0 nunca.
-		int pos_y = 1 + (rand() % 15);
+		int pos_x = 1 + (rand() % 20); //le sumo 1 porque no puede ser 0 0 nunca.
+		int pos_y = 1 + (rand() % 20);
 
 		enem->pos = vector2_new(pos_x, pos_y);
 

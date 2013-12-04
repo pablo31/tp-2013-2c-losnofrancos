@@ -371,7 +371,8 @@ private void manejar_paquete_nivel(tad_planificador* self, tad_package* paquete)
 		free(package_get_data(paquete));
 		var(personaje, buscar_personaje(self, simbolo)); //se saca el personaje de la lista de listos
 		logger_info(logger, "El personaje %s muere por un enemigo.", personaje->nombre);
-		socket_send_empty_package(personaje->socket, MUERTE_POR_ENEMIGO);
+		socket_send_empty_package(personaje->socket, MUERTE_POR_ENEMIGO); //le avisa al personaje
+		socket_send_empty_package(self->nivel->socket, PERSONAJE_DESCONEXION); //le avisa al nivel
 
 	}else if(tipo == MUERTE_POR_DEADLOCK){
 		var(simbolo, package_get_char(paquete));
@@ -379,6 +380,7 @@ private void manejar_paquete_nivel(tad_planificador* self, tad_package* paquete)
 		var(personaje, buscar_personaje_bloqueado(self, simbolo));
 		logger_info(logger, "El personaje muere %s muere por el algoritmo deadlock.", personaje->nombre);
 		socket_send_empty_package(personaje->socket, MUERTE_POR_DEADLOCK);
+		socket_send_empty_package(self->nivel->socket, PERSONAJE_DESCONEXION); //le avisa al nivel
 	}
 }
 
@@ -426,7 +428,7 @@ private void error_socket_nivel(tad_planificador* self){
 
 
 private void mostrar_lista(tad_planificador* self, char* header, t_list* personajes){
-	char* s = "";
+/*	char* s = "";
 	foreach(personaje, personajes, tad_personaje*){
 		char* tmp;
 		tmp = string_from_format("%s%c", s, personaje->simbolo);
@@ -435,6 +437,7 @@ private void mostrar_lista(tad_planificador* self, char* header, t_list* persona
 	}
 	logger_info(get_logger(self), "%s: %s", header, s);
 	free(s);
+	*/
 }
 
 
