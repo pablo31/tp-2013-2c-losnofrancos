@@ -68,7 +68,7 @@ t_personaje* personaje_crear(char* config_path){
 	int i;
 	for(i = 0; i < cantidad_niveles; i++){
 		alloc(nivel, t_nivel);
-		char* nombre_nivel = nombres_niveles[i];
+		char* nombre_nivel = string_duplicate(nombres_niveles[i]);
 		nivel->nombre = nombre_nivel;
 		nivel->objetivos = list_create();
 

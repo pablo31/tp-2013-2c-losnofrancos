@@ -7,6 +7,8 @@
 
 #include <string.h>
 
+#include "../libs/common/string.h"
+
 #include "../libs/multiplexor/multiplexor.h"
 #include "../libs/socket/socket_utils.h"
 #include "../libs/socket/package_serializers.h"
@@ -42,6 +44,9 @@ private tad_personaje* buscar_personaje(tad_planificador* self, char simbolo);
 //manejo de desconexiones
 private void error_socket_personaje(tad_planificador* self, tad_personaje* personaje);
 private void error_socket_nivel(tad_planificador* self);
+
+//logeo
+private void mostrar_lista(tad_planificador* self, char* header, t_list* personajes);
 
 
 /***************************************
@@ -217,6 +222,12 @@ private tad_package* esperar_ubicacion_recurso(tad_planificador* self, tad_socke
 }
 
 private void otorgar_turno(tad_planificador* self){
+	//informamos el estado de las colas
+	var(listos, self->personajes_listos);
+	var(bloqueados, self->personajes_bloqueados);
+	if(list_size(listos) > 0) mostrar_lista(self, "Cola de listos", listos);
+	if(list_size(bloqueados) > 0) mostrar_lista(self, "Cola de bloqueados", bloqueados);
+
 	//obtenemos el siguiente personaje al que le toca jugar
 	var(personaje, self->algoritmo(self));
 	if(!personaje) return;
@@ -227,7 +238,7 @@ private void otorgar_turno(tad_planificador* self){
 	var(socket_nivel, self->nivel->socket);
 	var(logger, get_logger(self));
 
-	logger_info(logger, "Se le otorgara un quantum a %s", nombre);
+	logger_info(logger, "El siguiente en jugar sera %s (%c)", nombre, simbolo);
 
 	//seteamos el manejo de errores ante una desconexion del personaje
 	SOCKET_ON_ERROR(socket, error_socket_personaje(self, personaje));
@@ -414,6 +425,16 @@ private void error_socket_nivel(tad_planificador* self){
 
 
 
-
+private void mostrar_lista(tad_planificador* self, char* header, t_list* personajes){
+	char* s = null;
+	foreach(personaje, personajes, tad_personaje*){
+		char* tmp;
+		tmp = string_from_format("%c", personaje->simbolo);
+		if(s!=null) free(s);
+		s = tmp;
+	}
+	logger_info(get_logger(self), "%s: %s", header, s);
+	free(s);
+}
 
 
