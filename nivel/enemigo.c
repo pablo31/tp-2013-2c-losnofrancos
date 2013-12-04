@@ -32,6 +32,7 @@ void movimiento_permitido_enemigo(PACKED_ARGS){
 void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self){
 	//se carga la posicion del personaje que esta mas cerca.
 	vector2 posicion_actual;
+	int eje_prox_mov;
 
 	mutex_close(nivel->semaforo_personajes);
 	int cantidad_personajes = list_size(nivel->personajes);
@@ -48,14 +49,20 @@ void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self){
 		mutex_close(nivel->semaforo_enemigos);
 		posicion_personaje = buscar_personaje_mas_cercano(nivel, self);
 		posicion_actual = self->pos;
-		vector2 nueva_posicion = vector2_next_step(posicion_actual, posicion_personaje);
 		
-		//controlo si en la posicion a moverse se encuentra una caja
-		if (posicion_sin_caja(nivel, nueva_posicion)){
-			self->pos = nueva_posicion;
-		}else{ //si hay una caja busco un movimiento alternativo para esquivarla
-			vector2 posicion_alternativa = esquivar_caja(posicion_actual, nueva_posicion, posicion_personaje);
-			self->pos = posicion_alternativa;
+		//si el personaje no está en la misma posicion que el enemigo
+		if(!(vector2_equals(posicion_actual, posicion_personaje))){
+
+			//vector2 nueva_posicion = vector2_next_step(posicion_actual, posicion_personaje);
+			vector2 nueva_posicion = vector2_move_alternately(posicion_actual, posicion_personaje, &eje_prox_mov);
+
+			//controlo si en la posicion a moverse se encuentra una caja
+			if (posicion_sin_caja(nivel, nueva_posicion)){
+				self->pos = nueva_posicion;
+			}else{ //si hay una caja busco un movimiento alternativo para esquivarla
+				vector2 posicion_alternativa = esquivar_caja(posicion_actual, nueva_posicion, posicion_personaje);
+				self->pos = posicion_alternativa;
+			}
 		}
 
 		//si en la nueva posicion se encuentra el personaje se considera atrapado y se informa su muerte.
@@ -205,28 +212,28 @@ vector2 esquivar_caja(vector2 posicion_actual, vector2 nueva_posicion, vector2 p
     //moviendome en el eje contrario, elijo el sentido segun la posicion del personaje
 	movimiento_incorrecto = calcular_direccion_movimiento(posicion_actual, nueva_posicion);
 
-    switch (movimiento_incorrecto){
+    switch(movimiento_incorrecto){
 
            case ARRIBA:
            case ABAJO:
-        	   if (posicion_actual.x > posicion_personaje.x) {
+        	   if (posicion_actual.x > posicion_personaje.x)
         		   //se mueve hacia la izquierda
         		   posicion_alternativa = vector2_add_x(posicion_actual, -1);
-        	   }else{
+        	   else
         		  //se mueve hacia la derecha
         		   posicion_alternativa = vector2_add_x(posicion_actual, 1);
-        	   }
+
         	   break;
 
            case IZQUIERDA:
            case DERECHA:
-        	   if (posicion_actual.y > posicion_personaje.y) {
+        	   if (posicion_actual.y > posicion_personaje.y)
         		   //se mueve  hacia arriba
         		   posicion_alternativa = vector2_add_y(posicion_actual, -1);
-        	   }else{
+        	   else
         		   //se mueve hacia abajo
         		   posicion_alternativa = vector2_add_y(posicion_actual, 1);
-        	   }
+
         	   break;
      	}
 	return posicion_alternativa;
@@ -252,7 +259,7 @@ int calcular_direccion_movimiento(vector2 pos1, vector2 pos2){
 vector2 movimiento_random(vector2 enemigo_pos, int random, int cantidad){
 	vector2 posicion_final;
 
-	switch (random){
+	switch(random){
 		case 0:
 		case 1:
 			//movimiento en L: me muevo dos posiciones en el eje Y hacia Abajo y una en el eje X (Izq. o Der.)
