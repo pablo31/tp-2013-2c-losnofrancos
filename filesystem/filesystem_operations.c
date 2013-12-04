@@ -218,7 +218,7 @@ int fs_write(const char *path, const char *buf, size_t size, off_t offset,
 		sem_wait(&mutex_nodos);
 		nodos[indice] = nodo;
 		sem_post(&mutex_nodos);
-		logger_info(logger, "escribo");
+		//logger_info(logger, "escribo");
 		return size;
 	} else {
 		return 0;
@@ -664,8 +664,8 @@ int guardar_datos(GFile* archivo, const char* buffer, size_t size,
 	offset_bloque = get_offset_bloque(offset, indice_indirectos);
 	bytes_guardados = 0;
 
-	logger_info(logger, "fs_write: size:%u offset:%u  buffer:%s", size, offset,buffer);
-	logger_info(logger, "indirectos:%u, directos: %u, bloque: %u", indice_indirectos, indice_directos, offset_bloque);
+	//logger_info(logger, "fs_write: size:%u offset:%u", size, offset);
+	//logger_info(logger, "indirectos:%u, directos: %u, bloque: %u", indice_indirectos, indice_directos, offset_bloque);
 
 	while (!fin && indice_indirectos < 1000) {
 		if (no_existe_puntero(archivo->blk_indirect[indice_indirectos])) {
@@ -705,14 +705,14 @@ int guardar_datos(GFile* archivo, const char* buffer, size_t size,
 			cuantos_bytes_guardar = 0;
 
 			//logger_info(logger, "bytes_guardados:%i", bytes_guardados);
-			if (((size - bytes_guardados) - offset_bloque) < 4096) {
-				cuantos_bytes_guardar = ((size - bytes_guardados) - offset_bloque); //Lo que me falta para el offset.
+			if ((size - bytes_guardados) < (4096 - offset_bloque)) {
+				cuantos_bytes_guardar = size - bytes_guardados; //Lo que me falta para el offset.
 				//logger_info(logger, "lo que falta");
 			} else {
-				cuantos_bytes_guardar = 4096; //cargo el bloque completo.
+				cuantos_bytes_guardar = 4096 - offset_bloque; //cargo el bloque completo.
 				//logger_info(logger, "bloque completo");
 			}
-
+			//logger_info(logger,"se guardan:%u",cuantos_bytes_guardar);
 			sem_wait(&mutex_datos);
 			memcpy(nodo_datos + offset_bloque, buffer + bytes_guardados, cuantos_bytes_guardar);
 			sem_post(&mutex_datos);
@@ -742,6 +742,7 @@ int guardar_datos(GFile* archivo, const char* buffer, size_t size,
 	if(!fin){
 		return -EFBIG;
 	}
+
 	return EXIT_SUCCESS;
 }
 
@@ -758,8 +759,9 @@ uint cargar_datos(GFile *archivo, char* buffer, size_t size, off_t inicio) {
 	char* nodo_datos = NULL; //Nodo con datos a cargar en el buffer.
 	ptrGBloque punteros_a_datos[GFILEBYTABLE];
 
-	if(size > archivo->file_size) size = archivo->file_size;
-	//logger_info(logger,"fs_read: i:%u j:%u inicio:%u",i,j,inicio);
+	if((inicio + size) > archivo->file_size) size = archivo->file_size - inicio;
+	//logger_info(logger, "fs_write: size:%u offset:%u", size, inicio);
+	//logger_info(logger, "indirectos:%u, directos: %u, bloque: %u", indice_indirectos, indice_directos, offset_bloque);
 
 	while (!fin && indice_indirectos < 1000 && !no_existe_puntero(archivo->blk_indirect[indice_indirectos])) {
 		//cargo los punteros de los nodos de datos en mi lista de punteros	
@@ -779,11 +781,12 @@ uint cargar_datos(GFile *archivo, char* buffer, size_t size, off_t inicio) {
 			if (estoy_en_rango(inicio, size, offset_bytes_archivo + indice_directos)) {
 				uint cuantos_bytes_cargar = 0;
 
-				if (((size - bytes_leidos) - offset_bloque) < 4096)
-					cuantos_bytes_cargar = ((size - bytes_leidos) - offset_bloque); //Lo que me falta para el offset.
+				if ((size - bytes_leidos) < (4096 - offset_bloque))
+					cuantos_bytes_cargar = size - bytes_leidos; //Lo que falta
 				else
-					cuantos_bytes_cargar = 4096; //cargo el bloque completo.
+					cuantos_bytes_cargar = 4096 - offset_bloque; //cargo el bloque completo.
 
+				//logger_info(logger,"se cargan:%u",cuantos_bytes_cargar);
 				if(cuantos_bytes_cargar != 0){
 				//logger_info(logger,"fs_read: k:%u offset:%u falta:%u",k , offset, offset - k);
 				sem_wait(&mutex_datos);
