@@ -143,156 +143,45 @@ vector2 vector2_next_step(vector2 origin, vector2 target){
 	return vector2_add(origin, movement);
 }
 
-/*
-vector2 vector2_move_in_L(vector2 enemigo_pos,int random, int cantidad){
-	//padre nuestro que estas en los cielos santificado sea tu nombre......
-	//perdona *sus* ifs
 
-	switch (random) {
+vector2 vector2_move_alternately(vector2 pos_salida, vector2 pos_llegada, int *eje_prox_mov){
+	vector2 prox_pos;
+	int eje = *eje_prox_mov;
 
-	case 0:
-		if (cantidad==3){
-			enemigo_pos.y ++;
-		}else if (cantidad==2){
-			enemigo_pos.y ++;
-		}else if (cantidad==1){
-			enemigo_pos.x --;
-		}
-		 break;
-	case 1:
-		if (cantidad==3){
-			enemigo_pos.y ++;
-		}else if (cantidad==2){
-			enemigo_pos.y ++;
-		}else if (cantidad==1){
-			enemigo_pos.x ++;
-		}
-		break;
-	case 2:
-		if (cantidad==3){
-			enemigo_pos.y --;
-		}else if (cantidad==2){
-			enemigo_pos.y --;
-		}else if (cantidad==1){
-			enemigo_pos.x ++;
-		}
-		break;
-	case 3:
-		if (cantidad==3){
-			enemigo_pos.y --;
-		}else if (cantidad==2){
-			enemigo_pos.y --;
-		}else if (cantidad==1){
-			enemigo_pos.x --;
-		}
-		break;
-	case 4:
-		if (cantidad==3){
-			enemigo_pos.x ++;
-		}else if (cantidad==2){
-			enemigo_pos.x ++;
-		}else if (cantidad==1){
-			enemigo_pos.y ++;
-		}
-		break;
-	case 5:
-		if (cantidad==3){
-			enemigo_pos.x ++;
-		}else if (cantidad==2){
-			enemigo_pos.x ++;
-		}else if (cantidad==1){
-			enemigo_pos.y --;
-		}
-		break;
-	case 6:
-		if (cantidad==3){
-			enemigo_pos.x --;
-		}else if (cantidad==2){
-			enemigo_pos.x --;
-		}else if (cantidad==1){
-			enemigo_pos.y ++;
-		}
-		break;
-	case 7:
-		if (cantidad==3){
-			enemigo_pos.x --;
-		}else if (cantidad==2){
-			enemigo_pos.x --;
-		}else if (cantidad==1){
-			enemigo_pos.y --;
-		}
-		break;
+	if (!(vector2_equals_xy(pos_salida, pos_llegada, eje))) //si no puedo moverme en este eje
+		eje = !eje; //me muevo en el mismo eje que antes
 
-	}
+	if (vector2_min_xy(pos_salida, pos_llegada, eje)) //si la posicion actual en el eje es menor a la posicion de llegada
+		prox_pos = vector2_move_pos(pos_salida, eje, 1); //me muevo hacia arriba o hacia la izquierda
+	else
+		prox_pos = vector2_move_pos(pos_salida, eje, -1); //me muevo hacia abajo o hacia la derecha
 
-	return enemigo_pos;
-}
+	*eje_prox_mov = !eje; //seteo el eje alterno para el proximo movimiento
 
-*/
-
-vector2 vector2_move_in_L(vector2 enemigo_pos, int random, int cantidad){
-	vector2 posicion_final;
-
-	switch (random){
-		case 0:
-		case 1:
-			//movimiento en L: me muevo dos posiciones en el eje Y hacia Abajo y una en el eje X (Izq. o Der.)
-			posicion_final = movimiento_en_L(enemigo_pos, EJE_Y, 1, random, cantidad);
-			break;
-		case 2:
-		case 3:
-			//movimiento en L: me muevo dos posiciones en el eje Y hacia Arriba y una en el eje X (Izq. o Der.)
-			posicion_final = movimiento_en_L(enemigo_pos, EJE_Y, -1, random, cantidad);
-			break;
-		case 4:
-		case 5:
-			//movimiento en L: me muevo dos posiciones en el eje X hacia la Derecha y una en el eje Y (Arriba o Abajo)
-			posicion_final = movimiento_en_L(enemigo_pos, EJE_X, 1, random, cantidad);
-			break;
-		case 6:
-		case 7:
-			// movimiento en L: me muevo dos posiciones en el eje X hacia la Izquierda y una en el eje Y (Arriba o Abajo)
-			posicion_final = movimiento_en_L(enemigo_pos, EJE_X, -1, random, cantidad);
-    		break;
-	}
-
-	return posicion_final;
+	return prox_pos;
 }
 
 
-vector2 moverse_una_posicion (vector2 posicion, int eje, int sentido){
+int vector2_equals_xy(vector2 a, vector2 b, int eje){
+	if (eje == EJE_X)
+		return (a.x == b.x);
+	else // EJE_Y
+		return (a.y == b.y);
+}
+
+
+int vector2_min_xy(vector2 a, vector2 b, int eje){
+	if (eje == EJE_X)
+		return (a.x < b.x);
+	else // EJE_Y
+		return (a.y < b.y);
+}
+
+vector2 vector2_move_pos(vector2 posicion, int eje, int sentido){
 	vector2 pos;
-
     if (eje == EJE_X)
     	pos = vector2_add_x(posicion, sentido);
     if (eje == EJE_Y)
     	pos = vector2_add_y(posicion, sentido);
     return pos;
-}
-
-
-vector2 movimiento_en_L(vector2 enemigo_pos, int eje, int sentido, int random, int cantidad){
-	int eje_alterno;
-	vector2 posicion_final;
-
-
-	if (cantidad > 1){
-		posicion_final = moverse_una_posicion(enemigo_pos, eje, sentido);
-    }else{
-    	eje_alterno = get_eje_alterno (eje);
-
-    	if (random%2==0)
-    		posicion_final = moverse_una_posicion(enemigo_pos, eje_alterno, 1);
-    	else
-    		posicion_final = moverse_una_posicion(enemigo_pos, eje_alterno, -1);
-    }
-	return posicion_final;
-}
-
-
-int get_eje_alterno(int eje) {
-	if (eje == EJE_X)
-		return EJE_Y;
-	else
-		return EJE_X;
 }
