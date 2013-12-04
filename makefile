@@ -5,7 +5,7 @@
 # make
 # Esta opcion es la default del make cuando lo ejecutamos.
 all: 
-	clear
+	@clear
 
 	@echo "Los No Francos 2013"
 	@echo "'Desarrollando para usted desde hace más de un año'"
@@ -59,55 +59,55 @@ all:
 	@echo ""
 
 	@echo "   >>> COMPILANDO PRUEBA CLIENTE"
-	@gcc -Wall -g -ggdb pruebas/cliente.c libcommon.a libsck.a liblog.a libsgn.a -o prueba_cliente.sh
+	@gcc -Wall -g -ggdb pruebas/cliente.c libcommon.a libsck.a liblog.a libsgn.a -o prueba_cliente.pv
 	
 	@echo ""
 	@echo "   >>> COMPILANDO PRUEBA SERVIDOR (MULTIPLEXOR)"
-	@gcc -Wall -g -ggdb pruebas/server.c libcommon.a libsck.a liblog.a libsgn.a libmpx.a -o prueba_servidor.sh
+	@gcc -Wall -g -ggdb pruebas/server.c libcommon.a libsck.a liblog.a libsgn.a libmpx.a -o prueba_servidor.pv
 	
 	@echo ""
 	@echo "   >>> COMPILANDO PRUEBA DE LISTAS"
-	@gcc -Wall -g -ggdb pruebas/listas.c libcommon.a libctn.a -o prueba_listas.sh
+	@gcc -Wall -g -ggdb pruebas/listas.c libcommon.a libctn.a -o prueba_listas.pv
 	@echo ""
 	
 	@echo "   >>> COMPILANDO PRUEBAS THREADS Y SEMAFOROS"
-	@gcc -Wall -g -ggdb pruebas/threads.c libth.a -o prueba_threads.sh -lpthread
-	@gcc -Wall -g -ggdb pruebas/semaforos.c libth.a -o prueba_semaforos.sh -lpthread
+	@gcc -Wall -g -ggdb pruebas/threads.c libth.a -o prueba_threads.pv -lpthread
+	@gcc -Wall -g -ggdb pruebas/semaforos.c libth.a -o prueba_semaforos.pv -lpthread
 	
 	@echo ""
 	@echo "   >>> COMPILANDO PRUEBA DE SALTOS"
-	@gcc -Wall -g -ggdb pruebas/saltos.c -o prueba_saltos.sh
+	@gcc -Wall -g -ggdb pruebas/saltos.c -o prueba_saltos.pv
 	
 	@echo ""
 	@echo "   >>> COMPILANDO PRUEBA DE SENALES"
-	@gcc -Wall -g -ggdb pruebas/senales.c libsgn.a -o prueba_senales.sh
+	@gcc -Wall -g -ggdb pruebas/senales.c libsgn.a -o prueba_senales.pv
 	
 	@echo ""
 	@echo "   >>> COMPILANDO PRUEBA DE NOTIFICADOR"
-	@gcc -Wall -g -ggdb pruebas/notificador.c libsgn.a libntf.a -o prueba_notificador.sh
+	@gcc -Wall -g -ggdb pruebas/notificador.c libsgn.a libntf.a -o prueba_notificador.pv
 	
 	@echo ""
 	@echo "   >>> COMPILANDO PRUEBA DE VARIABLES"
-	@gcc -Wall -g -ggdb pruebas/variables.c -o prueba_variables.sh
+	@gcc -Wall -g -ggdb pruebas/variables.c -o prueba_variables.pv
 	
 	@echo ""
 	@echo "   >>> COMPILANDO PRUEBA X"
-	@gcc -Wall -g -ggdb pruebas/intro.c libcommon.a -o prueba_x.sh -lncurses
+	@gcc -Wall -g -ggdb pruebas/intro.c libcommon.a -o prueba_x.pv -lncurses
 	
 	@echo ""
 	@echo "# PROCESOS"
 	@echo ""
 	
 	@echo "   >>> COMPILANDO PROCESO PERSONAJE"
-	@gcc -Wall -g -ggdb personaje/personaje.c personaje/personaje_config.c libcommon.a libctn.a libsck.a liblog.a libth.a libsgn.a -o personaje -lpthread
+	@gcc -Wall -g -ggdb personaje/personaje.c personaje/personaje_config.c libcommon.a libctn.a libsck.a liblog.a libth.a libsgn.a -o personaje.pv -lpthread
 	
 	@echo ""
 	@echo "   >>> COMPILANDO PROCESO PLATAFORMA"
-	@gcc -Wall -g -ggdb plataforma/plataforma.c plataforma/orquestador.c plataforma/planificador.c libcommon.a libctn.a libsck.a liblog.a libth.a libmpx.a libsgn.a -o plataforma -lpthread
+	@gcc -Wall -g -ggdb plataforma/plataforma.c plataforma/orquestador.c plataforma/planificador.c libcommon.a libctn.a libsck.a liblog.a libth.a libmpx.a libsgn.a -o plataforma.pv -lpthread
 	
 	@echo ""
 	@echo "   >>> COMPILANDO PROCESO NIVEL"
-	@gcc -Wall -ggdb nivel/nivel_ui.c nivel/nivel_configuracion.c nivel/nivel.c nivel/enemigo.c nivel/verificador_deadlock.c -lncurses libcommon.a libsck.a liblog.a libmpx.a libth.a libntf.a libsgn.a -lpthread -o nivel
+	@gcc -Wall -ggdb nivel/nivel_ui.c nivel/nivel_configuracion.c nivel/nivel.c nivel/enemigo.c nivel/verificador_deadlock.c -lncurses libcommon.a libsck.a liblog.a libmpx.a libth.a libntf.a libsgn.a -lpthread -o nivel.pv
 	
 	@echo ""
 	@echo ""
@@ -120,9 +120,9 @@ all:
 # make clean	
 # Esta opcion nos borra las librerias generadas y los ejecutables. Nos sirve para cuando nos quedo a medio masticar una compilacion
 clean:
-	clear #esto hace que se 'limpie' la terminal
+	@clear
 	@echo "Limpiando ejecutables"
-	@rm *.sh
+	@rm *.pv
 	@echo "Limpiando archivos de log"
 	@rm *.log
 	@echo "Limpiando archivos output"
