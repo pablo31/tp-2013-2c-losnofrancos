@@ -99,15 +99,15 @@ all:
 	@echo ""
 	
 	@echo "   >>> COMPILANDO PROCESO PERSONAJE"
-	@gcc -Wall -g -ggdb personaje/personaje.c personaje/personaje_config.c libcommon.a libctn.a libsck.a liblog.a libth.a libsgn.a -o personaje.sh -lpthread
+	@gcc -Wall -g -ggdb personaje/personaje.c personaje/personaje_config.c libcommon.a libctn.a libsck.a liblog.a libth.a libsgn.a -o personaje -lpthread
 	
 	@echo ""
 	@echo "   >>> COMPILANDO PROCESO PLATAFORMA"
-	@gcc -Wall -g -ggdb plataforma/plataforma.c plataforma/orquestador.c plataforma/planificador.c libcommon.a libctn.a libsck.a liblog.a libth.a libmpx.a libsgn.a -o plataforma.sh -lpthread
+	@gcc -Wall -g -ggdb plataforma/plataforma.c plataforma/orquestador.c plataforma/planificador.c libcommon.a libctn.a libsck.a liblog.a libth.a libmpx.a libsgn.a -o plataforma -lpthread
 	
 	@echo ""
 	@echo "   >>> COMPILANDO PROCESO NIVEL"
-	@gcc -Wall -ggdb nivel/nivel_ui.c nivel/nivel_configuracion.c nivel/nivel.c nivel/enemigo.c nivel/verificador_deadlock.c -lncurses libcommon.a libsck.a liblog.a libmpx.a libth.a libntf.a libsgn.a -lpthread -o nivel.sh
+	@gcc -Wall -ggdb nivel/nivel_ui.c nivel/nivel_configuracion.c nivel/nivel.c nivel/enemigo.c nivel/verificador_deadlock.c -lncurses libcommon.a libsck.a liblog.a libmpx.a libth.a libntf.a libsgn.a -lpthread -o nivel
 	
 	@echo ""
 	@echo ""
