@@ -126,10 +126,14 @@ enum SOCKET_ERR {
 
 	//Error management block definition (see ../error/error_management.h)
 	#define SOCKET_ERROR_MANAGER(socket) \
-		process_status __r_md_ps ## socket; \
-		int __r_md_psr ## socket = save_process_status(__r_md_ps ## socket); \
-		socket_bind_process_status(socket, &__r_md_ps ## socket); \
-		if(__r_md_psr ## socket)
+		SOCKET_ERROR_MANAGER_1(socket, __LINE__)
+	#define SOCKET_ERROR_MANAGER_1(socket, line) \
+		SOCKET_ERROR_MANAGER_2(socket, line)
+	#define SOCKET_ERROR_MANAGER_2(socket, unique_id) \
+		process_status __r_md_ps ## unique_id; \
+		int __r_md_psr ## unique_id = save_process_status(__r_md_ps ## unique_id); \
+		socket_bind_process_status(socket, &__r_md_ps ## unique_id); \
+		if(__r_md_psr ## unique_id)
 
 	//Error handler definition
 	#define SOCKET_ON_ERROR(socket, call) \

@@ -426,10 +426,10 @@ private void error_socket_nivel(tad_planificador* self){
 
 
 private void mostrar_lista(tad_planificador* self, char* header, t_list* personajes){
-	char* s = null;
+	char* s = "";
 	foreach(personaje, personajes, tad_personaje*){
 		char* tmp;
-		tmp = string_from_format("%c", personaje->simbolo);
+		tmp = string_from_format("%s%c", s, personaje->simbolo);
 		if(s!=null) free(s);
 		s = tmp;
 	}
