@@ -177,6 +177,23 @@ void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 }
 
 
+void destruir_caja(tad_caja* self){
+	if (self == NULL) return;
+
+	dealloc(self->nombre);
+	dealloc(self);
+}
+
+void destruir_personaje(void* ptr_pj){
+	tad_personaje* pj = ptr_pj;
+	dealloc(pj);
+}
+void destruir_enemigo(tad_enemigo* self){
+	if (self == NULL) return;
+
+	destruir_personaje(self->blanco);
+	dealloc(self);
+}
 
 void destruir_nivel(tad_nivel* self){
 	//liberamos strings varios
@@ -184,13 +201,10 @@ void destruir_nivel(tad_nivel* self){
 	free(self->algoritmo);
 
 	//liberamos listas
-	void liberar_personaje(void* ptr_pj){
-		tad_personaje* pj = ptr_pj;
-		dealloc(pj);
-	}
-	list_destroy_and_destroy_elements(self->personajes, liberar_personaje);
-	list_destroy(self->cajas); //TODO destruir elementos
-	list_destroy(self->enemigos); //TODO destruir elementos
+
+	list_destroy_and_destroy_elements(self->personajes, destruir_personaje);
+	list_destroy_and_destroy_elements(self->cajas, destruir_caja); 
+	list_destroy_and_destroy_elements(self->enemigos, destruir_enemigo); 
 
 	//liberamos el socket (si esta abierto)
 	var(socket, self->socket);
