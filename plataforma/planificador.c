@@ -90,6 +90,7 @@ tad_planificador* planificador_crear(char* nombre_nivel, tad_socket* socket_nive
 	//inicializamos las colas de personajes
 	self->personajes_listos = list_create();
 	self->personajes_bloqueados = list_create();
+	self->personaje_actual = null;
 	//inicializamos el multiplexor y le bindeamos el socket del nivel
 	var(m, multiplexor_create());
 	multiplexor_bind_socket(m, socket_nivel, paquete_entrante_nivel, self);
@@ -216,16 +217,23 @@ void planificador_ejecutar(PACKED_ARGS){
 		self->algoritmo = algoritmo_rr;
 	free(algoritmo);
 
-	int retardo_faltante;
 
 	while(1){
-		//aprovechamos el tiempo de retardo para ejecutar un select sobre el socket del nivel
-		multiplexor_wait_for_io(self->multiplexor, self->retardo, out retardo_faltante);
-		if(retardo_faltante > 0) usleep(retardo_faltante * 1000);
-
-		//ejecutamos la logica
-		otorgar_turno(self);
+		multiplexor_wait_for_io(self->multiplexor, 1000);
 	}
+	//salimos del select cada 1 segundo para que se actualize la lista de fds asociados a el
+
+
+//	int retardo_faltante;
+//
+//	while(1){
+//		//aprovechamos el tiempo de retardo para ejecutar un select sobre el socket del nivel
+//		multiplexor_wait_for_io(self->multiplexor, self->retardo, out retardo_faltante);
+//		if(retardo_faltante > 0) usleep(retardo_faltante * 1000);
+//
+//		//ejecutamos la logica
+//		otorgar_turno(self);
+//	}
 }
 
 
@@ -394,7 +402,7 @@ private void otorgar_turno(tad_planificador* self){
 	self->turnos_restantes = self->quantum;
 	if(personaje) logger_info(get_logger(self), "El siguiente en jugar sera %s (%c)", personaje->nombre, personaje->simbolo);
 
-	usleep(self->retardo * 1000);
+//	usleep(self->retardo * 1000);
 
 	socket_send_empty_package(personaje->socket, PLANIFICADOR_OTORGA_TURNO);
 }
