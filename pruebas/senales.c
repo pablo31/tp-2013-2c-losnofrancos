@@ -12,7 +12,9 @@
 #include "../libs/signal/signal.h"
 #include "../libs/common.h"
 
-private void sigint_handler(PACKED_ARGS);
+private void sigint_handler();
+private void sigterm_handler();
+private void sigusr1_handler();
 
 int main(void){
 	printf("\n > Prueba de senales\n");
@@ -20,19 +22,28 @@ int main(void){
 
 	printf("Prueba de senales iniciada.\nEstableciendo senales...\n");
 
-	char* text = "\nSIGINT recibido con exito!\n";
-	signal_declare_handler(SIGINT, sigint_handler, 1, text);
+	char* sigint_text = "SIGINT recibido con exito!\n";
+	signal_dynamic_handler(SIGINT, sigint_handler(sigint_text));
 
-	printf("Senales establecidas.\n");
+	signal_dynamic_handler(SIGTERM, sigterm_handler());
+	signal_dynamic_handler(SIGUSR1, sigusr1_handler());
+
+	printf("Senales establecidas: SIGUSR1, SIGTERM, SIGINT.\n");
 	while(1) sleep(2);
 
 	return EXIT_FAILURE;
 }
 
-private void sigint_handler(PACKED_ARGS){
-	UNPACK_ARG(char* text);
-
+private void sigint_handler(char* text){
 	printf("%s\n", text);
 	signal_dispose_all();
 	exit(EXIT_SUCCESS);
+}
+
+private void sigterm_handler(){
+	printf("SIGTERM recibido con exito!\n");
+}
+
+private void sigusr1_handler(){
+	printf("SIGUSR1 recibido con exito!\n");
 }
