@@ -51,6 +51,8 @@ enum DATA_TYPE_PROTOCOL {
 	PERSONAJE_DESCONEXION = 222,
 	MUERTE_POR_ENEMIGO = 223,
 	MUERTE_POR_DEADLOCK = 224
+
+	//TODO en el final de los tiempos, ver que codigos no se usan y volarlos
 };
 
 #endif /* PAQUETE_TIPO_DATO_H_ */

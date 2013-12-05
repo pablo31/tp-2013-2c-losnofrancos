@@ -263,7 +263,6 @@ private tad_package* esperar_paquete_del_planificador(t_personaje* self, byte ti
 
 	//liberamos recursos
 	package_dispose(paquete);
-	socket_send_empty_package(socket,PERSONAJE_DESCONEXION);
 	//hacemos saltar el socket con un error fantasma
 	socket_set_error(socket, CUSTOM_ERROR);
 

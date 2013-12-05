@@ -44,6 +44,8 @@ struct s_planificador{
 
 	t_list* personajes_listos; //list<tad_personaje>
 	t_list* personajes_bloqueados; //list<tad_personaje>
+	tad_personaje* personaje_actual;
+	int turnos_restantes;
 
 	tad_multiplexor* multiplexor;
 
