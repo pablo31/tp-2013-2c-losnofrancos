@@ -90,9 +90,47 @@ int main(int argc, char* argv[]) {
 
 	//declaramos las funciones manejadoras de senales
 //	signal_dynamic_handler(SIGINT, personaje_finalizar(self));
-	signal_dynamic_handler(SIGTERM, morir(self));
-	signal_dynamic_handler(SIGUSR1, comer_honguito_verde(self));
-	logger_info(get_logger(self), "Senales establecidas");
+//	signal_dynamic_handler(SIGTERM, morir(self));
+//	signal_dynamic_handler(SIGUSR1, comer_honguito_verde(self));
+//	logger_info(get_logger(self), "Senales establecidas");
+
+//se empieza el manejo de señales en personaje
+
+	void sigterm_handler(int signum) {
+		morir(self);
+	}
+
+	void sigusr1_handler(int signum) {
+		comer_honguito_verde(self);
+	}
+
+	struct sigaction sigterm_action;
+
+	sigterm_action.sa_handler = sigterm_handler;
+	sigemptyset(&sigterm_action.sa_mask);
+
+	if (sigaction(SIGTERM, &sigterm_action, NULL ) == -1) {
+		logger_info(get_logger(self), "Error al querer setear la señal SIGTERM");
+		return EXIT_FAILURE;
+	}
+
+	struct sigaction sigusr1_action;
+
+	sigusr1_action.sa_handler = sigusr1_handler;
+	sigusr1_action.sa_flags = SA_RESTART;
+	sigemptyset(&sigusr1_action.sa_mask);
+	if (sigaction(SIGUSR1, &sigusr1_action, NULL ) == -1) {
+		logger_info(get_logger(self), "Error al querer setear la señal SIGUSR1");
+		return EXIT_FAILURE;
+	}
+
+
+
+
+	logger_info(get_logger(self), "Senales establecidasssss");
+
+	//se termina el manejo se señales de personaje
+
 
 
 	var(niveles, get_niveles(self));
@@ -342,9 +380,9 @@ private void morir(t_personaje* self){
 }
 
 private void comer_honguito_verde(t_personaje* self){
-	logger_info(get_logger(self), "Llego un honguito de esos que pegan");
+	logger_info(get_logger(self), "Llego una vida ahora va a tener  %d +1 ", get_vidas(self));
 	self->vidas++;
-	logger_info(get_logger(self), "El personaje gano una vida, posee en total %d", get_vidas(self));
+	logger_info(get_logger(self), "El personaje gano una vida, %d", get_vidas(self));
 }
 
 private void personaje_finalizar(t_personaje* self){
