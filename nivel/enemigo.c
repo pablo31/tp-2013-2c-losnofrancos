@@ -178,7 +178,7 @@ void moverse_sin_personajes(tad_nivel* nivel, tad_enemigo* self){
 				logger_info(nivel->logger, "ENEMIGO: moviendose en L a (%d,%d)", self->pos.x,self->pos.y);
 				mutex_open(nivel->semaforo_enemigos);
 				//usleep(nivel->sleep_enemigos * 600); //esto es lo que va
-				sleep(1);
+				sleep(8);
 				nivel_gui_dibujar(nivel);
 			}
 			else{

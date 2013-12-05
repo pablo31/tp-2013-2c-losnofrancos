@@ -64,7 +64,7 @@ private char* get_ippuerto_orquestador(t_personaje* self){
 extern t_personaje* personaje_crear(char* config_path);
 private void personaje_finalizar(t_personaje* self);
 //logica y ejecucion
-private void morir(t_personaje* self);
+private void morir(t_personaje* self, char * tipo_muerte);
 private void comer_honguito_verde(t_personaje* self);
 
 private void inicio_nuevo_hilo(PACKED_ARGS);
@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
 //se empieza el manejo de señales en personaje
 
 	void sigterm_handler(int signum) {
-		morir(self);
+		morir(self,"Muerte por señal");
 	}
 
 	void sigusr1_handler(int signum) {
@@ -256,16 +256,23 @@ private tad_package* esperar_paquete_del_planificador(t_personaje* self, byte ti
 	if(tipo == tipo_esperado) return paquete;
 
 	//informamos el motivo de la muerte
-	if(tipo == MUERTE_POR_DEADLOCK) logger_info(logger, "Muerte por deadlock");
-	else logger_info(logger, "Muerte por enemigo");
-
-	morir(self);
+	if(tipo == MUERTE_POR_DEADLOCK)  morir(self,"Muerte por deadlock");
+	else morir(self,"Muerte por enemigo");
 
 	//liberamos recursos
 	package_dispose(paquete);
-	socket_send_empty_package(socket,PERSONAJE_DESCONEXION);
+	socket_send_empty_package(socket,PERSONAJE_DESCONEXION); //se lo envia al planificador...
+
+
+	if(self->vidas>0){
+		//se tiene 	que conectar al orquestador pasando un nivel al que quiere jugar
+	}else{
+		//se tiene 	que conectar al orquestador pasando todo el plan de niveles
+	}
+
 	//hacemos saltar el socket con un error fantasma
-	socket_set_error(socket, CUSTOM_ERROR);
+	//socket_set_error(socket, CUSTOM_ERROR);   // no se pero me hace ruido
+
 
 	return null;
 }
@@ -355,22 +362,18 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 
 
 
-
-
-
-
-
-
-
-private void morir(t_personaje* self){
+//La funcion morir solo aumenta o disminulle la cantidad de vidas, no sabe nada si se tiene que conectar
+//al orquestador para jugar un nivel o para reinicar todos los niveles
+private void morir(t_personaje* self, char* tipo_muerte){
+	logger_info(get_logger(self), "El personaje muere por:  %s", tipo_muerte);
 	var(vidas, get_vidas(self));
 	var(vidas_iniciales, get_vidas_iniciales(self));
 
 	if(vidas > 0){
+		logger_info(get_logger(self), "Llego una vida ahora va a tener  %d -1 ", get_vidas(self));
 		vidas--;
 		logger_info(get_logger(self), "El personaje perdio una vida, le quedan %d", vidas);
 	}else{
-		//TODO preguntarle al usuario si quiere reestableces las vidas
 		vidas = vidas_iniciales;
 		logger_info(get_logger(self), "El personaje perdio su ultima vida");
 		logger_info(get_logger(self), "Las vidas se reestableceran a %d", vidas);
