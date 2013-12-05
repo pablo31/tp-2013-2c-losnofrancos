@@ -203,8 +203,6 @@ tad_socket* socket_connect(char* ip, char* port){
 
 	struct sockaddr_in socket_info;
 
-	logger_debug(socket_get_logger(socket), "Conectando a %s:%s", ip, port);
-
 	memset(&socket_info, 0, sizeof(socket_info));
 	socket_info.sin_family = AF_INET;
 	socket_info.sin_addr.s_addr = inet_addr(ip);
@@ -216,6 +214,8 @@ tad_socket* socket_connect(char* ip, char* port){
 		error = connect(socket_get_id(socket), (struct sockaddr*) &socket_info, sizeof(socket_info));
 		if(error!=0) sleep(RECONNECT_INTERVAL);
 	}
+
+	logger_debug(socket_get_logger(socket), "Conectado a %s:%s", ip, port);
 	
 	return socket;
 }
@@ -247,9 +247,6 @@ tad_socket* socket_listen(char* port){
 
 //Espera y acepta una conexion entrante, derivandola a otro socket
 tad_socket* socket_accept_connection(tad_socket* socket){
-	logger_debug(socket_get_logger(socket), "Esperando conexion");
-	
-	//accept parece ser bloqueante
 	int new_socket_id = accept(socket_get_id(socket), null, 0); //TODO cambiar null por estructura que me diga quien se conecto
 	//accept retorna < 0 si hubo error
 	if(new_socket_id < 0){
@@ -268,8 +265,8 @@ tad_socket* socket_accept_connection(tad_socket* socket){
 
 //Cierra y elimina el socket
 void socket_close(tad_socket* socket){
-	logger_debug(socket_get_logger(socket), "Cerrando");
 	close(socket_get_id(socket));
+	logger_debug(socket_get_logger(socket), "Conexion cerrada");
 	logger_dispose_instance(socket_get_logger(socket));
 	dealloc(socket->error_manager);
 	dealloc(socket);
@@ -281,7 +278,7 @@ void __socket_close(void* socket){
 
 //Informa que se cerro la conexion inesperadamente y setea el error
 private void socket_connection_closed(tad_socket* socket){
-	logger_error(socket_get_logger(socket), "Se cerró la conexión de manera inesperada.");
+	logger_error(socket_get_logger(socket), "Se cerró la conexión de manera inesperada");
 	socket_set_error(socket, CONNECTION_CLOSED);
 }
 
@@ -296,7 +293,7 @@ private void socket_send_data(tad_socket* socket, int data_length, void* data){
 	//else data length (>0)
 
 	if(error < 0){
-		logger_error(socket_get_logger(socket), "Error al enviar datos serializados. (err id %d)", error);
+		logger_error(socket_get_logger(socket), "Error al enviar datos serializados (err id %d)", error);
 		free(data);
 		socket_set_error(socket, SEND_ERROR);
 	}
@@ -304,8 +301,6 @@ private void socket_send_data(tad_socket* socket, int data_length, void* data){
 		free(data);
 		socket_connection_closed(socket);
 	}
-
-	logger_debug(socket_get_logger(socket), "Datos serializados de longitud %d enviados", data_length);
 }
 
 private void* socket_serialize(tad_package* package, int* out_data_length){
@@ -321,12 +316,14 @@ private void* socket_serialize(tad_package* package, int* out_data_length){
 
 //Envia un paquete
 void socket_send_package(tad_socket* socket, tad_package* package){
-	logger_debug(socket_get_logger(socket), "Preparando para enviar paquete de tipo %d", package_get_data_type(package));
 
 	int serialized_length;
 	void* serialized = socket_serialize(package, &serialized_length);
 
 	socket_send_data(socket, serialized_length, serialized);
+
+	logger_debug(socket_get_logger(socket), "Paquete enviado - tipo %d - %d bytes de datos", package_get_data_type(package), package_get_data_length(package));
+
 	free(serialized);
 }
 
@@ -359,7 +356,6 @@ private void* socket_receive_data(tad_socket* socket, int data_length){
 
 private tad_header* socket_receive_header(tad_socket* socket){
 	tad_header* header = socket_receive_data(socket, sizeof(tad_header));
-	logger_debug(socket_get_logger(socket), "Header del tipo %d recibido", header->data_type);
 	return header;
 }
 
@@ -375,7 +371,7 @@ tad_package* socket_receive_package(tad_socket* socket){
 
 	tad_package* package = package_create_from_header(header, data);
 
-	logger_debug(socket_get_logger(socket), "Paquete ensamblado");
+	logger_debug(socket_get_logger(socket), "Paquete recibido - tipo %d - %d bytes de datos", package_get_data_type(package), package_get_data_length(package));
 	return package;
 }
 
