@@ -303,7 +303,6 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 			verificar_muerte_por_enemigo(personaje_en_movimiento, enemigo->pos, self);
 		}
 		mutex_open(self->semaforo_enemigos);
-        sleep(10);
 		nivel_gui_dibujar(self);
 
 	}else if(tipo == PERSONAJE_SOLICITUD_RECURSO){
