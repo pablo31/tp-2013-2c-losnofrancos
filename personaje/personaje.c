@@ -406,7 +406,7 @@ private void personaje_finalizar(t_personaje* self){
 	dealloc(self);
 
 	logger_dispose();
-	signal_dispose_all();
+//	signal_dispose_all();
 
 	exit(EXIT_SUCCESS);
 }

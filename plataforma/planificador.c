@@ -95,6 +95,7 @@ tad_planificador* planificador_crear(char* nombre_nivel, tad_socket* socket_nive
 	var(m, multiplexor_create());
 	multiplexor_bind_socket(m, socket_nivel, paquete_entrante_nivel, self);
 	self->multiplexor = m;
+	self->semaforo_multiplexor = mutex_create();
 
 	logger_info(get_logger(self), "Planificador del Nivel %s inicializado", nombre_nivel);
 	return self;
@@ -110,8 +111,6 @@ void planificador_agregar_personaje(tad_planificador* self, char* nombre, char s
 	personaje->nombre = nombre;
 	personaje->simbolo = simbolo;
 	personaje->socket = socket;
-	//lo agregamos a la lista de personajes listos del planificador
-	list_add(self->personajes_listos, personaje);
 	//informamos al usuario
 	logger_info(get_logger(self), "El personaje %s entro al nivel", nombre);
 	//nos presentamos
@@ -126,11 +125,14 @@ void planificador_agregar_personaje(tad_planificador* self, char* nombre, char s
 	socket_send_string(socket_nivel, PERSONAJE_NOMBRE, nombre);
 	socket_send_vector2(socket_nivel, PERSONAJE_POSICION, pos);
 
+	mutex_close(self->semaforo_multiplexor);
+	//lo agregamos a la lista de personajes listos del planificador
+	list_add(self->personajes_listos, personaje);
 	//bindeamos el socket al multiplexor
 	multiplexor_bind_socket(self->multiplexor, socket, paquete_entrante_personaje, self, personaje);
-
 	//si no habia nadie jugando, otorgamos un turno
 	if(!self->personaje_actual) otorgar_turno(self);
+	mutex_open(self->semaforo_multiplexor);
 }
 
 private void planificador_liberar_personaje(tad_planificador* self, tad_personaje* personaje){
@@ -138,15 +140,17 @@ private void planificador_liberar_personaje(tad_planificador* self, tad_personaj
 
 	var(socket, personaje->socket);
 
+	//cerramos su socket
 	multiplexor_unbind_socket(self->multiplexor, socket);
 	socket_close(socket);
-
-	var(nombre, personaje->nombre);
-	logger_info(get_logger(self), "El personaje %s fue pateado", nombre);
 
 	//lo quitamos de las listas
 	quitar_personaje(self, personaje, self->personajes_listos);
 	quitar_personaje(self, personaje, self->personajes_bloqueados);
+
+	var(nombre, personaje->nombre);
+	logger_info(get_logger(self), "El personaje %s fue pateado", nombre);
+
 
 	//si era el personaje con el turno, le damos el turno a otro personaje
 	if(self->personaje_actual == personaje) otorgar_turno(self);
@@ -175,6 +179,7 @@ void planificador_finalizar(tad_planificador* self){
 
 	//liberamos los recursos del multiplexor
 	multiplexor_dispose(self->multiplexor);
+	mutex_dispose(self->semaforo_multiplexor);
 
 	//liberamos los recursos propios del planificador
 	logger_info(get_logger(self), "Finalizado");
@@ -219,9 +224,11 @@ void planificador_ejecutar(PACKED_ARGS){
 
 
 	while(1){
-		multiplexor_wait_for_io(self->multiplexor, 1000);
+		mutex_close(self->semaforo_multiplexor);
+		multiplexor_wait_for_io(self->multiplexor, 1);
+		mutex_open(self->semaforo_multiplexor);
 	}
-	//salimos del select cada 1 segundo para que se actualize la lista de fds asociados a el
+	//salimos del select cada un rato para que se actualize la lista de fds asociados a el
 
 
 //	int retardo_faltante;
@@ -402,7 +409,7 @@ private void otorgar_turno(tad_planificador* self){
 	self->turnos_restantes = self->quantum;
 	if(personaje) logger_info(get_logger(self), "El siguiente en jugar sera %s (%c)", personaje->nombre, personaje->simbolo);
 
-//	usleep(self->retardo * 1000);
+	usleep(self->retardo * 1000);
 
 	socket_send_empty_package(personaje->socket, PLANIFICADOR_OTORGA_TURNO);
 }

@@ -11,6 +11,7 @@
 #include "../libs/common/collections/queue.h"
 #include "../libs/socket/socket.h"
 #include "../libs/multiplexor/multiplexor.h"
+#include "../libs/thread/mutex.h"
 #include "../libs/logger/logger.h"
 #include "../libs/common.h"
 
@@ -48,6 +49,7 @@ struct s_planificador{
 	int turnos_restantes;
 
 	tad_multiplexor* multiplexor;
+	tad_mutex* semaforo_multiplexor;
 
 	tad_logger* logger;
 };
