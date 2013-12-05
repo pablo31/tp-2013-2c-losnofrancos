@@ -49,33 +49,29 @@ void signal_declare_handler(int signal_id, void* function, int numargs, ...){
 
 	tad_command* command = command_create_val(function, numargs, inargs);
 
-	if(command_list == null) command_list = list_create();
+	if(!command_list) command_list = list_create();
 
-	int ssc(signal_command* sc){
-		return sc->signal_id = signal_id;
+	foreach(sc, command_list, signal_command*){
+		if(sc->signal_id == signal_id){
+			signal_replace_handler(sc, command);
+			return;
+		}
 	}
 
-	signal_command* sc = list_find(command_list, (void*)ssc);
-	if(sc == null){
-		alloc(sc, signal_command);
-		sc->signal_id = signal_id;
-		sc->command = command;
-		list_add(command_list, sc);
-	}else{
-		signal_replace_handler(sc, command);
-	}
-
+	alloc(new_sc, signal_command);
+	new_sc->signal_id = signal_id;
+	new_sc->command = command;
+	list_add(command_list, new_sc);
 	signal(signal_id, signal_receive_function);
 }
 
 //Libera todos los recursos de las senales bindeadas
 void signal_dispose_all(){
 
-	void destroyer(void* psc){
-		signal_command* sc = psc;
+	foreach(sc, command_list, signal_command*){
 		command_dispose(sc->command);
 		dealloc(sc);
 	}
 
-	list_destroy_and_destroy_elements(command_list, destroyer);
+	list_destroy(command_list);
 }
