@@ -11,7 +11,7 @@
 #include "../libs/logger/logger.h"
 #include "../libs/common/collections/list.h"
 #include "../libs/vector/vector2.h"
-
+#include "../libs/common/string.h"
 
 typedef struct {
 	char* nombre;

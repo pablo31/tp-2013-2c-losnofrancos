@@ -266,6 +266,7 @@ private tad_package* esperar_paquete_del_planificador(t_personaje* self, byte ti
 
 	if(self->vidas>0){
 		//se tiene 	que conectar al orquestador pasando un nivel al que quiere jugar
+		logger_info(get_logger(self), "El personaje muere por que lindooo:");
 	}else{
 		//se tiene 	que conectar al orquestador pasando todo el plan de niveles
 	}
@@ -372,6 +373,8 @@ private void morir(t_personaje* self, char* tipo_muerte){
 	var(vidas, get_vidas(self));
 	var(vidas_iniciales, get_vidas_iniciales(self));
 
+	int numero_reintentos; //Declarando variable entera
+
 	if(vidas > 0){
 		logger_info(get_logger(self), "Llego una vida ahora va a tener  %d -1 ", get_vidas(self));
 		vidas--;
@@ -379,7 +382,19 @@ private void morir(t_personaje* self, char* tipo_muerte){
 	}else{
 		vidas = vidas_iniciales;
 		logger_info(get_logger(self), "El personaje perdio su ultima vida");
-		logger_info(get_logger(self), "Las vidas se reestableceran a %d", vidas);
+
+		printf("Ingrese un numero: "); //Solicitando al usuario que ingrese un numero
+		scanf("%d",&numero_reintentos); //Leyendo el número solicitado
+		printf("El numero que ingreso es %d \n", numero_reintentos); //Mostrando el número ingresado por teclado
+
+		//printf("1)Para seguir. \n");
+		//printf("2)Para salir. \n");
+
+		// rompe en el if chan....  no se porque....
+		/*if(numero_reintentos==1){
+			logger_info(get_logger(self), "Las vidas se reestableceran a %d", vidas);
+		}*/
+
 	}
 
 	set_vidas(self, vidas);
