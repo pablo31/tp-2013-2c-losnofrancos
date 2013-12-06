@@ -261,8 +261,6 @@ private tad_package* esperar_paquete_del_planificador(t_personaje* self, byte ti
 
 	//liberamos recursos
 	package_dispose(paquete);
-	socket_send_empty_package(socket,PERSONAJE_DESCONEXION); //se lo envia al planificador...
-
 
 	if(self->vidas>0){
 		//se tiene 	que conectar al orquestador pasando un nivel al que quiere jugar
@@ -428,7 +426,7 @@ private void personaje_finalizar(t_personaje* self){
 	dealloc(self);
 
 	logger_dispose();
-	signal_dispose_all();
+//	signal_dispose_all();
 
 	exit(EXIT_SUCCESS);
 }

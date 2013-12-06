@@ -11,6 +11,7 @@
 #include "../libs/common/collections/queue.h"
 #include "../libs/socket/socket.h"
 #include "../libs/multiplexor/multiplexor.h"
+#include "../libs/thread/mutex.h"
 #include "../libs/logger/logger.h"
 #include "../libs/common.h"
 
@@ -42,10 +43,17 @@ struct s_planificador{
 	int quantum;
 	int retardo;
 
+	tad_personaje* personaje_actual;
+	int turnos_restantes;
+
 	t_list* personajes_listos; //list<tad_personaje>
 	t_list* personajes_bloqueados; //list<tad_personaje>
 
-	tad_multiplexor* multiplexor;
+	int bandera; //esto se usa para informar que van a agregarse personajes a la lista
+	tad_mutex* semaforo; //semaforo para tocar la lista
+
+	tad_multiplexor* mpx_personajes;
+	tad_multiplexor* mpx_nivel;
 
 	tad_logger* logger;
 };
