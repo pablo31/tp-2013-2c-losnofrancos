@@ -35,6 +35,7 @@ static void crear_enemigos(tad_nivel* nivel, int cantidad){
 
 		alloc(enem, tad_enemigo);
 		enem->simbolo = '*';
+		enem->logger = logger_new_instance("Enemigo %d", i + 1);
 
 		srand (++seed); //le agrego una a la semilla para que no genere siempre lo mismo en cada iteracion
 
@@ -44,7 +45,7 @@ static void crear_enemigos(tad_nivel* nivel, int cantidad){
 		enem->pos = vector2_new(pos_x, pos_y);
 
 		list_add(nivel->enemigos, enem);
-	}	
+	}
 }
 
 
@@ -179,7 +180,6 @@ void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 
 void destruir_caja(void* ptr_caja){
 	tad_caja* self = ptr_caja;
-	if (self == NULL) return;
 	dealloc(self->nombre);
 	dealloc(self);
 }
@@ -190,7 +190,7 @@ void destruir_personaje(void* ptr_pj){
 }
 void destruir_enemigo(void* ptr_enemigo){
 	tad_enemigo* self = ptr_enemigo;
-	if (self == NULL) return;
+	logger_dispose_instance(self->logger);
 	dealloc(self);
 }
 

@@ -45,6 +45,7 @@ class(tad_enemigo){
 	tad_personaje* blanco;
 	//int detecta_personaje;
 	//vector2 posicion_personaje;
+	tad_logger* logger; //instancia del logger propia de cada enemigo
 };
 
 

@@ -23,8 +23,8 @@ tad_nivel* crear_nivel(char* config_path, char* as_out ippuerto);
 private void nivel_conectar_a_plataforma(tad_nivel* self, char* ippuerto);
 private void nivel_iniciar_interfaz_grafica(tad_nivel* self);
 
-private void nivel_move_enemigos(tad_nivel* self);
-private void nivel_crea_hilo_deadlock(tad_nivel* self);
+private void nivel_crear_hilos_enemigos(tad_nivel* self);
+private void nivel_crear_hilo_deadlock(tad_nivel* self);
 private void nivel_ejecutar_logica(tad_nivel* self);
 
 private void manejar_desconexion(tad_nivel* self);
@@ -88,10 +88,10 @@ int main(int argc, char **argv){
 	nivel_iniciar_interfaz_grafica(self);
 
 	//se mueven los enemigos
-	nivel_move_enemigos(self);
+	nivel_crear_hilos_enemigos(self);
 
 	//algoritmo verificador de deadlock
-	nivel_crea_hilo_deadlock(self);
+	nivel_crear_hilo_deadlock(self);
 
 	//ejecutamos la logica
 	nivel_ejecutar_logica(self);
@@ -169,7 +169,7 @@ private void nivel_iniciar_interfaz_grafica(tad_nivel* self){
 }
 
 
-void nivel_move_enemigos(tad_nivel* self){
+void nivel_crear_hilos_enemigos(tad_nivel* self){
 		//Por cada enemigo del nivel se crea un hilo
 		//luego es responsabilidad de cada hilo mover a los enemigos
 
@@ -181,12 +181,12 @@ void nivel_move_enemigos(tad_nivel* self){
 		foreach(enemigo, self->enemigos, tad_enemigo*){
 			i++;
 			logger_info(get_logger(self), "posicion enemigo %d: en (%d:%d)", i, enemigo->pos.x,enemigo->pos.y);
-			thread_free_begin(movimiento_permitido_enemigo, 2,self,enemigo);
+			thread_free_begin(movimiento_permitido_enemigo, 2, self, enemigo);
 
 		}
 }
 
-private void nivel_crea_hilo_deadlock(tad_nivel* self){
+private void nivel_crear_hilo_deadlock(tad_nivel* self){
 	logger_info(get_logger(self), "Se inicia el vereficador deadlock ");
 	thread_free_begin(verificador_deadlock, 1, self);
 }

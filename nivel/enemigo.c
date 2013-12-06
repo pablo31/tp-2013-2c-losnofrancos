@@ -8,8 +8,9 @@
 
 void movimiento_permitido_enemigo(PACKED_ARGS){
 	UNPACK_ARGS(tad_nivel* nivel, tad_enemigo* self);
+	var(logger, self->logger);
 
-	logger_info(nivel->logger, "ENEMIGO: Se cargo el enemigo %c. Posicion: (%d,%d)", self->simbolo, self->pos.x, self->pos.y);
+	logger_info(logger, "Posicion inicial: (%d,%d)", self->pos.x, self->pos.y);
 
 	srand(time(NULL)); //seed para random
 
@@ -20,7 +21,7 @@ void movimiento_permitido_enemigo(PACKED_ARGS){
 		cantidad_personajes = list_size(nivel->personajes);
 		mutex_open(nivel->semaforo_personajes);
 
-		logger_info(nivel->logger, "Cantidad de personajes en el nivel: %d.", cantidad_personajes);
+		logger_info(logger, "Cantidad de personajes en el nivel: %d.", cantidad_personajes);
 
 		if(cantidad_personajes > 0){
 			atacar_al_personaje(nivel, self, &eje_prox_mov);
@@ -39,7 +40,7 @@ void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self, int *eje_prox_mov)
 	mutex_close(nivel->semaforo_enemigos);
 	posicion_actual = self->pos;
 	mutex_open(nivel->semaforo_enemigos);
-	logger_info(nivel->logger, "ENEMIGO: posicion actual: (%d,%d)", posicion_actual.x, posicion_actual.y);
+	logger_info(self->logger, "Posicion actual: (%d,%d)", posicion_actual.x, posicion_actual.y);
 
 	//se carga la posicion del personaje que esta mas cerca.
 	posicion_personaje = buscar_personaje_mas_cercano(nivel, self, posicion_actual);
@@ -115,7 +116,7 @@ vector2 buscar_personaje_mas_cercano(tad_nivel* nivel, tad_enemigo* self, vector
     var(blanco_pos, self->blanco->pos);
     var(blanco_simbolo, self->blanco->simbolo);
     mutex_open(nivel->semaforo_enemigos);
-    logger_info(nivel->logger, "ENEMIGO: personaje a atrapar: %c. Posicion: (%d,%d)", blanco_simbolo, blanco_pos.x, blanco_pos.y);
+    logger_info(self->logger, "Personaje a atrapar: %c. Posicion: (%d,%d)", blanco_simbolo, blanco_pos.x, blanco_pos.y);
 
     return blanco_pos;
 }
@@ -149,7 +150,7 @@ void moverse_sin_personajes(tad_nivel* nivel, tad_enemigo* self){
 				movimientos_faltantes --;
 				mutex_close(nivel->semaforo_enemigos);
 				self->pos = nueva_pos;
-				logger_info(nivel->logger, "ENEMIGO: moviendose en L a (%d,%d)", self->pos.x,self->pos.y);
+				logger_info(self->logger, "Moviendose en L a (%d,%d)", self->pos.x,self->pos.y);
 				mutex_open(nivel->semaforo_enemigos);
 				//usleep(nivel->sleep_enemigos * 600); //esto es lo que va
 				sleep(1);
@@ -162,7 +163,7 @@ void moverse_sin_personajes(tad_nivel* nivel, tad_enemigo* self){
 		}else{
 			//sino completo la L porque se iba fuera del mapa tiene que empezar de nuevo y buscar otra L al azar
 			movimientos_faltantes=0;
-			logger_info(nivel->logger, "ENEMIGO: esquiva borde en (%d,%d)", nueva_pos.x, nueva_pos.y);
+			logger_info(self->logger, "Esquiva borde en (%d,%d)", nueva_pos.x, nueva_pos.y);
 		}
 		mutex_close(nivel->semaforo_personajes);
 		cantidad_personajes_local = list_size(nivel->personajes);
@@ -187,7 +188,6 @@ bool posicion_sin_caja(tad_nivel* nivel, vector2 nueva_pos){
 	if (caja_a_esquivar == NULL)
 		return true;
 	else
-		logger_info(nivel->logger, "ENEMIGO: Esquiva caja %c en (%d,%d).", caja_a_esquivar->simbolo, caja_a_esquivar->pos.x, caja_a_esquivar->pos.y);
 		return false;
 }
 
