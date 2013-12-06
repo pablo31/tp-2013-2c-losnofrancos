@@ -262,15 +262,15 @@ private tad_package* esperar_paquete_del_planificador(t_personaje* self, byte ti
 	//liberamos recursos
 	package_dispose(paquete);
 
-	if(self->vidas>0){
+	//if(self->vidas>0){
 		//se tiene 	que conectar al orquestador pasando un nivel al que quiere jugar
-		logger_info(get_logger(self), "El personaje muere por que lindooo:");
-	}else{
+	//	logger_info(get_logger(self), "El personaje muere por que lindooo:");
+	//}else{
 		//se tiene 	que conectar al orquestador pasando todo el plan de niveles
-	}
+	//}
 
 	//hacemos saltar el socket con un error fantasma
-	//socket_set_error(socket, CUSTOM_ERROR);   // no se pero me hace ruido
+	socket_set_error(socket, CUSTOM_ERROR);   // no se pero me hace ruido
 
 
 	return null;
