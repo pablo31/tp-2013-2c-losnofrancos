@@ -118,20 +118,21 @@ void planificador_agregar_personaje(tad_planificador* self, char* nombre, char s
 	//recibimos la posicion inicial del personaje
 	vector2 pos = socket_receive_expected_vector2(socket, PERSONAJE_POSICION);
 
+	mutex_close(self->semaforo_multiplexor);
+
 	//informamos al nivel y le pasamos los datos del personaje
 	var(socket_nivel, self->nivel->socket);
 	socket_send_empty_package(socket_nivel, PERSONAJE_CONECTADO);
 	socket_send_char(socket_nivel, PERSONAJE_SIMBOLO, simbolo);
 	socket_send_string(socket_nivel, PERSONAJE_NOMBRE, nombre);
 	socket_send_vector2(socket_nivel, PERSONAJE_POSICION, pos);
-
-	mutex_close(self->semaforo_multiplexor);
 	//lo agregamos a la lista de personajes listos del planificador
 	list_add(self->personajes_listos, personaje);
 	//bindeamos el socket al multiplexor
 	multiplexor_bind_socket(self->multiplexor, socket, paquete_entrante_personaje, self, personaje);
 	//si no habia nadie jugando, otorgamos un turno
 	if(!self->personaje_actual) otorgar_turno(self);
+
 	mutex_open(self->semaforo_multiplexor);
 }
 
@@ -228,7 +229,7 @@ void planificador_ejecutar(PACKED_ARGS){
 		multiplexor_wait_for_io(self->multiplexor, 1);
 		mutex_open(self->semaforo_multiplexor);
 	}
-	//salimos del select cada un rato para que se actualize la lista de fds asociados a el
+	//salimos del select cada 50ms para que se actualize la lista de fds asociados a el
 
 
 //	int retardo_faltante;
