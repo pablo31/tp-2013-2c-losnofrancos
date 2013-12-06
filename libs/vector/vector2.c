@@ -148,19 +148,24 @@ vector2 vector2_move_alternately(vector2 pos_salida, vector2 pos_llegada, int *e
 	vector2 prox_pos;
 	int eje = *eje_prox_mov;
 
-	if (!(vector2_equals_xy(pos_salida, pos_llegada, eje))) //si no puedo moverme en este eje
+    int mismo_eje = (vector2_equals_xy(pos_salida, pos_llegada, eje));
+
+	if (mismo_eje)//si no puedo moverme en este eje
 		eje = !eje; //me muevo en el mismo eje que antes
 
-	if (vector2_min_xy(pos_salida, pos_llegada, eje)) //si la posicion actual en el eje es menor a la posicion de llegada
-		prox_pos = vector2_move_pos(pos_salida, eje, 1); //me muevo hacia arriba o hacia la izquierda
-	else
+	int posicion_menor_en_eje = (vector2_min_xy(pos_salida, pos_llegada, eje));
+
+	if (posicion_menor_en_eje){ //si la posicion actual en el eje es menor a la posicion de llegada
+		prox_pos = vector2_move_pos(pos_salida, eje, 1); 	//me muevo hacia arriba o hacia la izquierda
+	}
+	else{
 		prox_pos = vector2_move_pos(pos_salida, eje, -1); //me muevo hacia abajo o hacia la derecha
+	}
 
 	*eje_prox_mov = !eje; //seteo el eje alterno para el proximo movimiento
 
 	return prox_pos;
 }
-
 
 int vector2_equals_xy(vector2 a, vector2 b, int eje){
 	if (eje == EJE_X)

@@ -303,7 +303,8 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 			verificar_muerte_por_enemigo(personaje_en_movimiento, enemigo->pos, self);
 		}
 		mutex_open(self->semaforo_enemigos);
-        sleep(10);
+        //sleep(10);
+		sleep(1);
 		nivel_gui_dibujar(self);
 
 	}else if(tipo == PERSONAJE_SOLICITUD_RECURSO){
@@ -524,7 +525,7 @@ void liberar_y_reasignar_recursos(tad_nivel* self, tad_personaje* personaje_muer
 				if (recurso_solicitado == recurso_liberado){
 					otorgar_recurso(self, personaje_bloqueado, recurso_solicitado);
 					recurso_a_liberar->cantidad --;
-					logger_info(get_logger(self), "Se desbloquea el personaje %c. Se le otorga el recurso %c", personaje_muerto->simbolo, recurso_solicitado);
+					logger_info(get_logger(self), "Se liberaron recursos, se actualiza la lista de cajas del nivel");
 				}
 			}
 		}
@@ -541,7 +542,7 @@ void liberar_y_reasignar_recursos(tad_nivel* self, tad_personaje* personaje_muer
 			caja->instancias += recurso_a_liberar->cantidad;
 			mutex_open(self->semaforo_cajas);
 
-			logger_info(get_logger(self), "Se liberaron recursos, se actualiza la lista de cajas del nivel");
+			logger_info(get_logger(self), "Se libero el recurso %c, instancias: %d. Se actualiza la lista de cajas del nivel", caja->simbolo, recurso_a_liberar->cantidad);
 		}
 	}
 	mutex_close(self->semaforo_personajes);

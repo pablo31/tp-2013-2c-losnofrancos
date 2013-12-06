@@ -25,7 +25,7 @@ bool posicion_sin_caja(tad_nivel* nivel, vector2 nueva_pos);
 vector2 esquivar_caja(vector2 posicion_actual, vector2 nueva_posicion, vector2 posicion_personaje);
 int calcular_direccion_movimiento(vector2 pos1, vector2 pos2);
 int calcular_distancia(vector2 posicion_a, vector2 posicion_b);
-vector2 buscar_personaje_mas_cercano(tad_nivel* nivel, tad_enemigo* self);
+vector2 buscar_personaje_mas_cercano(tad_nivel* nivel, tad_enemigo* self, vector2 posicion_actual);
 vector2 movimiento_random(vector2 enemigo_pos, int random, int cantidad);
 vector2 moverse_una_posicion(vector2 posicion, int eje, int sentido);
 vector2 movimiento_en_L(vector2 enemigo_pos, int eje, int sentido, int random, int cantidad);
