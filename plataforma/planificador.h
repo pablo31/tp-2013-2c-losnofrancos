@@ -43,14 +43,14 @@ struct s_planificador{
 	int quantum;
 	int retardo;
 
-	t_list* personajes_listos; //list<tad_personaje>
-	t_list* personajes_bloqueados; //list<tad_personaje>
 	tad_personaje* personaje_actual;
 	int turnos_restantes;
 
-	int bandera; //esto se usa para informar que van a agregarse personajes a la lista
+	t_list* personajes_listos; //list<tad_personaje>
+	t_list* personajes_bloqueados; //list<tad_personaje>
 
-	tad_mutex* semaforo;
+	int bandera; //esto se usa para informar que van a agregarse personajes a la lista
+	tad_mutex* semaforo; //semaforo para tocar la lista
 
 	tad_multiplexor* mpx_personajes;
 	tad_multiplexor* mpx_nivel;

@@ -170,21 +170,24 @@ private void planificador_liberar_personaje(tad_planificador* self, tad_personaj
  ***************************************/
 
 void planificador_finalizar(tad_planificador* self){
-	//liberamos los recursos de los datos de los personajes
-	void destroyer(void* ptr_personaje){
-		planificador_liberar_personaje(self, ptr_personaje);
-	}
-	list_destroy_and_destroy_elements(self->personajes_listos, destroyer);
-	list_destroy_and_destroy_elements(self->personajes_bloqueados, destroyer);
+	//liberamos los recursos de la lista de personajes listos
+	foreach(personaje_listo, self->personajes_listos, tad_personaje*)
+		planificador_liberar_personaje(self, personaje_listo);
+	list_destroy(self->personajes_listos);
+
+	//liberamos los recursos de la lista de personajes bloqueados
+	foreach(personaje_bloqueado, self->personajes_bloqueados, tad_personaje*)
+		planificador_liberar_personaje(self, personaje_bloqueado);
+	list_destroy(self->personajes_bloqueados);
+
+	//liberamos los recursos del multiplexor de personajes
+	multiplexor_dispose(self->mpx_personajes);
 
 	//liberamos los recursos de los datos del nivel
 	multiplexor_dispose_and_dispose_objects(self->mpx_nivel);
 	var(nivel, self->nivel);
 	free(nivel->nombre);
 	dealloc(nivel);
-
-	//liberamos los recursos del multiplexor
-	multiplexor_dispose(self->mpx_personajes);
 
 	//liberamos los semaforos
 	mutex_dispose(self->semaforo);
@@ -236,7 +239,7 @@ void planificador_ejecutar(PACKED_ARGS){
 	while(1){
 		if(self->bandera){
 			mutex_open(sem);
-			sleep(1); //dejamos que entren los personajes
+			usleep(500 * 1000); //dejamos medio segundo para forzar a que entren los personajes
 			mutex_close(sem);
 		}
 		//primero atendemos los paquetes del nivel, por si se quitan personajes de las listas
@@ -246,18 +249,6 @@ void planificador_ejecutar(PACKED_ARGS){
 		//luego atendemos a los personajes restantes
 		multiplexor_wait_for_io(self->mpx_personajes, 1);
 	}
-
-
-//	int retardo_faltante;
-//
-//	while(1){
-//		//aprovechamos el tiempo de retardo para ejecutar un select sobre el socket del nivel
-//		multiplexor_wait_for_io(self->multiplexor, self->retardo, out retardo_faltante);
-//		if(retardo_faltante > 0) usleep(retardo_faltante * 1000);
-//
-//		//ejecutamos la logica
-//		otorgar_turno(self);
-//	}
 }
 
 
@@ -346,7 +337,6 @@ private void paquete_entrante_personaje(PACKED_ARGS){
 	SOCKET_ERROR_MANAGER(socket){
 		logger_info(get_logger(self), "El personaje %s se desconecto de manera inesperada", personaje->nombre);
 		planificador_liberar_personaje(self, personaje);
-		//TODO checkear que pasa si el que se desconecto era quien tenia el turno
 		return;
 	}
 
@@ -436,7 +426,7 @@ private void otorgar_turno(tad_planificador* self){
 private tad_personaje* algoritmo_rr(tad_planificador* self){
 	var(personajes, self->personajes_listos);
 
-	//varificamos que haya personajes
+	//verificamos que haya personajes
 	if(list_size(personajes) == 0) return null;
 
 	//movemos el primero de la lista al final
@@ -457,159 +447,6 @@ private tad_personaje* algoritmo_srdf(tad_planificador* self){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//ANTIGUA LOGICAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-
-
-
-
-
-//
-//
-//private void otorgar_turno(tad_planificador* self){
-//	//informamos el estado de las colas
-//	var(listos, self->personajes_listos);
-//	var(bloqueados, self->personajes_bloqueados);
-//	if(list_size(listos) > 0) mostrar_lista(self, "Cola de listos", listos);
-//	if(list_size(bloqueados) > 0) mostrar_lista(self, "Cola de bloqueados", bloqueados);
-//
-//	//obtenemos el siguiente personaje al que le toca jugar
-//	var(personaje, self->algoritmo(self));
-//	if(!personaje) return;
-//
-//	var(nombre, personaje->nombre);
-//	var(simbolo, personaje->simbolo);
-//	var(socket, personaje->socket);
-//	var(socket_nivel, self->nivel->socket);
-//	var(logger, get_logger(self));
-//
-//	logger_info(logger, "El siguiente en jugar sera %s (%c)", nombre, simbolo);
-//
-//	//seteamos el manejo de errores ante una desconexion del personaje
-//	SOCKET_ON_ERROR(socket, error_socket_personaje(self, personaje));
-//
-//	int quantum = self->quantum;
-//	while(quantum){
-//		socket_send_empty_package(socket, PLANIFICADOR_OTORGA_TURNO);
-//
-//		tad_package* paquete = socket_receive_one_of_this_packages(socket, 4,
-//				SOLICITUD_UBICACION_RECURSO,
-//				PERSONAJE_MOVIMIENTO,
-//				PERSONAJE_SOLICITUD_RECURSO,
-//				PERSONAJE_DESCONEXION);
-//		var(tipo_mensaje, package_get_data_type(paquete));
-//
-//		//el personaje solicita la posicion de un recurso
-//		if(tipo_mensaje == SOLICITUD_UBICACION_RECURSO){
-//			logger_info(logger, "%s solicito la ubicacion de un recurso", nombre);
-//			socket_send_package(socket_nivel, paquete);
-//			tad_package* respuesta = esperar_ubicacion_recurso(self, socket_nivel);
-//			socket_send_package(socket, respuesta);
-//			free(package_get_data(respuesta)); //TODO metodo package_dispose_and_dispose_data
-//			package_dispose(respuesta);
-//
-//		//el personaje avisa que va a realizar un movimiento
-//		}else if(tipo_mensaje == PERSONAJE_MOVIMIENTO){
-//			vector2 direccion = package_get_vector2(paquete);
-//			logger_info(logger, "%s se mueve a (%d,%d)", nombre, direccion.x, direccion.y);
-//			tad_package* reenvio = package_create_char_and_vector2(PERSONAJE_MOVIMIENTO, simbolo, direccion);
-//			socket_send_package(socket_nivel, reenvio);
-//			free(package_get_data(reenvio)); //TODO metodo package_dispose_and_dispose_data
-//			package_dispose(reenvio);
-//			quantum--;
-//			if(!quantum) list_add(self->personajes_listos, personaje);
-//
-//		//el personaje solicita una instancia de un recurso
-//		}else if(tipo_mensaje == PERSONAJE_SOLICITUD_RECURSO){
-//			char recurso = package_get_char(paquete);
-//			logger_info(logger, "%s solicito una instancia del recurso %c", nombre, recurso);
-//			tad_package* reenvio = package_create_two_chars(PERSONAJE_SOLICITUD_RECURSO, simbolo, recurso);
-//			socket_send_package(socket_nivel, reenvio);
-//			free(package_get_data(reenvio)); //TODO metodo package_dispose_and_dispose_data
-//			package_dispose(reenvio);
-//			bloquear_personaje(self, personaje);
-//			quantum = 0;
-//		//el personaje finalizo el nivel y se desconecta
-//		}else if(tipo_mensaje == PERSONAJE_DESCONEXION){
-//			logger_info(logger, "El personaje %s completo el nivel", nombre);
-//			planificador_liberar_personaje(self, personaje);
-//			quantum = 0;
-//		}
-//
-//		free(package_get_data(paquete)); //TODO metodo package_dispose_and_dispose_data
-//		package_dispose(paquete);
-//	}
-//}
-//
-//
-//
-//private void bloquear_personaje(tad_planificador* self, tad_personaje* personaje){
-////	list_remove_where(self->personajes_listos, tad_personaje* elem, elem == personaje);
-//	list_add(self->personajes_bloqueados, personaje);
-//}
-//
-//private tad_personaje* buscar_personaje_bloqueado(tad_planificador* self, char simbolo){
-//	bool personaje_buscado(void* elem){
-//		return ((tad_personaje*)elem)->simbolo == simbolo;
-//	}
-//	return list_remove_by_condition(self->personajes_bloqueados, personaje_buscado);
-//}
-//
-////se busca a un personaje de la lista de listos, cuando el enemigo lo mata
-//private tad_personaje* buscar_personaje(tad_planificador* self, char simbolo){
-//	bool personaje_buscado(void* elem){
-//		return ((tad_personaje*)elem)->simbolo == simbolo;
-//	}
-//	return list_remove_by_condition(self->personajes_listos, personaje_buscado);
-//}
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//private void error_socket_personaje(tad_planificador* self, tad_personaje* personaje){
-//	logger_info(get_logger(self), "El personaje %s se desconecto de manera inesperada", personaje->nombre);
-//	planificador_liberar_personaje(self, personaje);
-//}
-//
-//private void error_socket_nivel(tad_planificador* self){
-//}
-//
-//
 
 
 
