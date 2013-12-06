@@ -91,11 +91,16 @@ tad_planificador* planificador_crear(char* nombre_nivel, tad_socket* socket_nive
 	self->personajes_listos = list_create();
 	self->personajes_bloqueados = list_create();
 	self->personaje_actual = null;
-	//inicializamos el multiplexor y le bindeamos el socket del nivel
-	var(m, multiplexor_create());
-	multiplexor_bind_socket(m, socket_nivel, paquete_entrante_nivel, self);
-	self->multiplexor = m;
-	self->semaforo_multiplexor = mutex_create();
+	self->turnos_restantes = 0;
+	self->bandera = 0;
+	//inicializamos el multiplexor del nivel y le bindeamos el socket
+	var(mpx_nivel, multiplexor_create());
+	multiplexor_bind_socket(mpx_nivel, socket_nivel, paquete_entrante_nivel, self);
+	self->mpx_nivel = mpx_nivel;
+	//inicializamos el multiplexor de personajes
+	self->mpx_personajes = multiplexor_create();
+	//inicializamos los semaforos
+	self->semaforo = mutex_create();
 
 	logger_info(get_logger(self), "Planificador del Nivel %s inicializado", nombre_nivel);
 	return self;
@@ -118,43 +123,43 @@ void planificador_agregar_personaje(tad_planificador* self, char* nombre, char s
 	//recibimos la posicion inicial del personaje
 	vector2 pos = socket_receive_expected_vector2(socket, PERSONAJE_POSICION);
 
-	mutex_close(self->semaforo_multiplexor);
+	self->bandera = 1;
+	var(sem, self->semaforo);
+	mutex_close(sem);
 
-	//informamos al nivel y le pasamos los datos del personaje
-	var(socket_nivel, self->nivel->socket);
-	socket_send_empty_package(socket_nivel, PERSONAJE_CONECTADO);
-	socket_send_char(socket_nivel, PERSONAJE_SIMBOLO, simbolo);
-	socket_send_string(socket_nivel, PERSONAJE_NOMBRE, nombre);
-	socket_send_vector2(socket_nivel, PERSONAJE_POSICION, pos);
 	//lo agregamos a la lista de personajes listos del planificador
 	list_add(self->personajes_listos, personaje);
 	//bindeamos el socket al multiplexor
-	multiplexor_bind_socket(self->multiplexor, socket, paquete_entrante_personaje, self, personaje);
-	//si no habia nadie jugando, otorgamos un turno
-	if(!self->personaje_actual) otorgar_turno(self);
+	multiplexor_bind_socket(self->mpx_personajes, socket, paquete_entrante_personaje, self, personaje);
 
-	mutex_open(self->semaforo_multiplexor);
+	//informamos al nivel y le pasamos los datos del personaje
+	var(sn, self->nivel->socket);
+	socket_send_empty_package(sn, PERSONAJE_CONECTADO);
+	socket_send_char(sn, PERSONAJE_SIMBOLO, simbolo);
+	socket_send_string(sn, PERSONAJE_NOMBRE, nombre);
+	socket_send_vector2(sn, PERSONAJE_POSICION, pos);
+
+	self->bandera = 0;
+	mutex_open(sem);
 }
 
 private void planificador_liberar_personaje(tad_planificador* self, tad_personaje* personaje){
+	//informamos al nivel
 	socket_send_char(self->nivel->socket, PERSONAJE_DESCONEXION, personaje->simbolo);
 
 	var(socket, personaje->socket);
 
 	//cerramos su socket
-	multiplexor_unbind_socket(self->multiplexor, socket);
+	multiplexor_unbind_socket(self->mpx_personajes, socket);
 	socket_close(socket);
 
 	//lo quitamos de las listas
+	if(self->personaje_actual == personaje) self->personaje_actual = null;
 	quitar_personaje(self, personaje, self->personajes_listos);
 	quitar_personaje(self, personaje, self->personajes_bloqueados);
 
 	var(nombre, personaje->nombre);
 	logger_info(get_logger(self), "El personaje %s fue pateado", nombre);
-
-
-	//si era el personaje con el turno, le damos el turno a otro personaje
-	if(self->personaje_actual == personaje) otorgar_turno(self);
 
 	free(nombre);
 	dealloc(personaje);
@@ -173,14 +178,16 @@ void planificador_finalizar(tad_planificador* self){
 	list_destroy_and_destroy_elements(self->personajes_bloqueados, destroyer);
 
 	//liberamos los recursos de los datos del nivel
+	multiplexor_dispose_and_dispose_objects(self->mpx_nivel);
 	var(nivel, self->nivel);
-	socket_close(nivel->socket);
 	free(nivel->nombre);
 	dealloc(nivel);
 
 	//liberamos los recursos del multiplexor
-	multiplexor_dispose(self->multiplexor);
-	mutex_dispose(self->semaforo_multiplexor);
+	multiplexor_dispose(self->mpx_personajes);
+
+	//liberamos los semaforos
+	mutex_dispose(self->semaforo);
 
 	//liberamos los recursos propios del planificador
 	logger_info(get_logger(self), "Finalizado");
@@ -223,13 +230,22 @@ void planificador_ejecutar(PACKED_ARGS){
 		self->algoritmo = algoritmo_rr;
 	free(algoritmo);
 
+	var(sem, self->semaforo);
+	mutex_close(sem);
 
 	while(1){
-		mutex_close(self->semaforo_multiplexor);
-		multiplexor_wait_for_io(self->multiplexor, 1);
-		mutex_open(self->semaforo_multiplexor);
+		if(self->bandera){
+			mutex_open(sem);
+			sleep(1); //dejamos que entren los personajes
+			mutex_close(sem);
+		}
+		//primero atendemos los paquetes del nivel, por si se quitan personajes de las listas
+		multiplexor_wait_for_io(self->mpx_nivel, 1);
+		//si no hay personaje jugando, otorgamos un turno (si podemos)
+		if(!self->personaje_actual) otorgar_turno(self);
+		//luego atendemos a los personajes restantes
+		multiplexor_wait_for_io(self->mpx_personajes, 1);
 	}
-	//salimos del select cada 50ms para que se actualize la lista de fds asociados a el
 
 
 //	int retardo_faltante;
@@ -296,7 +312,6 @@ private void paquete_entrante_nivel(PACKED_ARGS){
 		logger_info(logger, "El recurso que solicito %s le fue otorgado", personaje->nombre);
 		list_add(self->personajes_listos, personaje);
 		socket_send_empty_package(personaje->socket, RECURSO_OTORGADO);
-		if(self->personaje_actual) otorgar_turno(self);
 
 	}else if(tipo == MUERTE_POR_ENEMIGO){
 		var(simbolo, package_get_char(paquete));
@@ -367,11 +382,10 @@ private void paquete_entrante_personaje(PACKED_ARGS){
 		tad_package* reenvio = package_create_char_and_vector2(PERSONAJE_MOVIMIENTO, simbolo, direccion);
 		socket_send_package(socket_nivel, reenvio);
 		self->turnos_restantes--;
-		if(self->turnos_restantes){
+		if(self->turnos_restantes)
 			socket_send_empty_package(socket, PLANIFICADOR_OTORGA_TURNO);
-		}else{
-			otorgar_turno(self);
-		}
+		else
+			self->personaje_actual = null;
 
 	//el personaje solicita una instancia de un recurso
 	}else if(tipo_mensaje == PERSONAJE_SOLICITUD_RECURSO){
@@ -379,10 +393,10 @@ private void paquete_entrante_personaje(PACKED_ARGS){
 		logger_info(logger, "%s solicito una instancia del recurso %c", nombre, recurso);
 		tad_package* reenvio = package_create_two_chars(PERSONAJE_SOLICITUD_RECURSO, simbolo, recurso);
 		socket_send_package(socket_nivel, reenvio);
+		self->personaje_actual = null;
+		self->turnos_restantes = 0;
 		quitar_personaje(self, personaje, self->personajes_listos);
 		list_add(self->personajes_bloqueados, personaje);
-		self->turnos_restantes = 0;
-		otorgar_turno(self);
 	}
 
 	package_dispose(paquete);
