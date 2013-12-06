@@ -295,6 +295,7 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 	int objetivosConseguidos = 0;
 	int objetivosAconseguir = list_size(nivel->objetivos);
 	int i = 0;
+	int eje_prox_mov = 1; //para saber en que eje tiene que hacer el proximo movimiento
 
 	while(objetivosConseguidos < objetivosAconseguir){
 
@@ -326,8 +327,10 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 
 		}else if(!vector2_equals(posicionPersonaje, posicionDelProximoRecurso)){
 			//se calcula en función de su posición actual (x,y), la dirección en la que debe
-			//realizar su próximo movimiento  para alcanzar la caja de recursos y 1avanzar
-			vector2 nuevaPosicion = vector2_next_step(posicionPersonaje, posicionDelProximoRecurso);
+			//realizar su próximo movimiento  para alcanzar la caja de recursos
+
+			//se mueve alternadamente por los ejes
+			vector2 nuevaPosicion = vector2_move_alternately(posicionPersonaje, posicionDelProximoRecurso, &eje_prox_mov);
 			logger_info(logger_nivel, "Moviendose a (%d,%d)", nuevaPosicion.x, nuevaPosicion.y);
 			socket_send_vector2(socket, PERSONAJE_MOVIMIENTO, nuevaPosicion);
 			posicionPersonaje = nuevaPosicion;

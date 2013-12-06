@@ -450,6 +450,8 @@ void evaluar_solicitud_recurso(tad_nivel* self, char simbolo_personaje, char sim
 		recurso_caja->instancias --;
 		mutex_open(self->semaforo_cajas);
 
+		nivel_gui_dibujar(self); //cuando otorgo un recurso dibujo la caja para actualizar instancias
+
 		logger_info(get_logger(self), "Se puede otorgar el recurso %c", recurso_caja->simbolo);
 		otorgar_recurso(self, personaje_solicitud, simbolo_recurso);
 
@@ -511,6 +513,8 @@ void liberar_y_reasignar_recursos(tad_nivel* self, tad_personaje* personaje_muer
 	var(lista_recursos_a_liberar, personaje_muerto->recursos_asignados);
 	mutex_open(self->semaforo_personajes);
 
+	sleep (1);//para visualizar mejor el otorgamiento del ultimo recurso al completar nivel antes de que libere
+
 	//por cada recurso que tenia asignado el personaje
 	foreach (recurso_a_liberar, lista_recursos_a_liberar, tad_recurso*){
 
@@ -525,7 +529,7 @@ void liberar_y_reasignar_recursos(tad_nivel* self, tad_personaje* personaje_muer
 				if (recurso_solicitado == recurso_liberado){
 					otorgar_recurso(self, personaje_bloqueado, recurso_solicitado);
 					recurso_a_liberar->cantidad --;
-					logger_info(get_logger(self), "Se liberaron recursos, se actualiza la lista de cajas del nivel");
+					logger_info(get_logger(self), "Se desbloquea el personaje %c. Se le otorga el recurso %c", personaje_muerto->simbolo, recurso_solicitado);
 				}
 			}
 		}
@@ -541,8 +545,7 @@ void liberar_y_reasignar_recursos(tad_nivel* self, tad_personaje* personaje_muer
 			tad_caja* caja = list_find (self->cajas, (void*)caja_buscada);
 			caja->instancias += recurso_a_liberar->cantidad;
 			mutex_open(self->semaforo_cajas);
-
-			logger_info(get_logger(self), "Se libero el recurso %c, instancias: %d. Se actualiza la lista de cajas del nivel", caja->simbolo, recurso_a_liberar->cantidad);
+			logger_info(get_logger(self), "Se libero el recurso %c, instancias %d. Se actualiza la lista de cajas del nivel", caja->simbolo, recurso_a_liberar->cantidad);
 		}
 	}
 	mutex_close(self->semaforo_personajes);
