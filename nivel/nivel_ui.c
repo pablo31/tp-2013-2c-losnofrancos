@@ -18,6 +18,7 @@ private WINDOW* mainwin;
 private int rows, cols;
 private tad_logger* logger;
 private tad_mutex* semaforo_dibujado;
+private int gui_inicializada = 0;
 
 
 private void nivel_gui_get_term_size(int as_out rows, int as_out cols){
@@ -209,7 +210,7 @@ void nivel_gui_inicializar(){
 
 	semaforo_dibujado = mutex_create();
 
-	//TODO pokemon-style intro (see ../pruebas/intro.c)
+	gui_inicializada = 1;
 }
 
 private void nivel_gui_draw_char(char ch, vector2 pos, int color_pair){
@@ -268,6 +269,7 @@ void nivel_gui_dibujar(tad_nivel* nivel){
 }
 
 void nivel_gui_terminar(){
+	if(!gui_inicializada) return;
 	delwin(mainwin);
 	delwin(secwin);
 	endwin();
