@@ -61,12 +61,12 @@ tad_plataforma* plataforma_crear(char* config_file){
 	alloc(ret, tad_plataforma);
 
 	t_config* config = config_create(config_file);
-	char* puerto_orquestador = string_duplicate(config_get_string_value(config, "puerto"));
+	char* puerto_orquestador = string_duplicate(config_get_string_value(config, "Puerto"));
 
 	//cargamos los datos del logger
-	char* log_file = config_get_string_value(config, "logFile");
-	char* log_level = config_get_string_value(config, "logLevel");
-	logger_initialize(log_file, "plataforma.sh", log_level);
+	char* log_file = config_get_string_value(config, "LogFile");
+	char* log_level = config_get_string_value(config, "LogLevel");
+	logger_initialize(log_file, "plataforma", log_level);
 
 	config_destroy(config);
 

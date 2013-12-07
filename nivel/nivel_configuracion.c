@@ -88,18 +88,14 @@ void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 
 	self->nombre = string_duplicate(config_get_string_value(config, "Nombre"));
 	char* log_file;
-	if(config_has_property(config,"LogFile"))
-		log_file = config_get_string_value(config, "LogFile");
-	else 
-		log_file = string_from_format("%s.log", self->nombre);
+	if(config_has_property(config,"LogFile")) log_file = config_get_string_value(config, "LogFile");
+	else log_file = string_from_format("%s.log", self->nombre);
 
 	char* log_level; 
-	if(config_has_property(config,"LogLevel"))
-	 	log_level = config_get_string_value(config, "LogLevel");		
-	else 
-		log_level = "INFO";		
+	if(config_has_property(config,"LogLevel")) log_level = config_get_string_value(config, "LogLevel");
+	else log_level = "INFO";
 
-	logger_initialize(log_file, "nivel.sh", log_level, 0); //no logea en consola
+	logger_initialize(log_file, "nivel", log_level, 0); //el 0 es para que no logee en consola
 	var(logger, logger_new_instance());
 	self->logger = logger;
 
@@ -121,7 +117,14 @@ void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 	self->sleep_enemigos = config_get_int_value(config,"Sleep_Enemigos");
 	logger_info(logger, "Sleep Enemigos:%i", self->sleep_enemigos);
 
-	char* plataforma = string_duplicate(config_get_string_value(config,"Plataforma"));
+	//direccion de plataforma
+	char* plataforma;
+	t_config* global_config = config_create("global.cfg");
+	if(config_has_property(global_config,"Plataforma"))
+		plataforma = string_duplicate(config_get_string_value(global_config, "Plataforma"));
+	else
+		plataforma = string_duplicate(config_get_string_value(config, "Plataforma"));
+	config_destroy(global_config);
 	logger_info(logger, "Plataforma:%s", plataforma);
 	set ippuerto = plataforma;
 
