@@ -52,17 +52,14 @@ void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self, int *eje_prox_mov)
 		//se calcula la proxima posicion intentando moverse alternadamente por los ejes
 		vector2 nueva_posicion = vector2_move_alternately(posicion_actual, posicion_personaje, eje_prox_mov);
 
-		//se controla si en la posicion a moverse se encuentra una caja
-		if (posicion_sin_caja(nivel, nueva_posicion)){
-			mutex_close(nivel->semaforo_enemigos);
-			self->pos = nueva_posicion;
-			mutex_open(nivel->semaforo_enemigos);
-		}else{ //si hay una caja se busca un movimiento alternativo para esquivarla
-			vector2 posicion_alternativa = esquivar_caja(posicion_actual, nueva_posicion, posicion_personaje);
-			mutex_close(nivel->semaforo_enemigos);
-			self->pos = posicion_alternativa;
-			mutex_open(nivel->semaforo_enemigos);
-		}
+		mutex_close(nivel->semaforo_enemigos);
+
+		//si hay una caja se busca un movimiento alternativo para esquivarla
+		if(!posicion_valida(nivel, nueva_posicion)) nueva_posicion = esquivar_posicion(posicion_actual, nueva_posicion, posicion_personaje);
+		//solo meovemos al enemigo si la posicion es valida
+		if(posicion_valida(nivel, nueva_posicion)) self->pos = nueva_posicion;
+
+		mutex_open(nivel->semaforo_enemigos);
 	}
 
 	//si en la nueva posicion se encuentra el personaje se considera atrapado y se informa su muerte.
@@ -131,13 +128,13 @@ void moverse_sin_personajes(tad_nivel* nivel, tad_enemigo* self){
 
 	int random = rand()%8; //random 0,7
 
-	int movimientos_faltantes=3;
+	int movimientos_faltantes = 3;
 	
 	mutex_close(nivel->semaforo_personajes);
 	int cantidad_personajes_local = list_size(nivel->personajes);
 	mutex_open(nivel->semaforo_personajes);
 
-	while(movimientos_faltantes>0){
+	while(movimientos_faltantes > 0){
 
 		mutex_close(nivel->semaforo_enemigos);
 		nueva_pos = movimiento_random(self->pos, random, movimientos_faltantes);
@@ -145,24 +142,27 @@ void moverse_sin_personajes(tad_nivel* nivel, tad_enemigo* self){
 
 		//si la posicion esta dentro del mapa se grafica
 		if(vector2_within_map(nueva_pos, limite_mapa)){
+			mutex_close(nivel->semaforo_enemigos);
+
 			//se controla si en la posicion a moverse se encuentra una caja
-			if (posicion_sin_caja(nivel,nueva_pos)){
+			if (posicion_valida(nivel,nueva_pos)){
 				movimientos_faltantes --;
-				mutex_close(nivel->semaforo_enemigos);
 				self->pos = nueva_pos;
 				logger_info(self->logger, "Moviendose en L a (%d,%d)", self->pos.x,self->pos.y);
+				//usleep(nivel->sleep_enemigos * 600); //TODO esto es lo que va
 				mutex_open(nivel->semaforo_enemigos);
-				//usleep(nivel->sleep_enemigos * 600); //esto es lo que va
 				sleep(1);
 				nivel_gui_dibujar(nivel);
 			}
 			else{
-			//si no completo la L por esquivar una caja tiene que empezar de nuevo y buscar otra L al azar
-				movimientos_faltantes=0;
+				mutex_open(nivel->semaforo_enemigos);
+				//si no completo la L por esquivar una caja tiene que empezar de nuevo y buscar otra L al azar
+				movimientos_faltantes = 0;
 			}
+
 		}else{
 			//sino completo la L porque se iba fuera del mapa tiene que empezar de nuevo y buscar otra L al azar
-			movimientos_faltantes=0;
+			movimientos_faltantes = 0;
 			logger_info(self->logger, "Esquiva borde en (%d,%d)", nueva_pos.x, nueva_pos.y);
 		}
 		mutex_close(nivel->semaforo_personajes);
@@ -175,24 +175,30 @@ void moverse_sin_personajes(tad_nivel* nivel, tad_enemigo* self){
 }
 
 
-bool posicion_sin_caja(tad_nivel* nivel, vector2 nueva_pos){
-	mutex_close(nivel->semaforo_cajas);
 
-	bool caja_buscada(void* ptr){
-		return vector2_equals(((tad_caja*)ptr)->pos, nueva_pos);
-	}
-	tad_caja* caja_a_esquivar = list_find(nivel->cajas, caja_buscada);
 
-	mutex_open(nivel->semaforo_cajas);
 
-	if (caja_a_esquivar == NULL)
-		return true;
-	else
-		return false;
+
+bool posicion_valida(tad_nivel* nivel, vector2 pos){
+	//buscamos enemigos en la misma posicion
+	foreach(enemigo, nivel->enemigos, tad_enemigo*)
+		if(vector2_equals(pos, enemigo->pos))
+			return false;
+
+	//buscamos cajas en la misma posicion
+	foreach(caja, nivel->cajas, tad_caja*)
+		if(vector2_equals(pos, caja->pos))
+			return false;
+
+	//si no hay enemigos ni cajas, es una posicion valida
+	return true;
 }
 
 
-vector2 esquivar_caja(vector2 posicion_actual, vector2 nueva_posicion, vector2 posicion_personaje){
+
+
+
+vector2 esquivar_posicion(vector2 posicion_actual, vector2 nueva_posicion, vector2 posicion_personaje){
     vector2 posicion_alternativa;
     int movimiento_incorrecto;
 

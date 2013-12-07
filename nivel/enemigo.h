@@ -21,8 +21,8 @@
 void movimiento_permitido_enemigo(PACKED_ARGS);
 void moverse_sin_personajes(tad_nivel* nivel, tad_enemigo* self);
 void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self, int *eje_prox_mov);
-bool posicion_sin_caja(tad_nivel* nivel, vector2 nueva_pos);
-vector2 esquivar_caja(vector2 posicion_actual, vector2 nueva_posicion, vector2 posicion_personaje);
+bool posicion_valida(tad_nivel* nivel, vector2 pos);
+vector2 esquivar_posicion(vector2 posicion_actual, vector2 nueva_posicion, vector2 posicion_personaje);
 int calcular_direccion_movimiento(vector2 pos1, vector2 pos2);
 int calcular_distancia(vector2 posicion_a, vector2 posicion_b);
 vector2 buscar_personaje_mas_cercano(tad_nivel* nivel, tad_enemigo* self, vector2 posicion_actual);
