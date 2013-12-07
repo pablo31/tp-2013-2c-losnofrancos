@@ -111,13 +111,15 @@ tad_planificador* planificador_crear(char* nombre_nivel, tad_socket* socket_nive
  ***************************************/
 
 void planificador_agregar_personaje(tad_planificador* self, char* nombre, char simbolo, tad_socket* socket){
+	var(logger, get_logger(self));
+
 	//alojamos una instancia de tad_personaje
 	alloc(personaje, tad_personaje);
 	personaje->nombre = nombre;
 	personaje->simbolo = simbolo;
 	personaje->socket = socket;
 	//informamos al usuario
-	logger_info(get_logger(self), "El personaje %s entro al nivel", nombre);
+	logger_info(logger, "El personaje %s entro al nivel", nombre);
 	//nos presentamos
 	socket_send_empty_package(socket, PRESENTACION_PLANIFICADOR);
 	//recibimos la posicion inicial del personaje
@@ -127,17 +129,26 @@ void planificador_agregar_personaje(tad_planificador* self, char* nombre, char s
 	var(sem, self->semaforo);
 	mutex_close(sem);
 
-	//lo agregamos a la lista de personajes listos del planificador
-	list_add(self->personajes_listos, personaje);
-	//bindeamos el socket al multiplexor
-	multiplexor_bind_socket(self->mpx_personajes, socket, paquete_entrante_personaje, self, personaje);
-
-	//informamos al nivel y le pasamos los datos del personaje
-	var(sn, self->nivel->socket);
-	socket_send_empty_package(sn, PERSONAJE_CONECTADO);
-	socket_send_char(sn, PERSONAJE_SIMBOLO, simbolo);
-	socket_send_string(sn, PERSONAJE_NOMBRE, nombre);
-	socket_send_vector2(sn, PERSONAJE_POSICION, pos);
+	//buscamos algun personaje con el mismo simbolo
+	var(listos, self->personajes_listos);
+	tad_personaje* gemelo = buscar_personaje(self, simbolo, listos);
+	if(gemelo != null){
+		//ya hay otro personaje con el mismo simbolo
+		logger_info(logger, "Ya existia un personaje con el mismo simbolo que %s", nombre);
+		socket_close(socket);
+		dealloc(personaje);
+	}else{
+		//lo agregamos a la lista de personajes listos del planificador
+		list_add(listos, personaje);
+		//bindeamos el socket al multiplexor
+		multiplexor_bind_socket(self->mpx_personajes, socket, paquete_entrante_personaje, self, personaje);
+		//informamos al nivel y le pasamos los datos del personaje
+		var(sn, self->nivel->socket);
+		socket_send_empty_package(sn, PERSONAJE_CONECTADO);
+		socket_send_char(sn, PERSONAJE_SIMBOLO, simbolo);
+		socket_send_string(sn, PERSONAJE_NOMBRE, nombre);
+		socket_send_vector2(sn, PERSONAJE_POSICION, pos);
+	}
 
 	self->bandera = 0;
 	mutex_open(sem);
