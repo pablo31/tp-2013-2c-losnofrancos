@@ -18,6 +18,7 @@
 #define EJE_X 0
 #define EJE_Y 1
 
+
 void movimiento_permitido_enemigo(PACKED_ARGS);
 void moverse_sin_personajes(tad_nivel* nivel, tad_enemigo* self);
 void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self, int *eje_prox_mov);

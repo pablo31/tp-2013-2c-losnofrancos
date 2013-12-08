@@ -187,11 +187,14 @@ void verificador_deadlock(PACKED_ARGS){
 					//Se elige como victima al primer personaje de la lista
 					tad_personaje* personaje_victima = list_get(personajes_deadlock, 1);
 
-					//Seinforma por archivo de log
+					//Se informa por archivo de log
 					logger_info(get_logger(nivel), "El personaje %s ha sido seleccionado como victima del deadlock", personaje_victima->nombre);
 
+					muerte_del_personaje(personaje_victima, nivel, DEADLOCK);
+					nivel_gui_dibujar(nivel);
+
 					//Se informa muerte del personaje por deadlock al planificador
-					socket_send_char(nivel->socket, MUERTE_POR_DEADLOCK, personaje_victima->simbolo);
+					//socket_send_char(nivel->socket, MUERTE_POR_DEADLOCK, personaje_victima->simbolo);
 
 				}
 
