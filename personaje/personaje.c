@@ -352,8 +352,11 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 		}
 	}
 
+	//PERSONAJE_OBJETIVOS_COMPLETADOS
+
 	//informamos que ganamos y nos vamos a desconectar
-	socket_send_empty_package(socket, PERSONAJE_DESCONEXION);
+	logger_info(logger_nivel, "Aviso al orquestador que termine mis objetivos");
+	socket_send_empty_package(socket, PERSONAJE_OBJETIVOS_COMPLETADOS);
 
 	socket_close(socket);
 	logger_info(logger_nivel, "Nivel completado con exito");
