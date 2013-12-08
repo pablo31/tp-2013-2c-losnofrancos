@@ -312,7 +312,6 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		if (atrapado_por_enemigo)
 			muerte_del_personaje(personaje_en_movimiento, self, ENEMIGO);
 
-		sleep(1);
 		nivel_gui_dibujar(self);
 
 	}else if(tipo == PERSONAJE_SOLICITUD_RECURSO){
@@ -442,8 +441,6 @@ void evaluar_solicitud_recurso(tad_nivel* self, char simbolo_personaje, char sim
 	var(instancias_caja, recurso_caja->instancias);
 	mutex_open(self->semaforo_cajas);
 
-	//logger_info(get_logger(self), "La caja buscada es: %c", recurso_caja->simbolo);
-
 	//Se verifica que haya instancias del recurso para otorgar
 	if (instancias_caja > 0){
 
@@ -458,7 +455,6 @@ void evaluar_solicitud_recurso(tad_nivel* self, char simbolo_personaje, char sim
 
 	}
 }
-
 
 void otorgar_recurso(tad_nivel* self, tad_personaje* personaje_solicitud, char simbolo_recurso){
 	bool encontre_recurso = false;
@@ -546,29 +542,6 @@ void liberar_y_reasignar_recursos(tad_nivel* self, tad_personaje* personaje_muer
 	mutex_open(self->semaforo_personajes);
 }
 
-/*
-bool verificar_muerte_por_enemigo(tad_personaje* personaje, vector2 pos_enemigo, tad_nivel* self){
-
-	//mutex_close(self->semaforo_personajes);
-	bool atrapado_por_enemigo = vector2_equals(personaje->pos, pos_enemigo);
-	//mutex_open(self->semaforo_personajes);
-
-	if(atrapado_por_enemigo){
-		//mutex_close(self->semaforo_personajes);
-		var(personaje_muerto, personaje->simbolo);
-		//mutex_open(self->semaforo_personajes);
-		logger_info(self->logger, "murio el personaje %c al ser atrapado por un enemigo.", personaje_muerto);
-
-//		muerte_del_personaje(personaje, self);
-
-		//se avisa la muerte del personaje por enemigo al planificador
-		socket_send_char(self->socket, MUERTE_POR_ENEMIGO, personaje_muerto);
-		return atrapado_por_enemigo;
-	}
-	return false;
-}
-*/
-
 void muerte_del_personaje(tad_personaje* personaje, tad_nivel* self, int motivo){
 
 	//Se liberan recursos asignados y se reasignan a los personajes bloqueados
@@ -591,8 +564,6 @@ void muerte_del_personaje(tad_personaje* personaje, tad_nivel* self, int motivo)
 		socket_send_char(self->socket, MUERTE_POR_ENEMIGO, personaje_muerto);
 	if(motivo == DEADLOCK)
 		socket_send_char(self->socket, MUERTE_POR_DEADLOCK, personaje_muerto);
-
-	//nivel_gui_dibujar(self);
 }
 
 
