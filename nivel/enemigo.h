@@ -18,6 +18,10 @@
 #define EJE_X 0
 #define EJE_Y 1
 
+//motivo de muerte
+#define FIN 0
+#define ENEMIGO 1
+#define DEADLOCK 2
 
 void movimiento_permitido_enemigo(PACKED_ARGS);
 void moverse_sin_personajes(tad_nivel* nivel, tad_enemigo* self);
