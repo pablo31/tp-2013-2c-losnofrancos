@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
 
 
 	//declaramos las funciones manejadoras de senales
-//	signal_dynamic_handler(SIGINT, personaje_finalizar(self));
+	signal_dynamic_handler(SIGINT, personaje_finalizar(self));
 	signal_dynamic_handler(SIGTERM, morir(self, "Muerte por señal"));
 	signal_dynamic_handler(SIGUSR1, comer_honguito_verde(self));
 	logger_info(get_logger(self), "Senales establecidas");
@@ -399,6 +399,9 @@ private void comer_honguito_verde(t_personaje* self){
 }
 
 private void personaje_finalizar(t_personaje* self){
+	var(logger, get_logger(self));
+	logger_info(logger, "Finalizando");
+
 	var(niveles, self->niveles);
 
 	foreach(nivel, niveles, t_nivel*){
@@ -416,7 +419,7 @@ private void personaje_finalizar(t_personaje* self){
 	free(self->nombre);
 	free(self->ippuerto_orquestador);
 
-	logger_dispose_instance(self->logger);
+	logger_dispose_instance(logger);
 	dealloc(self);
 
 	logger_dispose();
