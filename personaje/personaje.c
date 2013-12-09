@@ -162,6 +162,35 @@ int main(int argc, char* argv[]) {
 	}
 
 	//TODO conectarse al orquestador para decirle que ganamos
+	var(ippuerto_orquestador, get_ippuerto_orquestador(self));
+	var(ip, string_get_ip(ippuerto_orquestador));
+	var(puerto, string_get_port(ippuerto_orquestador));
+
+	//conectamos con el orquestador
+	tad_socket* socket = socket_connect(ip, puerto);
+
+	SOCKET_ERROR_MANAGER(socket){
+		logger_info(get_logger(self), "Error en el envio o recepcion de datos con el orquestador");
+		logger_info(get_logger(self), "Reintentando conectar con el orquestador");
+		//retry
+		socket_close(socket);
+		socket = socket_connect(ip, puerto);
+	}
+
+	//handshake
+	socket_receive_expected_empty_package(socket, PRESENTACION_ORQUESTADOR);
+	socket_send_empty_package(socket, PRESENTACION_PERSONAJE);
+
+	//enviamos nuestros datos
+	socket_send_string(socket, PERSONAJE_NOMBRE, get_nombre(self));
+	socket_send_char(socket, PERSONAJE_SIMBOLO, get_simbolo(self));
+
+	//informamos que ganamos
+	logger_info(get_logger(self), "Objetivos completados");
+	socket_send_empty_package(socket, PERSONAJE_OBJETIVOS_COMPLETADOS);
+
+	free(ip);
+	free(puerto);
 
 	personaje_finalizar(self);
 	return EXIT_SUCCESS;
@@ -351,12 +380,6 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 			posicion_de_comparacion = vector2_new(-1, -1);
 		}
 	}
-
-	//PERSONAJE_OBJETIVOS_COMPLETADOS
-
-	//informamos que ganamos y nos vamos a desconectar
-	logger_info(logger_nivel, "Aviso al orquestador que termine mis objetivos");
-	socket_send_empty_package(socket, PERSONAJE_OBJETIVOS_COMPLETADOS);
 
 	socket_close(socket);
 	logger_info(logger_nivel, "Nivel completado con exito");
