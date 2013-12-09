@@ -15,6 +15,11 @@
 #include "../libs/thread/mutex.h"
 #include "../libs/common.h"
 
+//motivo de muerte
+#define FIN 0
+#define ENEMIGO 1
+#define DEADLOCK 2
+
 
 class(tad_caja){
 	char* nombre;
@@ -43,8 +48,6 @@ class(tad_enemigo){
 	char simbolo;
 	vector2 pos;
 	tad_personaje* blanco;
-	//int detecta_personaje;
-	//vector2 posicion_personaje;
 	tad_logger* logger; //instancia del logger propia de cada enemigo
 };
 
@@ -79,7 +82,8 @@ char* get_config_path(tad_nivel* self);
 void evaluar_solicitud_recurso(tad_nivel* self, char simbolo_personaje, char simbolo_recurso);
 void otorgar_recurso(tad_nivel* self, tad_personaje* personaje_solicitud, char simbolo_recurso);
 void liberar_y_reasignar_recursos(tad_nivel* self, tad_personaje* personaje_muerto);
-void verificar_muerte_por_enemigo(tad_personaje* personaje, vector2 pos_enemigo, tad_nivel* self);
+//bool verificar_muerte_por_enemigo(tad_personaje* personaje, vector2 pos_enemigo, tad_nivel* self);
+void muerte_del_personaje(tad_personaje* personaje, tad_nivel* self, int motivo);
 
 #endif
  

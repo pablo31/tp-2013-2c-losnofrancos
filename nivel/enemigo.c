@@ -44,11 +44,14 @@ void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self, int *eje_prox_mov)
 
 	//se carga la posicion del personaje que esta mas cerca.
 	posicion_personaje = buscar_personaje_mas_cercano(nivel, self, posicion_actual);
-		
-	//si el personaje no está en la misma posicion que el enemigo
-	if(!(vector2_equals(posicion_actual, posicion_personaje))){
 
-		//vector2 nueva_posicion = vector2_next_step(posicion_actual, posicion_personaje);
+	//controla si el personaje no está en la misma posicion que el enemigo
+	mutex_close(nivel->semaforo_personajes);
+	int atrapado_por_enemigo = (vector2_equals(posicion_actual, posicion_personaje));
+	mutex_open(nivel->semaforo_personajes);
+
+	if(!atrapado_por_enemigo){
+		mutex_close(nivel->semaforo_personajes);
 		//se calcula la proxima posicion intentando moverse alternadamente por los ejes
 		vector2 nueva_posicion = vector2_move_alternately(posicion_actual, posicion_personaje, eje_prox_mov);
 
@@ -56,19 +59,18 @@ void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self, int *eje_prox_mov)
 
 		//si hay una caja se busca un movimiento alternativo para esquivarla
 		if(!posicion_valida(nivel, nueva_posicion)) nueva_posicion = esquivar_posicion(posicion_actual, nueva_posicion, posicion_personaje);
-		//solo meovemos al enemigo si la posicion es valida
+		//solo movemos al enemigo si la posicion es valida
 		if(posicion_valida(nivel, nueva_posicion)) self->pos = nueva_posicion;
 
 		mutex_open(nivel->semaforo_enemigos);
+		mutex_open(nivel->semaforo_personajes);
 	}
-
-	//si en la nueva posicion se encuentra el personaje se considera atrapado y se informa su muerte.
-	mutex_close(nivel->semaforo_enemigos);
-	verificar_muerte_por_enemigo(self->blanco, self->pos, nivel);
-	mutex_open(nivel->semaforo_enemigos);
+	else
+		muerte_del_personaje(self->blanco, nivel, ENEMIGO);
 
 	sleep(1);
 	nivel_gui_dibujar(nivel);
+
 }
 
 
@@ -107,7 +109,7 @@ vector2 buscar_personaje_mas_cercano(tad_nivel* nivel, tad_enemigo* self, vector
            }
        }
     }
-    mutex_open(nivel->semaforo_personajes);
+    //mutex_open(nivel->semaforo_personajes);
 
     mutex_close(nivel->semaforo_enemigos);
     var(blanco_pos, self->blanco->pos);
@@ -115,6 +117,7 @@ vector2 buscar_personaje_mas_cercano(tad_nivel* nivel, tad_enemigo* self, vector
     mutex_open(nivel->semaforo_enemigos);
     logger_info(self->logger, "Personaje a atrapar: %c. Posicion: (%d,%d)", blanco_simbolo, blanco_pos.x, blanco_pos.y);
 
+    mutex_open(nivel->semaforo_personajes);
     return blanco_pos;
 }
 
