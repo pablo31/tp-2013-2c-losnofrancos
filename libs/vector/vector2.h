@@ -57,7 +57,4 @@ int vector2_equals_xy(vector2 a, vector2 b, int eje);
 int vector2_min_xy(vector2 a, vector2 b, int eje);
 vector2 vector2_move_pos(vector2 posicion, int eje, int sentido);
 
-//Metodos para SRDF
-int vector2_distancia_escalar(vector2 origin, vector2 target);
-
 #endif /* VECTOR2_H_ */
