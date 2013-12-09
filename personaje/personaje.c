@@ -189,6 +189,8 @@ int main(int argc, char* argv[]) {
 	logger_info(get_logger(self), "Objetivos completados");
 	socket_send_empty_package(socket, PERSONAJE_OBJETIVOS_COMPLETADOS);
 
+	socket_close(socket);
+
 	free(ip);
 	free(puerto);
 
