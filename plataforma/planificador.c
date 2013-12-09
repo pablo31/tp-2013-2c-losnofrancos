@@ -13,7 +13,6 @@
 #include "../libs/socket/socket_utils.h"
 #include "../libs/socket/package_serializers.h"
 #include "../libs/protocol/protocol.h"
-#include "../libs/vector/vector2.h"
 
 #include "planificador.h"
 
@@ -39,6 +38,9 @@ private tad_personaje* buscar_personaje(tad_planificador* self, char simbolo, t_
 //logeo
 private void mostrar_lista(tad_planificador* self, char* header, t_list* personajes);
 
+//SRDF
+private void cargar_posiciones_proximo_recurso(tad_personaje* personaje, tad_nivel* nivel);
+private t_list* ordenar_lista_personajes_por_SRDF(t_list* personajes);
 
 /***************************************
  * GETTERS *****************************
@@ -448,15 +450,83 @@ private tad_personaje* algoritmo_rr(tad_planificador* self){
 
 private tad_personaje* algoritmo_srdf(tad_planificador* self){
 	//TODO logica de srdf (temporalmente devuelve siempre el 1er personaje de la lista)
+
+	//Estrategia
+	//1) a cada personaje, cargarle la posicion del siguiente recurso y ponerlo en la lista
+	//2) ordenarla de menor a mayor por el que tiene el recurso mas cerca
+	//3) devolver siempre el primero de la lista
+
 	var(personajes, self->personajes_listos);
+
+	//1)
+	//mutex_close(self->semaforo_srdf); //ver si es necesario o no
+	foreach(personaje, self->personajes_listos, tad_personaje*){
+		cargar_posiciones_proximo_recurso(personaje, self->nivel);
+	}
+	//mutex_open(self->semaforo_srdf);
+
+
+	//2)
+	personajes = ordenar_lista_personajes_por_SRDF(personajes);
+
+
 	if(list_size(personajes) > 0) return list_get(personajes, 0);
 	else return null;
 }
 
 
+private void cargar_posiciones_proximo_recurso(tad_personaje* personaje, tad_nivel* nivel){
+
+	char simbolo_proximo_recurso;
+	simbolo_proximo_recurso = personaje->simbolo_proximo_recurso;
+
+	//Se busca el proximo recurso
+	bool recurso_buscado (tad_caja* caja){
+	return (simbolo_proximo_recurso== caja->simbolo);
+	}
+
+	tad_caja* caja_proximo_recurso = list_find(nivel->cajas, (void*) recurso_buscado);
+	personaje->posicion_proximo_recurso = caja_proximo_recurso->pos;
+}
+
+private t_list* ordenar_lista_personajes_por_SRDF(t_list* personajes_SRDF){
+
+	//1) se calcula la distancia
+	int distancia;
+
+	//se cargan las distancias a los personajes
+	foreach(personaje,personajes_SRDF, tad_personaje*){
+		distancia = vector2_distancia_escalar(personaje->posicion_actual,personaje->posicion_proximo_recurso);
+		personaje->distacia_proximo_recurso = distancia;
+	}
+
+	//intente usar list_sort(t_list *self, bool (*comparator)(void *, void *)) se me rompe...
+	//como me canse decidi armar mi propia funcion.
 
 
+	//2) se tiene que ordenar la lista ordenado por la menor distacia
+	//por cada elemento de la lista, se compara al personaje contra otro personaje con la distancia
+	//para ordenarlo de menor a mayor
+	//error se recorre la lista dos veces, peros e searan tareas
 
+
+	bool un_personaje = true;
+	//int distancia_menor;
+	//foreach(personaje_ordenado,personajes_SRDF, tad_personaje*){
+
+		if(un_personaje){
+
+			un_personaje = false;
+			return personajes_SRDF;
+		}//else {
+
+		//}
+
+
+	//}
+
+	return personajes_SRDF;
+}
 
 
 

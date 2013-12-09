@@ -14,6 +14,7 @@
 #include "../libs/thread/mutex.h"
 #include "../libs/logger/logger.h"
 #include "../libs/common.h"
+#include "../libs/vector/vector2.h"
 
 
 /****************************
@@ -23,11 +24,24 @@ class(tad_personaje){
 	char* nombre;
 	char simbolo;
 	tad_socket* socket;
+	vector2 posicion_actual;         //para srdf
+	vector2 posicion_proximo_recurso;//para srdf
+	char simbolo_proximo_recurso;    //para srdf
+	int distacia_proximo_recurso;    //para srdf_
 };
 
 class(tad_nivel){
 	char* nombre;
 	tad_socket* socket;
+	t_list* cajas;      //para srdf
+};
+
+// el algoritmo tiene que saber cual es la posicion de las cajas
+class(tad_caja){
+	//char* nombre;
+	char simbolo;
+	//int instancias;
+	vector2 pos;
 };
 
 struct s_planificador;

@@ -124,6 +124,13 @@ int vector2_distance_to(vector2 origin, vector2 target){
 	return abs_x + abs_y;
 }
 
+int vector2_distancia_escalar(vector2 origin, vector2 target){
+	vector2 delta = vector2_subtract(target, origin);
+	int x = delta.x * delta.x;
+	int y = delta.y * delta.y;
+	return x + y;
+}
+
 vector2 vector2_next_step(vector2 origin, vector2 target){
 	if(vector2_equals(origin, target)) return origin;
 
