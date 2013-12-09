@@ -61,14 +61,20 @@ tad_plataforma* plataforma_crear(char* config_file){
 	alloc(ret, tad_plataforma);
 
 	t_config* config = config_create(config_file);
+	t_config* global_config = config_create("global.cfg");
+
 	char* puerto_orquestador = string_duplicate(config_get_string_value(config, "Puerto"));
 
 	//cargamos los datos del logger
 	char* log_file = config_get_string_value(config, "LogFile");
-	char* log_level = config_get_string_value(config, "LogLevel");
+	char* log_level;
+	if(config_has_property(global_config,"LogLevel")) log_level = config_get_string_value(global_config, "LogLevel");
+	else if(config_has_property(config,"LogLevel")) log_level = config_get_string_value(config, "LogLevel");
+	else log_level = "INFO";
 	logger_initialize(log_file, "plataforma", log_level);
 
 	config_destroy(config);
+	config_destroy(global_config);
 
 	//creamos el orquestador
 	ret->orquestador = orquestador_crear(ret, puerto_orquestador);

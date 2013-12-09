@@ -85,14 +85,17 @@ static void liberar_valores_cajas(char** valores){
 void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 	var(config_path, get_config_path(self));
 	var(config, config_create(config_path));
+	var(global_config, config_create("global.cfg"));
+
 
 	self->nombre = string_duplicate(config_get_string_value(config, "Nombre"));
 	char* log_file;
 	if(config_has_property(config,"LogFile")) log_file = config_get_string_value(config, "LogFile");
 	else log_file = string_from_format("%s.log", self->nombre);
 
-	char* log_level; 
-	if(config_has_property(config,"LogLevel")) log_level = config_get_string_value(config, "LogLevel");
+	char* log_level;
+	if(config_has_property(global_config,"LogLevel")) log_level = config_get_string_value(global_config, "LogLevel");
+	else if(config_has_property(config,"LogLevel")) log_level = config_get_string_value(config, "LogLevel");
 	else log_level = "INFO";
 
 	logger_initialize(log_file, "nivel", log_level, 0); //el 0 es para que no logee en consola
@@ -119,12 +122,10 @@ void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 
 	//direccion de plataforma
 	char* plataforma;
-	t_config* global_config = config_create("global.cfg");
 	if(config_has_property(global_config,"Plataforma"))
 		plataforma = string_duplicate(config_get_string_value(global_config, "Plataforma"));
 	else
 		plataforma = string_duplicate(config_get_string_value(config, "Plataforma"));
-	config_destroy(global_config);
 	logger_info(logger, "Plataforma:%s", plataforma);
 	set ippuerto = plataforma;
 
@@ -176,7 +177,8 @@ void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 	liberar_valores_cajas(valores);
 
 	crear_enemigos(self,enemigos);
-	
+
+	config_destroy(global_config);
 	config_destroy(config);
 }
 

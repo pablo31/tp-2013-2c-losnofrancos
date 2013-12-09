@@ -210,7 +210,7 @@ private void nivel_ejecutar_logica(tad_nivel* self){
 	//Si el socket pierde la conexion...
 	SOCKET_ON_ERROR(socket, manejar_desconexion_multiplexor(self, multiplexor));
 
-	//Esperamos por paquetes entrantes (o cambios en el config file)
+	//Esperamos por paquetes entrantes o cambios en el config file
 	while(1)
 		multiplexor_wait_for_io(multiplexor);
 }

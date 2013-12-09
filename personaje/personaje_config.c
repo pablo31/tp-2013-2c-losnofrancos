@@ -31,23 +31,22 @@ t_personaje* personaje_crear(char* config_path){
 
 	//creamos una instancia del lector de archivos de config
 	t_config* config = config_create(config_path);
+	t_config* global_config = config_create("global.cfg");
 
 	self->nombre = string_duplicate(config_get_string_value(config, "Nombre"));
 	self->simbolo = *config_get_string_value(config, "Simbolo");
 
 	//cargamos los datos del logger
 	char* log_file;
-	if(config_has_property(config,"LogFile"))
-		log_file = config_get_string_value(config, "LogFile");
-	else 
-		log_file = string_from_format("%s.log", self->nombre);
+	if(config_has_property(config,"LogFile")) log_file = config_get_string_value(config, "LogFile");
+	else log_file = string_from_format("%s.log", self->nombre);
 
 	char* log_level; 
-	if(config_has_property(config,"LogLevel"))
-	 	log_level = config_get_string_value(config, "LogLevel");		
-	else 
-		log_level = "INFO";		
+	if(config_has_property(global_config,"LogLevel")) log_level = config_get_string_value(global_config, "LogLevel");
+	else if(config_has_property(config,"LogLevel")) log_level = config_get_string_value(config, "LogLevel");
+	else log_level = "INFO";
 
+	//inicializamos el logger
 	logger_initialize(log_file, "personaje", log_level, 1);
 
 
@@ -62,12 +61,10 @@ t_personaje* personaje_crear(char* config_path){
 
 	//direccion de plataforma
 	char* plataforma;
-	t_config* global_config = config_create("global.cfg");
 	if(config_has_property(global_config, "Plataforma"))
 		plataforma = string_duplicate(config_get_string_value(global_config, "Plataforma"));
 	else
 		plataforma = string_duplicate(config_get_string_value(config, "Plataforma"));
-	config_destroy(global_config);
 	self->ippuerto_orquestador = plataforma;
 
 
@@ -108,6 +105,7 @@ t_personaje* personaje_crear(char* config_path){
 
 	//liberamos recursos
 	config_destroy(config);
+	config_destroy(global_config);
 	liberar_niveles(nombres_niveles);
 
 	return self;
