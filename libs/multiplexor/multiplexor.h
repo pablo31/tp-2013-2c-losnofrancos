@@ -27,6 +27,8 @@ class(tad_multiplexor){
 	fd_set master_set;		//fds texture
 	int max_fd;				//highest fd number from fds texture
 	t_list* phone_book;		//socket-handler dictionary
+	int pipe_fd[2];			//select unlocker
+	int stop_io_handling;	//stop flag
 };
 
 
@@ -63,6 +65,11 @@ void multiplexor_wait_for_io(tad_multiplexor* m, int ms, int as_out remaining_ms
 void multiplexor_dispose(tad_multiplexor* m);
 //Libera los recursos del multiplexor y de todos sus sockets asociados
 void multiplexor_dispose_and_dispose_objects(tad_multiplexor* m);
+
+//Desbloquea automaticamente la proxima espera por paquetes entrantes
+void multiplexor_simulate_io(tad_multiplexor* m);
+//Detiene el manejo de paquetes entrantes
+void multiplexor_stop_io_handling(tad_multiplexor* m);
 
 
 /***************************************************************
