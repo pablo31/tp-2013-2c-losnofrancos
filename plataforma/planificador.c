@@ -155,9 +155,6 @@ void planificador_agregar_personaje(tad_planificador* self, char* nombre, char s
 }
 
 private void planificador_liberar_personaje(tad_planificador* self, tad_personaje* personaje){
-	//informamos al nivel
-	socket_send_char(self->nivel->socket, PERSONAJE_DESCONEXION, personaje->simbolo);
-
 	var(socket, personaje->socket);
 
 	//cerramos su socket
@@ -347,6 +344,7 @@ private void paquete_entrante_personaje(PACKED_ARGS){
 
 	SOCKET_ERROR_MANAGER(socket){
 		logger_info(get_logger(self), "El personaje %s se desconecto de manera inesperada", personaje->nombre);
+		socket_send_char(self->nivel->socket, PERSONAJE_DESCONEXION, personaje->simbolo);
 		planificador_liberar_personaje(self, personaje);
 		return;
 	}
