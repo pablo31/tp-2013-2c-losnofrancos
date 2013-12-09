@@ -93,42 +93,9 @@ int main(int argc, char* argv[]) {
 
 	//declaramos las funciones manejadoras de senales
 //	signal_dynamic_handler(SIGINT, personaje_finalizar(self));
-//	signal_dynamic_handler(SIGTERM, morir(self));
-//	signal_dynamic_handler(SIGUSR1, comer_honguito_verde(self));
-//	logger_info(get_logger(self), "Senales establecidas");
-
-
-	void sigterm_handler(int signum) {
-		morir(self,"Muerte por señal");
-	}
-
-	void sigusr1_handler(int signum) {
-		comer_honguito_verde(self);
-	}
-
-	struct sigaction sigterm_action;
-
-	sigterm_action.sa_handler = sigterm_handler;
-	sigemptyset(&sigterm_action.sa_mask);
-
-	if (sigaction(SIGTERM, &sigterm_action, NULL ) == -1) {
-		logger_info(logger, "Error al querer setear la señal SIGTERM");
-		return EXIT_FAILURE;
-	}
-
-	struct sigaction sigusr1_action;
-
-	sigusr1_action.sa_handler = sigusr1_handler;
-	sigusr1_action.sa_flags = SA_RESTART;
-	sigemptyset(&sigusr1_action.sa_mask);
-	if (sigaction(SIGUSR1, &sigusr1_action, NULL ) == -1) {
-		logger_info(logger, "Error al querer setear la señal SIGUSR1");
-		return EXIT_FAILURE;
-	}
-
-	logger_info(logger, "Senales establecidasssss");
-
-
+	signal_dynamic_handler(SIGTERM, morir(self, "Muerte por señal"));
+	signal_dynamic_handler(SIGUSR1, comer_honguito_verde(self));
+	logger_info(get_logger(self), "Senales establecidas");
 
 
 
@@ -453,7 +420,7 @@ private void personaje_finalizar(t_personaje* self){
 	dealloc(self);
 
 	logger_dispose();
-//	signal_dispose_all();
+	signal_dispose_all();
 
 	exit(EXIT_SUCCESS);
 }
