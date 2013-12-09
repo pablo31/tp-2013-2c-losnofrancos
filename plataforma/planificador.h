@@ -49,11 +49,9 @@ struct s_planificador{
 	t_list* personajes_listos; //list<tad_personaje>
 	t_list* personajes_bloqueados; //list<tad_personaje>
 
-	int bandera; //esto se usa para informar que van a agregarse personajes a la lista
 	tad_mutex* semaforo; //semaforo para tocar la lista
 
-	tad_multiplexor* mpx_personajes;
-	tad_multiplexor* mpx_nivel;
+	tad_multiplexor* multiplexor;
 
 	tad_logger* logger;
 };
