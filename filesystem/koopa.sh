@@ -11,4 +11,8 @@ echo "Directorio grasa: $directorio_grasa"
 echo "Koopa: $koopa"
 echo "Scripts: $scripts"
 
-$koopa $directorio_grasa $scripts
+#Modo texto
+$koopa $directorio_grasa $scripts --text
+
+#Modo GUI
+#$koopa $directorio_grasa $scripts 
