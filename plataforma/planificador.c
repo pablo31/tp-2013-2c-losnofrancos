@@ -326,6 +326,7 @@ private void paquete_entrante_nivel(PACKED_ARGS){
 		mutex_open(s);
 		logger_info(logger, "El personaje %s muere por un enemigo", personaje->nombre);
 		socket_send_empty_package(personaje->socket, MUERTE_POR_ENEMIGO);
+		multiplexor_stop_io_handling(self->multiplexor);
 		planificador_liberar_personaje(self, personaje);
 
 	}else if(tipo == MUERTE_POR_DEADLOCK){
@@ -336,6 +337,7 @@ private void paquete_entrante_nivel(PACKED_ARGS){
 		mutex_open(s);
 		logger_info(logger, "El personaje %s muere por algoritmo deadlock", personaje->nombre);
 		socket_send_empty_package(personaje->socket, MUERTE_POR_DEADLOCK);
+		multiplexor_stop_io_handling(self->multiplexor);
 		planificador_liberar_personaje(self, personaje);
 
 	}else if(tipo == UBICACION_RECURSO){
