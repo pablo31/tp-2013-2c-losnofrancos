@@ -485,16 +485,24 @@ private tad_personaje* algoritmo_srdf(tad_planificador* self){
 
 
 private void mostrar_lista(tad_planificador* self, char* header, t_list* personajes){
-/*	char* s = "";
+	char* str = "";
+	int i = 0;
+
+	var(s, self->semaforo);
+	mutex_close(s);
+
 	foreach(personaje, personajes, tad_personaje*){
-		char* tmp;
-		tmp = string_from_format("%s%c", s, personaje->simbolo);
-		if(s!=null) free(s);
-		s = tmp;
+		char* tmp_str;
+		tmp_str = string_from_format("%s%c", str, personaje->simbolo);
+		if(i > 0) free(str);
+		i++;
+		str = tmp_str;
 	}
-	logger_info(get_logger(self), "%s: %s", header, s);
-	free(s);
-	*/
+
+	mutex_open(s);
+
+	logger_info(get_logger(self), "%s: %s", header, str);
+	free(str);
 }
 
 
