@@ -68,12 +68,12 @@ private void morir(t_personaje* self, char * tipo_muerte);
 private void comer_honguito_verde(t_personaje* self);
 
 private void inicio_nuevo_hilo(PACKED_ARGS);
-private int conectarse_al_orquestador(t_personaje* self, t_nivel* nivel, tad_logger* logger);
+private int conectarse_al_nivel(t_personaje* self, t_nivel* nivel, tad_logger* logger_nivel);
 private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, tad_logger* logger);
 
 
-private void manejar_error_orquestador(tad_socket* socket, tad_logger* logger);
 private void manejar_error_planificador(tad_socket* socket, tad_logger* logger);
+private tad_socket* conectarse_al_orquestador(t_personaje* self, tad_logger* logger);
 
 
 
@@ -84,52 +84,18 @@ int main(int argc, char* argv[]) {
 
 	//levantamos el archivo de configuracion
 	t_personaje* self = personaje_crear(config_file);
-	if(self == null) return EXIT_FAILURE; //TODO liberar logger
 
-	logger_info(get_logger(self), "Personaje %s creado", get_nombre(self));
+	var(logger, get_logger(self));
+
+	logger_info(logger, "Personaje %s creado", get_nombre(self));
+
+
 
 	//declaramos las funciones manejadoras de senales
-//	signal_dynamic_handler(SIGINT, personaje_finalizar(self));
-//	signal_dynamic_handler(SIGTERM, morir(self));
-//	signal_dynamic_handler(SIGUSR1, comer_honguito_verde(self));
-//	logger_info(get_logger(self), "Senales establecidas");
-
-//se empieza el manejo de señales en personaje
-
-	void sigterm_handler(int signum) {
-		morir(self,"Muerte por señal");
-	}
-
-	void sigusr1_handler(int signum) {
-		comer_honguito_verde(self);
-	}
-
-	struct sigaction sigterm_action;
-
-	sigterm_action.sa_handler = sigterm_handler;
-	sigemptyset(&sigterm_action.sa_mask);
-
-	if (sigaction(SIGTERM, &sigterm_action, NULL ) == -1) {
-		logger_info(get_logger(self), "Error al querer setear la señal SIGTERM");
-		return EXIT_FAILURE;
-	}
-
-	struct sigaction sigusr1_action;
-
-	sigusr1_action.sa_handler = sigusr1_handler;
-	sigusr1_action.sa_flags = SA_RESTART;
-	sigemptyset(&sigusr1_action.sa_mask);
-	if (sigaction(SIGUSR1, &sigusr1_action, NULL ) == -1) {
-		logger_info(get_logger(self), "Error al querer setear la señal SIGUSR1");
-		return EXIT_FAILURE;
-	}
-
-
-
-
-	logger_info(get_logger(self), "Senales establecidasssss");
-
-	//se termina el manejo se señales de personaje
+	signal_dynamic_handler(SIGINT, personaje_finalizar(self));
+	signal_dynamic_handler(SIGTERM, morir(self, "Muerte por señal"));
+	signal_dynamic_handler(SIGUSR1, comer_honguito_verde(self));
+	logger_info(get_logger(self), "Senales establecidas");
 
 
 
@@ -161,29 +127,11 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	//TODO conectarse al orquestador para decirle que ganamos
-	var(ippuerto_orquestador, get_ippuerto_orquestador(self));
-	var(ip, string_get_ip(ippuerto_orquestador));
-	var(puerto, string_get_port(ippuerto_orquestador));
 
-	//conectamos con el orquestador
-	tad_socket* socket = socket_connect(ip, puerto);
 
-	SOCKET_ERROR_MANAGER(socket){
-		logger_info(get_logger(self), "Error en el envio o recepcion de datos con el orquestador");
-		logger_info(get_logger(self), "Reintentando conectar con el orquestador");
-		//retry
-		socket_close(socket);
-		socket = socket_connect(ip, puerto);
-	}
 
-	//handshake
-	socket_receive_expected_empty_package(socket, PRESENTACION_ORQUESTADOR);
-	socket_send_empty_package(socket, PRESENTACION_PERSONAJE);
-
-	//enviamos nuestros datos
-	socket_send_string(socket, PERSONAJE_NOMBRE, get_nombre(self));
-	socket_send_char(socket, PERSONAJE_SIMBOLO, get_simbolo(self));
+	//nos conectamos al orquestador
+	tad_socket* socket = conectarse_al_orquestador(self, logger);
 
 	//informamos que ganamos
 	logger_info(get_logger(self), "Objetivos completados");
@@ -191,12 +139,62 @@ int main(int argc, char* argv[]) {
 
 	socket_close(socket);
 
-	free(ip);
-	free(puerto);
-
 	personaje_finalizar(self);
 	return EXIT_SUCCESS;
 }
+
+
+
+
+
+
+
+
+
+private tad_socket* conectarse_al_orquestador(t_personaje* self, tad_logger* logger){
+	var(ippuerto_orquestador, get_ippuerto_orquestador(self));
+	var(ip, string_get_ip(ippuerto_orquestador));
+	var(puerto, string_get_port(ippuerto_orquestador));
+
+	logger_info(logger, "Conectando con el orquestador...");
+
+	//conectamos con el orquestador
+	tad_socket* socket = socket_connect(ip, puerto);
+
+	//establecemos la funcion manejadora de errores y desconexion
+	SOCKET_ERROR_MANAGER(socket){
+		//retry
+		logger_info(logger, "Error en el envio o recepcion de datos del orquestador");
+		socket_close(socket);
+		logger_info(logger, "Reconectando con el orquestador...");
+		socket = socket_connect(ip, puerto);
+	}
+
+	//recibimos la presentacion del orquestador
+	socket_receive_expected_empty_package(socket, PRESENTACION_ORQUESTADOR);
+
+	sleep(2);
+
+	//nos presentamos
+	socket_send_empty_package(socket, PRESENTACION_PERSONAJE);
+
+	//enviamos nuestros datos
+	socket_send_string(socket, PERSONAJE_NOMBRE, get_nombre(self));
+	socket_send_char(socket, PERSONAJE_SIMBOLO, get_simbolo(self));
+
+	//liberamos recursos
+	free(ip);
+	free(puerto);
+
+	return socket;
+}
+
+
+
+
+
+
+
 
 
 
@@ -209,61 +207,29 @@ private void inicio_nuevo_hilo(PACKED_ARGS){
 
 	int status = 0;
 	while(!status && self->vidas)
-		status = conectarse_al_orquestador(self, nivel, logger_nivel);
+		status = conectarse_al_nivel(self, nivel, logger_nivel);
 
 	logger_dispose_instance(logger_nivel);
 }
 
 
-private void manejar_error_orquestador(tad_socket* socket, tad_logger* logger){
-	switch(socket_get_error(socket)){
-	case CONNECTION_CLOSED:
-		logger_error(logger, "El orquestador se desconecto inesperadamente");
-		break;
-	case UNEXPECTED_PACKAGE:
-		logger_error(logger, "El orquestador envio un paquete incorrecto");
-		break;
-	default:
-		logger_error(logger, "Error en el envio o recepcion de datos del orquestador");
-		break;
-	}
-	socket_close(socket);
-}
+
 
 private void manejar_error_planificador(tad_socket* socket, tad_logger* logger){
 	if(socket_get_error(socket) != CUSTOM_ERROR) logger_error(logger, "Error en el envio o recepcion de datos del planificador");
 	socket_close(socket);
 }
 
-private int conectarse_al_orquestador(t_personaje* self, t_nivel* nivel, tad_logger* logger_nivel){
-	var(ippuerto_orquestador, get_ippuerto_orquestador(self));
-	var(ip, string_get_ip(ippuerto_orquestador));
-	var(puerto, string_get_port(ippuerto_orquestador));
 
-	//conectamos con el orquestador
-	tad_socket* socket = socket_connect(ip, puerto);
-	free(ip);
-	free(puerto);
 
-	//establecemos la funcion manejadora de errores y desconexion
+private int conectarse_al_nivel(t_personaje* self, t_nivel* nivel, tad_logger* logger_nivel){
+	tad_socket* socket = conectarse_al_orquestador(self, logger_nivel);
+
 	SOCKET_ERROR_MANAGER(socket){
-		manejar_error_orquestador(socket, logger_nivel);
+		logger_info(logger_nivel, "Error en el envio o recepcion de datos del orquestador");
+		socket_close(socket);
 		return 0;
 	}
-
-	//recibimos la presentacion del orquestador
-	socket_receive_expected_empty_package(socket, PRESENTACION_ORQUESTADOR);
-	logger_info(logger_nivel, "El servidor es un orquestador");
-
-	sleep(2);
-
-	//nos presentamos
-	socket_send_empty_package(socket, PRESENTACION_PERSONAJE);
-
-	//enviamos nuestros datos
-	logger_info(logger_nivel, "Enviando datos del personaje");
-	socket_send_string(socket, PERSONAJE_NOMBRE, get_nombre(self));
-	socket_send_char(socket, PERSONAJE_SIMBOLO, get_simbolo(self));
 
 	//enviamos el nombre del nivel al que nos queremos conectar
 	logger_info(logger_nivel, "Enviando solicitud de derivacion al planificador");
@@ -433,6 +399,9 @@ private void comer_honguito_verde(t_personaje* self){
 }
 
 private void personaje_finalizar(t_personaje* self){
+	var(logger, get_logger(self));
+	logger_info(logger, "Finalizando");
+
 	var(niveles, self->niveles);
 
 	foreach(nivel, niveles, t_nivel*){
@@ -450,11 +419,11 @@ private void personaje_finalizar(t_personaje* self){
 	free(self->nombre);
 	free(self->ippuerto_orquestador);
 
-	logger_dispose_instance(self->logger);
+	logger_dispose_instance(logger);
 	dealloc(self);
 
 	logger_dispose();
-//	signal_dispose_all();
+	signal_dispose_all();
 
 	exit(EXIT_SUCCESS);
 }

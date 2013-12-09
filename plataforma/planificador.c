@@ -94,13 +94,10 @@ tad_planificador* planificador_crear(char* nombre_nivel, tad_socket* socket_nive
 	self->personajes_bloqueados = list_create();
 	self->personaje_actual = null;
 	self->turnos_restantes = 0;
-	self->bandera = 0;
-	//inicializamos el multiplexor del nivel y le bindeamos el socket
-	var(mpx_nivel, multiplexor_create());
-	multiplexor_bind_socket(mpx_nivel, socket_nivel, paquete_entrante_nivel, self);
-	self->mpx_nivel = mpx_nivel;
-	//inicializamos el multiplexor de personajes
-	self->mpx_personajes = multiplexor_create();
+	//inicializamos el multiplexor y le bindeamos el socket del nivel
+	var(multiplexor, multiplexor_create());
+	multiplexor_bind_socket(multiplexor, socket_nivel, paquete_entrante_nivel, self);
+	self->multiplexor = multiplexor;
 	//inicializamos los semaforos
 	self->semaforo = mutex_create();
 
@@ -127,7 +124,6 @@ void planificador_agregar_personaje(tad_planificador* self, char* nombre, char s
 	//recibimos la posicion inicial del personaje
 	vector2 pos = socket_receive_expected_vector2(socket, PERSONAJE_POSICION);
 
-	self->bandera = 1;
 	var(sem, self->semaforo);
 	mutex_close(sem);
 
@@ -143,16 +139,18 @@ void planificador_agregar_personaje(tad_planificador* self, char* nombre, char s
 		//lo agregamos a la lista de personajes listos del planificador
 		list_add(listos, personaje);
 		//bindeamos el socket al multiplexor
-		multiplexor_bind_socket(self->mpx_personajes, socket, paquete_entrante_personaje, self, personaje);
+		multiplexor_bind_socket(self->multiplexor, socket, paquete_entrante_personaje, self, personaje);
 		//informamos al nivel y le pasamos los datos del personaje
 		var(sn, self->nivel->socket);
 		socket_send_empty_package(sn, PERSONAJE_CONECTADO);
 		socket_send_char(sn, PERSONAJE_SIMBOLO, simbolo);
 		socket_send_string(sn, PERSONAJE_NOMBRE, nombre);
 		socket_send_vector2(sn, PERSONAJE_POSICION, pos);
+		//desbloqueamos el multiplexor para que actualize su lista de fds
+		var(m, self->multiplexor);
+		multiplexor_simulate_io(m);
 	}
 
-	self->bandera = 0;
 	mutex_open(sem);
 }
 
@@ -160,13 +158,16 @@ private void planificador_liberar_personaje(tad_planificador* self, tad_personaj
 	var(socket, personaje->socket);
 
 	//cerramos su socket
-	multiplexor_unbind_socket(self->mpx_personajes, socket);
+	multiplexor_unbind_socket(self->multiplexor, socket);
 	socket_close(socket);
 
 	//lo quitamos de las listas
 	if(self->personaje_actual == personaje) self->personaje_actual = null;
+	var(s, self->semaforo);
+	mutex_close(s);
 	quitar_personaje(self, personaje, self->personajes_listos);
 	quitar_personaje(self, personaje, self->personajes_bloqueados);
+	mutex_open(s);
 
 	var(nombre, personaje->nombre);
 	logger_info(get_logger(self), "El personaje %s fue pateado", nombre);
@@ -190,11 +191,8 @@ void planificador_finalizar(tad_planificador* self){
 		planificador_liberar_personaje(self, personaje_bloqueado);
 	list_destroy(self->personajes_bloqueados);
 
-	//liberamos los recursos del multiplexor de personajes
-	multiplexor_dispose(self->mpx_personajes);
-
 	//liberamos los recursos de los datos del nivel
-	multiplexor_dispose_and_dispose_objects(self->mpx_nivel);
+	multiplexor_dispose_and_dispose_objects(self->multiplexor);
 	var(nivel, self->nivel);
 	free(nivel->nombre);
 	dealloc(nivel);
@@ -243,22 +241,27 @@ void planificador_ejecutar(PACKED_ARGS){
 		self->algoritmo = algoritmo_rr;
 	free(algoritmo);
 
-	var(sem, self->semaforo);
-	mutex_close(sem);
+//	var(sem, self->semaforo);
+//	mutex_close(sem);
 
 	while(1){
-		if(self->bandera){
-			mutex_open(sem);
-			usleep(500 * 1000); //dejamos medio segundo para forzar a que entren los personajes
-			mutex_close(sem);
-		}
-		//primero atendemos los paquetes del nivel, por si se quitan personajes de las listas
-		multiplexor_wait_for_io(self->mpx_nivel, 1);
-		//si no hay personaje jugando, otorgamos un turno (si podemos)
+		multiplexor_wait_for_io(self->multiplexor);
 		if(!self->personaje_actual) otorgar_turno(self);
-		//luego atendemos a los personajes restantes
-		multiplexor_wait_for_io(self->mpx_personajes, 1);
 	}
+
+//	while(1){
+//		if(self->bandera){
+//			mutex_open(sem);
+//			usleep(500 * 1000); //dejamos medio segundo para forzar a que entren los personajes
+//			mutex_close(sem);
+//		}
+//		//primero atendemos los paquetes del nivel, por si se quitan personajes de las listas
+//		multiplexor_wait_for_io(self->mpx_nivel, 1);
+//		//si no hay personaje jugando, otorgamos un turno (si podemos)
+//		if(!self->personaje_actual) otorgar_turno(self);
+//		//luego atendemos a los personajes restantes
+//		multiplexor_wait_for_io(self->mpx_personajes, 1);
+//	}
 }
 
 
@@ -309,23 +312,34 @@ private void paquete_entrante_nivel(PACKED_ARGS){
 
 	}else if(tipo == RECURSO_OTORGADO){
 		var(simbolo, package_get_char(paquete));
+		var(s, self->semaforo);
+		mutex_close(s);
 		var(personaje, buscar_personaje(self, simbolo, self->personajes_bloqueados));
 		logger_info(logger, "El recurso que solicito %s le fue otorgado", personaje->nombre);
 		list_add(self->personajes_listos, personaje);
+		mutex_open(s);
 		socket_send_empty_package(personaje->socket, RECURSO_OTORGADO);
 
 	}else if(tipo == MUERTE_POR_ENEMIGO){
 		var(simbolo, package_get_char(paquete));
+		var(s, self->semaforo);
+		mutex_close(s);
 		var(personaje, buscar_personaje(self, simbolo, self->personajes_listos));
+		mutex_open(s);
 		logger_info(logger, "El personaje %s muere por un enemigo", personaje->nombre);
 		socket_send_empty_package(personaje->socket, MUERTE_POR_ENEMIGO);
+		multiplexor_stop_io_handling(self->multiplexor);
 		planificador_liberar_personaje(self, personaje);
 
 	}else if(tipo == MUERTE_POR_DEADLOCK){
 		var(simbolo, package_get_char(paquete));
+		var(s, self->semaforo);
+		mutex_close(s);
 		var(personaje, buscar_personaje(self, simbolo, self->personajes_bloqueados));
+		mutex_open(s);
 		logger_info(logger, "El personaje %s muere por algoritmo deadlock", personaje->nombre);
 		socket_send_empty_package(personaje->socket, MUERTE_POR_DEADLOCK);
+		multiplexor_stop_io_handling(self->multiplexor);
 		planificador_liberar_personaje(self, personaje);
 
 	}else if(tipo == UBICACION_RECURSO){
@@ -396,8 +410,11 @@ private void paquete_entrante_personaje(PACKED_ARGS){
 		socket_send_package(socket_nivel, reenvio);
 		self->personaje_actual = null;
 		self->turnos_restantes = 0;
+		var(s, self->semaforo);
+		mutex_close(s);
 		quitar_personaje(self, personaje, self->personajes_listos);
 		list_add(self->personajes_bloqueados, personaje);
+		mutex_open(s);
 	}
 
 	package_dispose(paquete);
@@ -440,9 +457,14 @@ private tad_personaje* algoritmo_rr(tad_planificador* self){
 	//verificamos que haya personajes
 	if(list_size(personajes) == 0) return null;
 
+	var(s, self->semaforo);
+	mutex_close(s);
+
 	//movemos el primero de la lista al final
 	tad_personaje* pj = list_remove(personajes, 0);
 	list_add(personajes, pj);
+
+	mutex_open(s);
 
 	//devolvemos el primero de la lista
 	return list_get(personajes, 0);
@@ -533,16 +555,24 @@ private t_list* ordenar_lista_personajes_por_SRDF(t_list* personajes_SRDF){
 
 
 private void mostrar_lista(tad_planificador* self, char* header, t_list* personajes){
-/*	char* s = "";
+	char* str = "";
+	int i = 0;
+
+	var(s, self->semaforo);
+	mutex_close(s);
+
 	foreach(personaje, personajes, tad_personaje*){
-		char* tmp;
-		tmp = string_from_format("%s%c", s, personaje->simbolo);
-		if(s!=null) free(s);
-		s = tmp;
+		char* tmp_str;
+		tmp_str = string_from_format("%s%c", str, personaje->simbolo);
+		if(i > 0) free(str);
+		i++;
+		str = tmp_str;
 	}
-	logger_info(get_logger(self), "%s: %s", header, s);
-	free(s);
-	*/
+
+	mutex_open(s);
+
+	logger_info(get_logger(self), "%s: %s", header, str);
+	free(str);
 }
 
 
