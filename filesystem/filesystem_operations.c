@@ -815,12 +815,14 @@ uint cargar_datos(GFile *archivo, char* buffer, size_t size, off_t inicio) {
 			sem_post(&mutex_nodos);
 					//if (fin)
 					//logger_info(logger,"fs_read: fin lectura");
+			sem_wait(&mutex_datos);
 		}
-
+		sem_post(&mutex_datos);
 		indice_directos = 0;
 		indice_indirectos++;
+		sem_wait(&mutex_nodos);
 	}
-
+	sem_post(&mutex_nodos);
 	//logger_info(logger,"fs_read: buffer: %s",buffer);
 	return bytes_leidos;
 }
