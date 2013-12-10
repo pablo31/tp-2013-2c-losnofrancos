@@ -51,10 +51,7 @@ int fs_read(const char *path, char *buf, size_t size, off_t offset,
 		 indice);*/
 		return -ENOENT;
 	}
-	sem_wait(&mutex_nodos);
-	GFile nodo = nodos[indice];
-	sem_post(&mutex_nodos);
-	return cargar_datos(&nodo, buf, size, offset);
+	return cargar_datos(&(nodos[indice]), buf, size, offset);
 }
 
 /*
@@ -64,7 +61,7 @@ int fs_read(const char *path, char *buf, size_t size, off_t offset,
  directory type bits use mode|S_IFDIR
  */
 int fs_mkdir(const char *path, mode_t mode) {
-	char* temp;// = string_from_format(path, "%s"); // no uso string_duplicate para evitar el warning de tipos.
+	char* temp; // = string_from_format(path, "%s"); // no uso string_duplicate para evitar el warning de tipos.
 	char** subpath;
 	char* directorio = NULL;
 	int i = 0;
@@ -82,7 +79,7 @@ int fs_mkdir(const char *path, mode_t mode) {
 	subpath = string_split(temp, "/");
 	free(temp);
 	while (subpath[i] != NULL ) {
-		if(i == 2)
+		if (i == 2)
 			ret = -EPERM;
 
 		bloque_padre = nodo.parent_dir_block;
@@ -99,7 +96,8 @@ int fs_mkdir(const char *path, mode_t mode) {
 		free(subpath[i]);
 	}
 	free(subpath);
-	if (ret) return ret;
+	if (ret)
+		return ret;
 	if (err == 0) { //Si la ultima busqueda no fallo significa que ya existe
 		return -EEXIST;
 	}
@@ -119,7 +117,7 @@ int fs_mkdir(const char *path, mode_t mode) {
  If this method is not implemented or under Linux kernel versions earlier than 2.6.15, the mknod() and open() methods will be called instead.
  */
 int fs_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
-	char* temp;// = string_from_format(path, "%s"); // no uso string_duplicate para evitar el warning de tipos.
+	char* temp; // = string_from_format(path, "%s"); // no uso string_duplicate para evitar el warning de tipos.
 	char** subpath;
 	char* directorio = NULL;
 	int i = 0;
@@ -149,7 +147,8 @@ int fs_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
 	};
 	strcpy((char *) nodo.fname, directorio);
 	liberar_subpath(subpath);
-		if (ret) return ret;
+	if (ret)
+		return ret;
 	if (err == 0) { //Si la ultima busqueda no fallo significa que ya existe
 		return -EEXIST;
 	}
@@ -210,15 +209,11 @@ int fs_write(const char *path, const char *buf, size_t size, off_t offset,
 	if (err) { // no existe.}
 		return 0;
 	}
-	sem_wait(&mutex_nodos);
-	GFile nodo = nodos[indice];
-	sem_post(&mutex_nodos);
-	ret = guardar_datos(&nodo, buf, size, offset);
+	/*sem_wait(&mutex_nodos);
+	 GFile nodo = nodos[indice];
+	 sem_post(&mutex_nodos);*/
+	ret = guardar_datos(&(nodos[indice]), buf, size, offset);
 	if (!ret) {
-		sem_wait(&mutex_nodos);
-		nodos[indice] = nodo;
-		sem_post(&mutex_nodos);
-		//logger_info(logger, "escribo");
 		return size;
 	} else {
 		return 0;
@@ -262,8 +257,7 @@ int fs_rmdir(const char *path) {
 	int hijos = 0;
 	uint32_t bloque = 0;
 
-	int filler(void *buf, const char *name,
-	const struct stat *stbuf, off_t off){
+	int filler(void *buf, const char *name, const struct stat *stbuf, off_t off) {
 		int *i;
 		i = buf;
 		*i = *name;
@@ -280,7 +274,7 @@ int fs_rmdir(const char *path) {
 	if (err) {
 		return -ENOENT;
 	}
-	err = buscar_nodos_por_padre(bloque,(void *)&hijos,filler);
+	err = buscar_nodos_por_padre(bloque, (void *) &hijos, filler);
 	if (err || hijos)
 		return -EPERM;
 
@@ -414,8 +408,8 @@ int fs_truncate(const char * path, off_t size) {
 
 /*
  * Funcion dummy
-*/
-int fs_utime (const char * path, struct utimbuf * utimbuf){
+ */
+int fs_utime(const char * path, struct utimbuf * utimbuf) {
 
 	return 0;
 }
@@ -629,10 +623,13 @@ uint get_indice_nodo_vacio() {
 		inicio_datos++;
 		sem_wait(&mutex_mapa);
 		fin = !bitarray_test_bit(bitmap, inicio_datos);
+		if (fin) {
+			bitarray_set_bit(bitmap, inicio_datos);
+		}
 		sem_post(&mutex_mapa);
 	}
-	if(fin)
-	return inicio_datos;
+	if (fin)
+		return inicio_datos;
 	else
 		return 0;
 }
@@ -649,18 +646,19 @@ void set_bloque_libre(uint indice_bloque) {
 	sem_post(&mutex_mapa);
 }
 
-int guardar_datos(GFile* archivo, const char* buffer, size_t size,
-		off_t offset) {
+int guardar_datos(GFile* archivo, const char* buffer, size_t size, off_t offset) {
 	if (archivo == NULL )
 		return EXIT_FAILURE;
 
-	uint indice_indirectos, indice_directos, offset_bloque, bytes_guardados, cuantos_bytes_guardar;
+	bool inicializar = false;
+	uint indice_indirectos, indice_directos, offset_bloque, bytes_guardados,
+			cuantos_bytes_guardar;
 	bool fin = false;
 	char* nodo_datos = NULL; //Nodo con datos a cargar en el buffer.
-	ptrGBloque punteros_a_datos[GFILEBYTABLE];
+	ptrGBloque* nodo_punteros = NULL;
 
-	indice_indirectos = get_nodo_punteros_inicial(offset);	// Indice de los punteros a bloques de punteros. Max 1000.
-	indice_directos = get_nodo_datos_inicial(offset, indice_indirectos);	// Indice de los punteros a bloques de datos. Max 1024.
+	indice_indirectos = get_nodo_punteros_inicial(offset);// Indice de los punteros a bloques de punteros. Max 1000.
+	indice_directos = get_nodo_datos_inicial(offset, indice_indirectos);// Indice de los punteros a bloques de datos. Max 1024.
 	offset_bloque = get_offset_bloque(offset, indice_indirectos);
 	bytes_guardados = 0;
 
@@ -668,39 +666,46 @@ int guardar_datos(GFile* archivo, const char* buffer, size_t size,
 	//logger_info(logger, "indirectos:%u, directos: %u, bloque: %u", indice_indirectos, indice_directos, offset_bloque);
 
 	while (!fin && indice_indirectos < 1000) {
+		sem_wait(&mutex_nodos);
 		if (no_existe_puntero(archivo->blk_indirect[indice_indirectos])) {
 			archivo->blk_indirect[indice_indirectos] = get_indice_nodo_vacio();
-			if(no_existe_puntero(archivo->blk_indirect[indice_indirectos]))
-				return -ENOSPC;
+			inicializar = true;
+		}
+		sem_post(&mutex_nodos);
 
-			//logger_info(logger, "bloque indirecto:%i",archivo->blk_indirect[indice_indirectos]);
-			memset(buscar_nodo(archivo->blk_indirect[indice_indirectos]), 0, TAMANIO_BLOQUE);
-			//logger_info(logger, "memset");
-			set_bloque_usado(archivo->blk_indirect[indice_indirectos]);
-			//logger_info(logger, "mapa de bit");
+		if (no_existe_puntero(archivo->blk_indirect[indice_indirectos]))
+			return -ENOSPC;
+
+		nodo_punteros = buscar_nodo(archivo->blk_indirect[indice_indirectos]);
+		if (inicializar) {
+			inicializar = false;
+			sem_wait(&mutex_datos);
+			memset(nodo_punteros, 0, TAMANIO_BLOQUE);
+			sem_post(&mutex_datos);
 		}
 
-		sem_wait(&mutex_datos);
-		memcpy(punteros_a_datos, buscar_nodo(archivo->blk_indirect[indice_indirectos]),
-				TAMANIO_BLOQUE);
-		sem_post(&mutex_datos);
 		//logger_info(logger, "levanto bloque %i", archivo->blk_indirect[indice_indirectos]);
 		while (!fin && indice_directos < 1024) { //&& existe_puntero(punteros_a_datos[j])){
-			if (no_existe_puntero(punteros_a_datos[indice_directos])) {
-				punteros_a_datos[indice_directos] = get_indice_nodo_vacio();
-				if(no_existe_puntero(punteros_a_datos[indice_directos]))
-					return -ENOSPC;
+			sem_wait(&mutex_datos);
+			if (no_existe_puntero(nodo_punteros[indice_directos])) {
+				nodo_punteros[indice_directos] = get_indice_nodo_vacio();
+				inicializar = true;
+			}
+			sem_post(&mutex_datos);
 
-				//logger_info(logger, "bloque datos: %i", punteros_a_datos[indice_directos]);
-				memset(buscar_nodo(punteros_a_datos[indice_directos]), 0, TAMANIO_BLOQUE);
-				//logger_info(logger, "memset");
-				set_bloque_usado(punteros_a_datos[indice_directos]);
-				//logger_info(logger, "bitmap");
+			if (no_existe_puntero(nodo_punteros[indice_directos]))
+				return -ENOSPC;
+
+			nodo_datos = buscar_nodo(nodo_punteros[indice_directos]);
+
+			if (inicializar) {
+				inicializar = false;
+				sem_wait(&mutex_datos);
+				memset(nodo_datos, 0, TAMANIO_BLOQUE);
+				sem_post(&mutex_datos);
 			}
 
 			//offset_bytes_archivo = get_offset_bytes_archivo(indice_indirectos, indice_directos);
-			nodo_datos = buscar_nodo(punteros_a_datos[indice_directos]);
-			//logger_info(logger, "nodo_datos");
 
 			cuantos_bytes_guardar = 0;
 
@@ -714,19 +719,16 @@ int guardar_datos(GFile* archivo, const char* buffer, size_t size,
 			}
 			//logger_info(logger,"se guardan:%u",cuantos_bytes_guardar);
 			sem_wait(&mutex_datos);
-			memcpy(nodo_datos + offset_bloque, buffer + bytes_guardados, cuantos_bytes_guardar);
+			memcpy(nodo_datos + offset_bloque, buffer + bytes_guardados,
+					cuantos_bytes_guardar);
 			sem_post(&mutex_datos);
 			bytes_guardados = bytes_guardados + cuantos_bytes_guardar;
-			offset_bloque  = 0;
+			offset_bloque = 0;
 
 			indice_directos++;
 			fin = bytes_guardados >= size; //estamos leyendo datos mas alla de lo pedido?
 			//logger_info(logger, "fin:%i, k: %i,", fin, bytes_guardados);
 		}
-		sem_wait(&mutex_datos);
-		memcpy(buscar_nodo(archivo->blk_indirect[indice_indirectos]), punteros_a_datos,
-				TAMANIO_BLOQUE);
-		sem_post(&mutex_datos);
 		indice_directos = 0;
 		indice_indirectos++;
 	}
@@ -736,10 +738,12 @@ int guardar_datos(GFile* archivo, const char* buffer, size_t size,
 	 uint j = get_nodo_datos_inicial(i,inicio);// Indice de los punteros a bloques de datos. Max 1024
 	 bool fin = false;
 	 */
+	sem_wait(&mutex_nodos);
 	if (archivo->file_size < (size + offset)) {
 		archivo->file_size = (size + offset);
 	}
-	if(!fin){
+	sem_post(&mutex_nodos);
+	if (!fin) {
 		return -EFBIG;
 	}
 
@@ -751,34 +755,40 @@ int guardar_datos(GFile* archivo, const char* buffer, size_t size,
  */
 uint cargar_datos(GFile *archivo, char* buffer, size_t size, off_t inicio) {
 	uint indice_indirectos = get_nodo_punteros_inicial(inicio);	// Indice de los punteros a bloques de punteros. Max 1000.
-	uint indice_directos = get_nodo_datos_inicial(inicio, indice_indirectos);	// Indice de los punteros a bloques de datos. Max 1024.
-	uint offset_bloque = get_offset_bloque(inicio,indice_indirectos);
-	uint bytes_leidos = 0;	// Hasta donde guarde en el buffer. Max valor del offset.
+	uint indice_directos = get_nodo_datos_inicial(inicio, indice_indirectos);// Indice de los punteros a bloques de datos. Max 1024.
+	uint offset_bloque = get_offset_bloque(inicio, indice_indirectos);
+	uint bytes_leidos = 0;// Hasta donde guarde en el buffer. Max valor del offset.
 	uint offset_bytes_archivo; // Offset de los bytes del archivo.
 	bool fin = false;
 	char* nodo_datos = NULL; //Nodo con datos a cargar en el buffer.
-	ptrGBloque punteros_a_datos[GFILEBYTABLE];
+	ptrGBloque* punteros_a_datos;
 
-	if((inicio + size) > archivo->file_size) size = archivo->file_size - inicio;
+	sem_wait(&mutex_nodos);
+	if ((inicio + size) > archivo->file_size)
+		size = archivo->file_size - inicio;
+	sem_post(&mutex_nodos);
 	//logger_info(logger, "fs_write: size:%u offset:%u", size, inicio);
 	//logger_info(logger, "indirectos:%u, directos: %u, bloque: %u", indice_indirectos, indice_directos, offset_bloque);
+	sem_wait(&mutex_nodos);
+	while (!fin && indice_indirectos < 1000
+			&& !no_existe_puntero(archivo->blk_indirect[indice_indirectos])) {
 
-	while (!fin && indice_indirectos < 1000 && !no_existe_puntero(archivo->blk_indirect[indice_indirectos])) {
-		//cargo los punteros de los nodos de datos en mi lista de punteros	
-		//punteros_a_datos = (ptrGBloque*) buscar_nodo(archivo.blk_indirect[i]);
+		punteros_a_datos = buscar_nodo(archivo->blk_indirect[indice_indirectos]);
+		sem_post(&mutex_nodos);
 		sem_wait(&mutex_datos);
-		memcpy(punteros_a_datos, buscar_nodo(archivo->blk_indirect[indice_indirectos]),
-				TAMANIO_BLOQUE);
-		sem_post(&mutex_datos);
-
-		while (!fin && indice_directos < 1024 && !no_existe_puntero(punteros_a_datos[indice_directos])) {
-			offset_bytes_archivo = get_offset_bytes_archivo(indice_indirectos, indice_directos);
+		while (!fin && indice_directos < 1024
+				&& !no_existe_puntero(punteros_a_datos[indice_directos])) {
 			nodo_datos = buscar_nodo(punteros_a_datos[indice_directos]);
+			sem_post(&mutex_datos);
+
+			offset_bytes_archivo = get_offset_bytes_archivo(indice_indirectos,
+					indice_directos);
 
 			//logger_info(logger,"fs_read: estoy_en_rango:%s inicio:%u offset:%u j:%u",
 			//	estoy_en_rango(inicio, offset, offset_bytes_archivo + j) ? "si":"no" , inicio,offset,offset_bytes_archivo + j);
 
-			if (estoy_en_rango(inicio, size, offset_bytes_archivo + indice_directos)) {
+			if (estoy_en_rango(inicio, size,
+					offset_bytes_archivo + indice_directos)) {
 				uint cuantos_bytes_cargar = 0;
 
 				if ((size - bytes_leidos) < (4096 - offset_bloque))
@@ -787,21 +797,24 @@ uint cargar_datos(GFile *archivo, char* buffer, size_t size, off_t inicio) {
 					cuantos_bytes_cargar = 4096 - offset_bloque; //cargo el bloque completo.
 
 				//logger_info(logger,"se cargan:%u",cuantos_bytes_cargar);
-				if(cuantos_bytes_cargar != 0){
-				//logger_info(logger,"fs_read: k:%u offset:%u falta:%u",k , offset, offset - k);
-				sem_wait(&mutex_datos);
-				memcpy(buffer + bytes_leidos, nodo_datos + offset_bloque, cuantos_bytes_cargar);
-				sem_post(&mutex_datos);
-				bytes_leidos = bytes_leidos + cuantos_bytes_cargar;
-				offset_bloque = 0;
+				if (cuantos_bytes_cargar != 0) {
+					//logger_info(logger,"fs_read: k:%u offset:%u falta:%u",k , offset, offset - k);
+					sem_wait(&mutex_datos);
+					memcpy(buffer + bytes_leidos, nodo_datos + offset_bloque,
+							cuantos_bytes_cargar);
+					sem_post(&mutex_datos);
+					bytes_leidos = bytes_leidos + cuantos_bytes_cargar;
+					offset_bloque = 0;
 				}
 			}
 
 			indice_directos++;
-			fin = bytes_leidos >= (inicio + size) || (bytes_leidos + inicio) >= archivo->file_size; //estamos leyendo datos mas alla de lo pedido?
-
-			//if (fin)	
-			//logger_info(logger,"fs_read: fin lectura");
+			sem_wait(&mutex_nodos);
+			fin = bytes_leidos >= (inicio + size)
+					|| (bytes_leidos + inicio) >= archivo->file_size; //estamos leyendo datos mas alla de lo pedido?
+			sem_post(&mutex_nodos);
+					//if (fin)
+					//logger_info(logger,"fs_read: fin lectura");
 		}
 
 		indice_directos = 0;
@@ -813,8 +826,8 @@ uint cargar_datos(GFile *archivo, char* buffer, size_t size, off_t inicio) {
 }
 
 int liberar_espacio(uint32_t bloque) {
-	uint indice_indirectos = 0;		// Indice de los punteros a bloques de punteros. Max 1000.
-	uint indice_directos = 0;			// Indice de los punteros a bloques de datos. Max 1024
+	uint indice_indirectos = 0;	// Indice de los punteros a bloques de punteros. Max 1000.
+	uint indice_directos = 0;// Indice de los punteros a bloques de datos. Max 1024
 	bool usado;
 	//ptrGBloque* punteros_a_datos = NULL;
 	ptrGBloque punteros_a_datos[GFILEBYTABLE];
@@ -824,18 +837,22 @@ int liberar_espacio(uint32_t bloque) {
 	nodo = nodos[bloque];
 	sem_post(&mutex_nodos);
 
-	while (indice_indirectos < 1000 && !no_existe_puntero(nodo.blk_indirect[indice_indirectos])) {
+	while (indice_indirectos < 1000
+			&& !no_existe_puntero(nodo.blk_indirect[indice_indirectos])) {
 		//cargo los punteros de los nodos de datos en mi lista de punteros
 		//punteros_a_datos = (ptrGBloque*) buscar_nodo(nodo.blk_indirect[i]);
 		sem_wait(&mutex_datos);
-		memcpy(punteros_a_datos, buscar_nodo(nodo.blk_indirect[indice_indirectos]),
+		memcpy(punteros_a_datos,
+				buscar_nodo(nodo.blk_indirect[indice_indirectos]),
 				TAMANIO_BLOQUE);
 		sem_post(&mutex_datos);
 
-		while (indice_directos < 1024 && !no_existe_puntero(punteros_a_datos[indice_directos])) {
+		while (indice_directos < 1024
+				&& !no_existe_puntero(punteros_a_datos[indice_directos])) {
 			//nodo_datos = buscar_nodo(punteros_a_datos[j]);
 			sem_wait(&mutex_mapa);
-			usado = bitarray_test_bit(bitmap, nodo.blk_indirect[indice_indirectos]);
+			usado = bitarray_test_bit(bitmap,
+					nodo.blk_indirect[indice_indirectos]);
 			sem_post(&mutex_mapa);
 			if (!usado) {
 				logger_info(logger,
