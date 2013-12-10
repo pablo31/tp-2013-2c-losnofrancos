@@ -306,7 +306,6 @@ private void paquete_entrante_nivel(PACKED_ARGS){
 			self->algoritmo = algoritmo_srdf;
 		else
 			self->algoritmo = algoritmo_rr;
-		free(algoritmo);
 
 	}else if(tipo == UBICACION_RECURSO){
 		var(personaje, self->personaje_actual);
@@ -349,7 +348,7 @@ private void paquete_entrante_nivel(PACKED_ARGS){
 
 	}
 
-	package_dispose(paquete);
+	package_dispose_all(paquete);
 }
 
 
@@ -399,6 +398,7 @@ private void paquete_entrante_personaje(PACKED_ARGS){
 		personaje->pos = pos;
 		tad_package* reenvio = package_create_char_and_vector2(PERSONAJE_MOVIMIENTO, simbolo, pos);
 		socket_send_package(socket_nivel, reenvio);
+		package_dispose_all(reenvio);
 		self->turnos_restantes--;
 		if(self->turnos_restantes)
 			socket_send_empty_package(socket, PLANIFICADOR_OTORGA_TURNO);
@@ -413,6 +413,7 @@ private void paquete_entrante_personaje(PACKED_ARGS){
 		tad_package* reenvio = package_create_two_chars(PERSONAJE_SOLICITUD_RECURSO, simbolo, recurso);
 		mutex_close(s);
 		socket_send_package(socket_nivel, reenvio);
+		package_dispose_all(reenvio);
 		self->personaje_actual = null;
 		self->turnos_restantes = 0;
 		quitar_personaje(self, personaje, self->personajes_listos);
@@ -420,7 +421,7 @@ private void paquete_entrante_personaje(PACKED_ARGS){
 		mutex_open(s);
 	}
 
-	package_dispose(paquete);
+	package_dispose_all(paquete);
 }
 
 

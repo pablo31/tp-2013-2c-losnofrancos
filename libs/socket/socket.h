@@ -82,6 +82,8 @@ enum SOCKET_ERR {
 	void package_dispose(tad_package* package);
 	//Libera los recursos del paquete (excepto sus datos) y devuelve un puntero a sus datos
 	void* package_dispose_return_data(tad_package* package);
+	//Libera los recursos del paquete y sus datos
+	void package_dispose_all(tad_package* package);
 
 
 /****************************************

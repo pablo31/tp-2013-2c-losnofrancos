@@ -167,7 +167,7 @@ void orquestador_manejar_personaje(PACKED_ARGS){
 	SOCKET_ON_ERROR(socket, orquestador_cliente_desconectado(self, socket));
 
 	//recibimos nombre y simbolo del personaje
-	char* nombre = socket_receive_expected_string(socket, PERSONAJE_NOMBRE); //TODO armar estructura unica
+	char* nombre = socket_receive_expected_string(socket, PERSONAJE_NOMBRE);
 	char simbolo = socket_receive_expected_char(socket, PERSONAJE_SIMBOLO);
 	logger_info(get_logger(self), "El cliente es el Personaje %s, con simbolo %c", nombre, simbolo);
 
@@ -188,6 +188,8 @@ void orquestador_manejar_personaje(PACKED_ARGS){
 	case PERSONAJE_OBJETIVOS_COMPLETADOS:
 		logger_info(get_logger(self), "El personaje %s informo que cumplio todos sus objetivos", nombre);
 		//TODO
+		free(nombre);
+		socket_close(socket);
 		break;
 	}
 
