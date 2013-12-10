@@ -13,6 +13,7 @@
 #include "../libs/multiplexor/multiplexor.h"
 #include "../libs/thread/mutex.h"
 #include "../libs/logger/logger.h"
+#include "../libs/vector/vector2.h"
 #include "../libs/common.h"
 
 
@@ -23,6 +24,9 @@ class(tad_personaje){
 	char* nombre;
 	char simbolo;
 	tad_socket* socket;
+
+	vector2 pos;
+	vector2 objetivo;
 };
 
 class(tad_nivel){
