@@ -51,7 +51,7 @@ int fs_read(const char *path, char *buf, size_t size, off_t offset,
 		 indice);*/
 		return -ENOENT;
 	}
-	return cargar_datos(&(nodos[indice]), buf, size, offset);
+	return cargar_datos(&nodos[indice], buf, size, offset);
 }
 
 /*
@@ -75,6 +75,7 @@ int fs_mkdir(const char *path, mode_t mode) {
 	if (strcmp(path, "/") == 0) {
 		return -EPERM;
 	}
+	nodo.parent_dir_block = 0;
 	temp = string_from_format(path, "%s");
 	subpath = string_split(temp, "/");
 	free(temp);
@@ -106,7 +107,7 @@ int fs_mkdir(const char *path, mode_t mode) {
 	nodo.file_size = 0;
 	nodo.state = 2; // 0: borrado, 1: archivo, 2: directorio
 
-	return agregar_nodo(nodo);
+	return agregar_nodo(&nodo);
 }
 
 /*
@@ -132,6 +133,7 @@ int fs_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
 	if (strcmp(path, "/") == 0) {
 		return -EPERM;
 	}
+	nodo.parent_dir_block = 0;
 	temp = string_from_format(path, "%s");
 	subpath = string_split(temp, "/");
 	free(temp);
@@ -158,7 +160,7 @@ int fs_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
 	nodo.state = 1; // 0: borrado, 1: archivo, 2: directorio
 	memset(nodo.blk_indirect, 0, sizeof(ptrGBloque) * 1000);
 
-	return agregar_nodo(nodo);
+	return agregar_nodo(&nodo);
 
 }
 
@@ -212,7 +214,7 @@ int fs_write(const char *path, const char *buf, size_t size, off_t offset,
 	/*sem_wait(&mutex_nodos);
 	 GFile nodo = nodos[indice];
 	 sem_post(&mutex_nodos);*/
-	ret = guardar_datos(&(nodos[indice]), buf, size, offset);
+	ret = guardar_datos(&nodos[indice], buf, size, offset);
 	if (!ret) {
 		return size;
 	} else {
@@ -416,14 +418,14 @@ int fs_utime(const char * path, struct utimbuf * utimbuf) {
 //-------------------------------------------------------------------
 // Funciones auxiliares:											|
 //-------------------------------------------------------------------
-int agregar_nodo(const GFile nodo) {
+int agregar_nodo(GFile* nodo) {
 	bool fin = false;
 	int i = 1;
 
 	while (!fin && i < GFILEBYTABLE + 1) {
 		sem_wait(&mutex_nodos);
 		if (nodos[i].state == 0) {
-			nodos[i] = nodo;
+			nodos[i] = *nodo;
 			fin = true;
 		}
 		sem_post(&mutex_nodos);
@@ -453,12 +455,12 @@ int borrar_nodo(const uint32_t bloque) {
 	return ret;
 }
 
-bool es_nodo_por_nombre(GFile nodo, char* nombre) {
-	return !strncmp((char*) nodo.fname, nombre, GFILENAMELENGTH);
+bool es_nodo_por_nombre(char* nombre1, char* nombre2) {
+	return !strncmp(nombre1, nombre2, GFILENAMELENGTH);
 }
 
-bool es_nodo_por_padre(GFile nodo, uint32_t padre) {
-	return nodo.parent_dir_block == padre;
+bool es_nodo_por_padre(uint32_t padre1, uint32_t padre2) {
+	return padre1 == padre2;
 }
 
 /* Busco el nodo con nombre "fname" y cuyo padre es el bloque "bloque_padre"
@@ -468,17 +470,16 @@ int buscar_bloque_por_padre(char *fname, uint32_t bloque_padre,
 		uint32_t *bloque) {
 	bool encontrado = false;
 	uint32_t i = 1;
-	GFile nodo;
+	//GFile nodo;
 
 	while (!encontrado && i < (GFILEBYTABLE + 1)) {
 		sem_wait(&mutex_nodos);
-		nodo = nodos[i];
-		sem_post(&mutex_nodos);
-		if (es_nodo_por_nombre(nodo, fname)
-				&& es_nodo_por_padre(nodo, bloque_padre) && nodo.state != 0) {
+		if (es_nodo_por_nombre(nodos[i].fname, fname)
+				&& es_nodo_por_padre(nodos[i].parent_dir_block, bloque_padre) && nodos[i].state != 0) {
 			*bloque = i;
 			encontrado = true;
 		}
+		sem_post(&mutex_nodos);
 		i++;
 	}
 

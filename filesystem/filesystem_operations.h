@@ -23,7 +23,7 @@ int fs_getattr(const char *path, struct stat * nose);
 int fs_truncate(const char * path, off_t offset);
 int fs_utime(const char *, struct utimbuf *);
 
-int agregar_nodo(const GFile nodo);
+int agregar_nodo(GFile* nodo);
 int borrar_nodo(const uint32_t bloque);
 int buscar_bloque_nodo(char* path, uint32_t *bloque);
 int buscar_bloque_por_padre(char *padre, uint32_t bloque_padre, uint32_t *bloque);
