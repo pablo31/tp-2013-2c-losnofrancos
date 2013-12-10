@@ -287,19 +287,19 @@ private void socket_connection_closed(tad_socket* socket){
  ****************************************/
 
 private void socket_send_data(tad_socket* socket, int data_length, void* data){
-	int error = send(socket_get_id(socket), data, data_length, 0);
+	int error = send(socket_get_id(socket), data, data_length, MSG_NOSIGNAL);
 	//send returns
 	//-1 if error
 	//else data length (>0)
 
-	if(error < 0){
+	if(error == -1){
+		free(data);
+		socket_connection_closed(socket);
+	}
+	else if(error < 0){
 		logger_error(socket_get_logger(socket), "Error al enviar datos serializados (err id %d)", error);
 		free(data);
 		socket_set_error(socket, SEND_ERROR);
-	}
-	else if(error == 0){ //TODO send nunca devuelve 0
-		free(data);
-		socket_connection_closed(socket);
 	}
 }
 
