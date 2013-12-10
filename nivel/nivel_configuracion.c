@@ -205,10 +205,12 @@ void destruir_nivel(tad_nivel* self){
 	free(self->algoritmo);
 
 	//liberamos listas
-
 	list_destroy_and_destroy_elements(self->enemigos, destruir_enemigo);
 	list_destroy_and_destroy_elements(self->personajes, destruir_personaje);
 	list_destroy_and_destroy_elements(self->cajas, destruir_caja);
+
+	//liberamos semaforos
+	mutex_dispose(self->semaforo_personajes);
 
 	//liberamos el socket (si esta abierto)
 	var(socket, self->socket);

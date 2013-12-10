@@ -331,7 +331,7 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 
 			tad_package* respuesta = esperar_paquete_del_planificador(self, UBICACION_RECURSO, socket, logger_nivel);
 			posicionDelProximoRecurso = package_get_vector2(respuesta);
-			package_dispose(respuesta);
+			package_dispose_all(respuesta);
 			logger_info(logger_nivel, "La ubicacion del recurso es (%d,%d)", posicionDelProximoRecurso.x, posicionDelProximoRecurso.y);
 
 

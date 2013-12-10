@@ -109,7 +109,7 @@ void* package_dispose_return_data(tad_package* package){
 //Destruye el paquete y sus datos
 void package_dispose_all(tad_package* package){
 	void* data = package_dispose_return_data(package);
-	free(data);
+	if(data != null) free(data);
 }
 
 /****************************************
