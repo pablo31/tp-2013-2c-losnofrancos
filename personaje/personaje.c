@@ -122,22 +122,22 @@ int main(int argc, char* argv[]) {
 		//si todavia tiene vidas, significa que gano todos los niveles
 		gano_todos_los_niveles = get_vidas(self);
 		if(!gano_todos_los_niveles){
-			//TODO preguntar si reiniciar
-			/*
-			 * int numero_reintentos; //Declarando variable entera
-			printf("Ingrese un numero: "); //Solicitando al usuario que ingrese un numero
-			scanf("%d",&numero_reintentos); //Leyendo el número solicitado
-			printf("El numero que ingreso es %d \n", numero_reintentos); //Mostrando el número ingresado por teclado
-
-			//printf("1)Para seguir. \n");
-			//printf("2)Para salir. \n");
-
-			// rompe en el if chan....  no se porque....
-			if(numero_reintentos==1){
-				logger_info(get_logger(self), "Las vidas se reestableceran a %d", vidas);
-			}*/
-
-			cantidad_de_reiniciadas++;
+			int flag = 0;
+			do{
+				printf("El personaje se quedo sin vidas. Desea reiniciar el plan de niveles? (y/n) ");
+				char input = getchar();
+				if(input == 'y' || input == 'Y'){
+					cantidad_de_reiniciadas++;
+					logger_info(get_logger(self), "Se reiniciara el plan de niveles (reintento numero %d)", cantidad_de_reiniciadas);
+					self->vidas = self->vidas_iniciales;
+					flag = 1;
+				}else if(input == 'n' || input == 'N'){
+					personaje_finalizar(self);
+					return EXIT_SUCCESS;
+				}else{
+					printf("\nEl caracter ingresado no es valido.\n");
+				}
+			}while(!flag);
 		}
 	}
 
