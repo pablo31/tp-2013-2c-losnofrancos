@@ -7,6 +7,7 @@
 
 
 #include <unistd.h>
+#include <errno.h>
 
 #include "jump.h"
 
@@ -14,15 +15,9 @@
 #ifndef EXCEPTION_H_
 #define EXCEPTION_H_
 
-	/***************************************************************
-	 * Exception handling thread-local variables
-	 ***************************************************************/
-
 	#define tls_var __thread
-
-	tls_var process_status __try_ps;
-	tls_var int excno;
-
+	extern tls_var process_status __try_ps;
+	extern tls_var int excno;
 
 	/***************************************************************
 	 * Exception handling public macros
