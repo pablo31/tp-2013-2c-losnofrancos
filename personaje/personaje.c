@@ -293,7 +293,7 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 		return 0;
 	}
 
-	vector2 posicionPersonaje = vector2_new(1, 1);
+	vector2 posicionPersonaje = vector2_new(0, 0);
 
 	socket_send_vector2(socket, PERSONAJE_POSICION, posicionPersonaje);
 	logger_info(logger_nivel, "Posicion inicial seteada en (%d,%d)", posicionPersonaje.x, posicionPersonaje.y);
