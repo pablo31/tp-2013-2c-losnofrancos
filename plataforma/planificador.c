@@ -175,6 +175,15 @@ private void planificador_liberar_personaje(tad_planificador* self, tad_personaj
 	liberar_recursos_personaje(personaje);
 }
 
+int planificador_esta_vacio(tad_planificador* self){
+	var(s, self->semaforo);
+	mutex_close(s);
+	int listos = list_size(self->personajes_listos);
+	int bloqueados = list_size(self->personajes_bloqueados);
+	mutex_open(s);
+	return !listos && !bloqueados;
+}
+
 /***************************************
  * FINALIZACION ************************
  ***************************************/

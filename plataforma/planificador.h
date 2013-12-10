@@ -74,5 +74,8 @@ void planificador_agregar_personaje(tad_planificador* self, char* nombre, char s
 //Devuelve el numero de nivel del planificador
 char* planificador_nombre_nivel(tad_planificador* self);
 
+//Nos dice si el planificador esta vacio o sin personajes
+int planificador_esta_vacio(tad_planificador* self);
+
 
 #endif /* PLANIFICADOR_H_ */
