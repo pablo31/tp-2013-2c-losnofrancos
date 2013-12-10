@@ -14,18 +14,11 @@
 #ifndef EXCEPTION_H_
 #define EXCEPTION_H_
 
-
-	//thread local storage variable definition
-	#ifndef _PTHREAD_H
-		#define tls_var
-	#else
-		#define tls_var __thread
-	#endif
-
-
 	/***************************************************************
 	 * Exception handling thread-local variables
 	 ***************************************************************/
+
+	#define tls_var __thread
 
 	tls_var process_status __try_ps;
 	tls_var int excno;
