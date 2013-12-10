@@ -244,8 +244,8 @@ void planificador_ejecutar(PACKED_ARGS){
 	int quantum = socket_receive_expected_int(socket_nivel, QUANTUM);
 	int retardo = socket_receive_expected_int(socket_nivel, RETARDO);
 	char* algoritmo = socket_receive_expected_string(socket_nivel, ALGORITMO);
-	logger_info(get_logger(self), "La cantidad de quantums sera de %d", quantum);
-	logger_info(get_logger(self), "El retardo entre cambio de turno sera de %dms", retardo);
+	logger_info(get_logger(self), "El quantum/distancia estimada sera de %d", quantum);
+	logger_info(get_logger(self), "El retardo entre turnos sera de %dms", retardo);
 	logger_info(get_logger(self), "El algoritmo de planificacion sera %s", algoritmo);
 	self->quantum = quantum;
 	self->retardo = retardo;
@@ -290,12 +290,12 @@ private void paquete_entrante_nivel(PACKED_ARGS){
 
 	if(tipo == QUANTUM){
 		int quantum = package_get_int(paquete);
-		logger_info(logger, "La cantidad del quantum cambio a %d", quantum);
+		logger_info(logger, "La cantidad del quantum/distancia estimada cambio a %d", quantum);
 		self->quantum = quantum;
 
 	}else if(tipo == RETARDO){
 		int retardo = package_get_int(paquete);
-		logger_info(logger, "El retardo entre cambio de turno cambio a %dms", retardo);
+		logger_info(logger, "El retardo entre turnos cambio a %dms", retardo);
 		self->retardo = retardo;
 
 	}else if (tipo == ALGORITMO){
@@ -470,8 +470,8 @@ private tad_personaje* algoritmo_rr(tad_planificador* self){
 	return list_get(personajes, 0);
 }
 
-private int algoritmo_srdf_distancia(tad_personaje* personaje){
-	int distancia_profetizada = 10; //TODO distancia configurable
+private int algoritmo_srdf_distancia(tad_planificador* self, tad_personaje* personaje){
+	int distancia_profetizada = self->quantum;
 
 	if(vector2_equals(personaje->objetivo, NOT_A_POSITION))
 		return distancia_profetizada;
@@ -486,10 +486,10 @@ private tad_personaje* algoritmo_srdf(tad_planificador* self){
 	if(list_size(personajes) == 0) return null;
 
 	tad_personaje* sdr_pj = list_get(personajes, 0);
-	int sdr = algoritmo_srdf_distancia(sdr_pj);
+	int sdr = algoritmo_srdf_distancia(self, sdr_pj);
 
 	foreach(personaje, personajes, tad_personaje*){
-		int distance = algoritmo_srdf_distancia(personaje);
+		int distance = algoritmo_srdf_distancia(self, personaje);
 		if(distance < sdr){
 			sdr_pj = personaje;
 			sdr = distance;

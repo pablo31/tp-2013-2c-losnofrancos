@@ -52,13 +52,13 @@ static void crear_enemigos(tad_nivel* nivel, int cantidad){
 
 private void cargar_configuracion_cambiante(tad_nivel* nvl, t_config* config,
 		char* as_out algoritmo, int as_out quantum, int as_out retardo){
-	set retardo = config_get_int_value(config,"Retardo");
-	set algoritmo = string_duplicate(config_get_string_value(config,"Algoritmo"));
+	set retardo = config_get_int_value(config, "Retardo");
+	set algoritmo = string_duplicate(config_get_string_value(config, "Algoritmo"));
 
 	if (string_equals_ignore_case(*algoritmo, "RR"))
-		set quantum = config_get_int_value(config,"Quantum");
+		set quantum = config_get_int_value(config, "Quantum");
 	else
-		set quantum = 0;
+		set quantum = config_get_int_value(config, "DistanciaEstimada");
 }
 
 void recargar_configuracion_nivel(tad_nivel* nvl, char* config_file,
@@ -131,7 +131,7 @@ void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 
 	cargar_configuracion_cambiante(self, config, out self->algoritmo, out self->quantum, out self->retardo);
 	logger_info(logger, "Algoritmo:%s", self->algoritmo);
-	logger_info(logger, "Quantum:%i", self->quantum);
+	logger_info(logger, "Quantum/Distancia estimada:%i", self->quantum);
 	logger_info(logger, "Retardo:%i", self->retardo);
 	logger_info(logger, "Log File:%s", log_file);
 	logger_info(logger, "Log Level:%s", log_level);
