@@ -572,8 +572,8 @@ void muerte_del_personaje(tad_personaje* personaje, tad_nivel* self, int motivo)
         mutex_open(self->semaforo_personajes);
         logger_info(get_logger(self), "Se elimino el personaje de la lista del nivel");
 
-        //Se liberan recursos asignados y se reasignan a los personajes bloqueados
-        liberar_y_reasignar_recursos(self, personaje_muerto);
+       	//Se liberan recursos asignados y se reasignan a los personajes bloqueados
+       	liberar_y_reasignar_recursos(self, personaje_muerto);
 
         var(personaje_simbolo, personaje_muerto->simbolo);
         if(motivo == ENEMIGO)
