@@ -53,32 +53,36 @@ int main(int argc, char **argv){
 
 tad_plataforma* plataforma_crear(char* config_file){
 	//alojamos la estructura tad_plataforma
-	alloc(ret, tad_plataforma);
+	alloc(self, tad_plataforma);
 
 	t_config* config = config_create(config_file);
 	t_config* global_config = config_create("global.cfg");
 
+	//datos del orquestador
 	char* puerto_orquestador = string_duplicate(config_get_string_value(config, "Puerto"));
 
-	//cargamos los datos del logger
+	//datos del logger
 	char* log_file = config_get_string_value(config, "LogFile");
 	char* log_level;
-	if(config_has_property(global_config,"LogLevel")) log_level = config_get_string_value(global_config, "LogLevel");
-	else if(config_has_property(config,"LogLevel")) log_level = config_get_string_value(config, "LogLevel");
+	if(config_has_property(global_config, "LogLevel")) log_level = config_get_string_value(global_config, "LogLevel");
+	else if(config_has_property(config, "LogLevel")) log_level = config_get_string_value(config, "LogLevel");
 	else log_level = "INFO";
 	logger_initialize(log_file, "plataforma", log_level);
+	self->logger = logger_new_instance("Plataforma");
+
+	//datos de koopa
+	if(config_has_property(config, "Koopa")) self->koopa_cmd = string_duplicate(config_get_string_value(config, "Koopa"));
+	else self->koopa_cmd = null;
 
 	config_destroy(config);
 	config_destroy(global_config);
 
 	//creamos el orquestador
-	ret->orquestador = orquestador_crear(ret, puerto_orquestador);
+	self->orquestador = orquestador_crear(self, puerto_orquestador);
 	//creamos la lista de planificadores
-	ret->planificadores = list_create();
-	//creamos una instancia del logger
-	ret->logger = logger_new_instance("Plataforma");
+	self->planificadores = list_create();
 
-	return ret;
+	return self;
 }
 
 void plataforma_finalizar(tad_plataforma* self){
@@ -92,6 +96,7 @@ void plataforma_finalizar(tad_plataforma* self){
 	//liberamos los recursos propios de plataforma
 	logger_info(get_logger(self), "Finalizando");
 	logger_dispose_instance(self->logger);
+	if(self->koopa_cmd != null) free(self->koopa_cmd);
 	dealloc(self);
 	//libero los recursos del singleton logger
 	logger_dispose();
@@ -136,11 +141,15 @@ int plataforma_planificadores_vacios(tad_plataforma* self){
  * Esta funcion es llamada desde orquestador cuando recibe el mensaje 
  * de un personaje que termino
  */
-void un_personaje_termino_de_jugar(tad_orquestador* self){
-	if (plataforma_planificadores_vacios(self->plataforma)){
-		int retorno = system(KOOPA_EXEC);
-		logger_info(get_logger(self->plataforma), "Koopa devolvio:%i", retorno);
-		plataforma_finalizar(self->plataforma);
-		exit(EXIT_SUCCESS);
-	}
+void un_personaje_termino_de_jugar(tad_plataforma* self){
+	//si no hay comando para ejecutar no hacemos nada
+	if(self->koopa_cmd == null) return;
+	//verificamos que todos los personajes hayan terminado de jugar
+	if(!plataforma_planificadores_vacios(self)) return;
+
+	//ejecutamos koopa
+	int retorno = system(self->koopa_cmd);
+	logger_info(get_logger(self), "Koopa devolvio: %i", retorno);
+	plataforma_finalizar(self);
+	exit(EXIT_SUCCESS);
 }

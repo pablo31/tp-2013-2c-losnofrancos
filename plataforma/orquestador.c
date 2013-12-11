@@ -13,12 +13,7 @@
 
 #include "orquestador.h"
 
-/*
- * Esto es lo mas cercano a un evento que encontre en C
- * Basicamente llamo una funcion que la implementa en este caso plataforma para avisar
- * para avisar que un personaje termino de jugar	
- */
-extern void un_personaje_termino_de_jugar(tad_orquestador* self);
+
 
 private char* get_puerto(tad_orquestador* orquestador){
 	return orquestador->puerto; //TODO esto deberia se un atributo de socket_escucha
@@ -188,11 +183,9 @@ void orquestador_manejar_personaje(PACKED_ARGS){
 		break;
 	case PERSONAJE_OBJETIVOS_COMPLETADOS:
 		logger_info(get_logger(self), "El personaje %s informo que cumplio todos sus objetivos", nombre);
-
 		free(nombre);
 		socket_close(socket);
-		//TODO
-		un_personaje_termino_de_jugar(self);
+		un_personaje_termino_de_jugar(self->plataforma);
 		break;
 	}
 
