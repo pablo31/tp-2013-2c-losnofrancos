@@ -37,5 +37,7 @@ void plataforma_iniciar_planificador(tad_plataforma* plataforma, char* nombre_ni
 void plataforma_finalizar_planificador(tad_plataforma* plataforma, tad_planificador* planificador);
 int plataforma_planificadores_vacios(tad_plataforma* self);
 
+//El path del ejecutable Koopa
+#define KOOPA_PATH "cd filesystem; sh koopa.sh"
 
 #endif /* PLATAFORMA_H_ */
