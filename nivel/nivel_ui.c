@@ -220,6 +220,7 @@ private void nivel_gui_draw_char(char ch, vector2 pos, int color_pair){
 
 void nivel_gui_dibujar(tad_nivel* nivel){
 	int i = 0;
+	vector2 offset = vector2_new(1, 1);
 
 	mutex_close(semaforo_dibujado);
 
@@ -242,19 +243,19 @@ void nivel_gui_dibujar(tad_nivel* nivel){
 	//dibujamos a los enemigos
 	mutex_close(semaforo_enemigos);
 	foreach(enemigo, enemigos, tad_enemigo*)
-		nivel_gui_draw_char('*', enemigo->pos, 2);
+		nivel_gui_draw_char('*', vector2_add(offset, enemigo->pos), 2);
 	mutex_open(semaforo_enemigos);
 
 	//dibujamos a los personajes
 	mutex_close(semaforo_personajes);
 	foreach(personaje, personajes, tad_personaje*)
-		nivel_gui_draw_char(personaje->simbolo, personaje->pos, 2);
+		nivel_gui_draw_char(personaje->simbolo, vector2_add(offset, personaje->pos), 2);
 	mutex_open(semaforo_personajes);
 
 	//dibujamos las cajas
 	mutex_close(semaforo_cajas);
 	foreach(caja, cajas, tad_caja*){
-		nivel_gui_draw_char(caja->simbolo, caja->pos, 3);
+		nivel_gui_draw_char(caja->simbolo, vector2_add(offset, caja->pos), 3);
 		move(rows - 2, 7 * i + 3 + 9); //TODO algo mas lindo??
 		printw("%c: %d - ", caja->simbolo, caja->instancias);
 		i++;

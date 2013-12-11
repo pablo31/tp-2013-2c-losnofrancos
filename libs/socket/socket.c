@@ -95,7 +95,6 @@ private tad_header* package_get_header(tad_package* package){
 //Destruye el paquete salvando los datos
 void package_dispose(tad_package* package){
 	header_dispose(package_get_header(package));
-	//TODO deberia liberar el campo data?
 	dealloc(package);
 }
 
@@ -107,11 +106,11 @@ void* package_dispose_return_data(tad_package* package){
 	return datos;
 }
 
-////Destruye el paquete volcando previamente los datos en cierta direccion de memoria
-//void package_dispose_copy_data(tad_package* package, void* mem_pos){
-//	memcpy(mem_pos, package_get_data(package), package_get_data_length(package));
-//	package_dispose(package);
-//}
+//Destruye el paquete y sus datos
+void package_dispose_all(tad_package* package){
+	void* data = package_dispose_return_data(package);
+	if(data != null) free(data);
+}
 
 /****************************************
  * GETTERS & SETTERS ********************

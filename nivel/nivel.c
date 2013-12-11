@@ -138,6 +138,8 @@ private void nivel_conectar_a_plataforma(tad_nivel* self, char* ippuerto){
 
 	tad_socket* socket = socket_connect(ip, puerto);
 	logger_info(logger, "Conectado con Plataforma");
+	free(ip);
+	free(puerto);
 	self->socket = socket;
 
 	//Si el socket pierde la conexion...
@@ -349,6 +351,7 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		else
 			logger_info(get_logger(self), "No se encontro el personaje desconectado en el nivel");
 	}
+	package_dispose_all(paquete);
 }
 
 private void modificacion_archivo_config(PACKED_ARGS){
@@ -550,19 +553,12 @@ void liberar_y_reasignar_recursos(tad_nivel* self, tad_personaje* personaje_muer
 }
 
 void muerte_del_personaje(tad_personaje* personaje, tad_nivel* self, int motivo){
-
-	//copio personaje antes de eliminarlo de la lista para poder liberar sus recursos
-	alloc(personaje_muerto, tad_personaje);
-	mutex_close(self->semaforo_personajes);
-	memcpy(personaje_muerto, personaje, sizeof(tad_personaje));
-	mutex_open(self->semaforo_personajes);
-
 	//Se elimina personaje de la lista
 	bool personaje_buscado(void* ptr){
 		return ((tad_personaje*)ptr)->simbolo == personaje->simbolo;
 	}
 	mutex_close(self->semaforo_personajes);
-	list_remove_by_condition(self->personajes, personaje_buscado);
+	tad_personaje* personaje_muerto = list_remove_by_condition(self->personajes, personaje_buscado);
 	mutex_open(self->semaforo_personajes);
 	logger_info(get_logger(self), "Se elimino el personaje de la lista del nivel");
 
@@ -575,7 +571,7 @@ void muerte_del_personaje(tad_personaje* personaje, tad_nivel* self, int motivo)
 	if(motivo == DEADLOCK)
 		socket_send_char(self->socket, MUERTE_POR_DEADLOCK, personaje_simbolo);
 
-	free(personaje_muerto);
+	dealloc(personaje_muerto);
 }
 
 

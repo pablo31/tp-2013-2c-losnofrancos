@@ -31,10 +31,11 @@ La compilacion se debe realizar desde consola haciendo
 
 Extensiones predefinidas de los archivos
 
-* .sh => ejecutables
+* .pv => ejecutables
 * .a => bibliotecas
 * .cfg => archivos de configuracion
 * .log => archivos de logueo
+* .sh => scripts
 
 
 Ejecutables

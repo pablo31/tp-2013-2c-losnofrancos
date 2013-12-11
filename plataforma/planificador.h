@@ -13,6 +13,7 @@
 #include "../libs/multiplexor/multiplexor.h"
 #include "../libs/thread/mutex.h"
 #include "../libs/logger/logger.h"
+#include "../libs/vector/vector2.h"
 #include "../libs/common.h"
 
 
@@ -23,6 +24,9 @@ class(tad_personaje){
 	char* nombre;
 	char simbolo;
 	tad_socket* socket;
+
+	vector2 pos;
+	vector2 objetivo;
 };
 
 class(tad_nivel){
@@ -73,6 +77,9 @@ void planificador_agregar_personaje(tad_planificador* self, char* nombre, char s
 
 //Devuelve el numero de nivel del planificador
 char* planificador_nombre_nivel(tad_planificador* self);
+
+//Nos dice si el planificador esta vacio o sin personajes
+int planificador_esta_vacio(tad_planificador* self);
 
 
 #endif /* PLANIFICADOR_H_ */

@@ -129,3 +129,10 @@ void plataforma_finalizar_planificador(tad_plataforma* self, tad_planificador* p
 	list_remove_where(self->planificadores, tad_planificador* elem, elem == planificador);
 	planificador_finalizar(planificador);
 }
+
+//Nos dice si todos los planificadores estan vacios o sin personajes
+int plataforma_planificadores_vacios(tad_plataforma* self){
+	foreach(planificador, self->planificadores, tad_planificador*)
+		if(!planificador_esta_vacio(planificador)) return 0;
+	return 1;
+}

@@ -101,7 +101,6 @@ t_personaje* personaje_crear(char* config_path){
 
 	logger_info(self->logger, "Log File:%s", log_file);
 	logger_info(self->logger, "Log Level:%s", log_level);
-	free(log_file);
 
 	//liberamos recursos
 	config_destroy(config);

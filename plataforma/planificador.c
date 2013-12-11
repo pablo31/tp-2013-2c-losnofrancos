@@ -17,6 +17,8 @@
 
 #include "planificador.h"
 
+#define NOT_A_POSITION vector2_new(-1, -1)
+
 
 /***************************************
  * DECLARACIONES ***********************
@@ -121,6 +123,8 @@ void planificador_agregar_personaje(tad_planificador* self, char* nombre, char s
 	socket_send_empty_package(socket, PRESENTACION_PLANIFICADOR);
 	//recibimos la posicion inicial del personaje
 	vector2 pos = socket_receive_expected_vector2(socket, PERSONAJE_POSICION);
+	personaje->pos = pos;
+	personaje->objetivo = NOT_A_POSITION;
 
 	var(sem, self->semaforo);
 	mutex_close(sem);
@@ -173,6 +177,15 @@ private void planificador_liberar_personaje(tad_planificador* self, tad_personaj
 	logger_info(get_logger(self), "El personaje %s fue pateado", nombre);
 
 	liberar_recursos_personaje(personaje);
+}
+
+int planificador_esta_vacio(tad_planificador* self){
+	var(s, self->semaforo);
+	mutex_close(s);
+	int listos = list_size(self->personajes_listos);
+	int bloqueados = list_size(self->personajes_bloqueados);
+	mutex_open(s);
+	return !listos && !bloqueados;
 }
 
 /***************************************
@@ -231,8 +244,8 @@ void planificador_ejecutar(PACKED_ARGS){
 	int quantum = socket_receive_expected_int(socket_nivel, QUANTUM);
 	int retardo = socket_receive_expected_int(socket_nivel, RETARDO);
 	char* algoritmo = socket_receive_expected_string(socket_nivel, ALGORITMO);
-	logger_info(get_logger(self), "La cantidad de quantums sera de %d", quantum);
-	logger_info(get_logger(self), "El retardo entre cambio de turno sera de %dms", retardo);
+	logger_info(get_logger(self), "El quantum/distancia estimada sera de %d", quantum);
+	logger_info(get_logger(self), "El retardo entre turnos sera de %dms", retardo);
 	logger_info(get_logger(self), "El algoritmo de planificacion sera %s", algoritmo);
 	self->quantum = quantum;
 	self->retardo = retardo;
@@ -277,12 +290,12 @@ private void paquete_entrante_nivel(PACKED_ARGS){
 
 	if(tipo == QUANTUM){
 		int quantum = package_get_int(paquete);
-		logger_info(logger, "La cantidad del quantum cambio a %d", quantum);
+		logger_info(logger, "La cantidad del quantum/distancia estimada cambio a %d", quantum);
 		self->quantum = quantum;
 
 	}else if(tipo == RETARDO){
 		int retardo = package_get_int(paquete);
-		logger_info(logger, "El retardo entre cambio de turno cambio a %dms", retardo);
+		logger_info(logger, "El retardo entre turnos cambio a %dms", retardo);
 		self->retardo = retardo;
 
 	}else if (tipo == ALGORITMO){
@@ -293,10 +306,12 @@ private void paquete_entrante_nivel(PACKED_ARGS){
 			self->algoritmo = algoritmo_srdf;
 		else
 			self->algoritmo = algoritmo_rr;
-		free(algoritmo);
 
 	}else if(tipo == UBICACION_RECURSO){
-		var(socket, self->personaje_actual->socket);
+		var(personaje, self->personaje_actual);
+		var(socket, personaje->socket);
+		vector2 objetivo = package_get_vector2(paquete);
+		personaje->objetivo = objetivo;
 		socket_send_package(socket, paquete);
 		socket_send_empty_package(socket, PLANIFICADOR_OTORGA_TURNO);
 
@@ -305,6 +320,7 @@ private void paquete_entrante_nivel(PACKED_ARGS){
 		var(simbolo, package_get_char(paquete));
 		var(personaje, buscar_personaje(self, simbolo, self->personajes_bloqueados));
 		quitar_personaje(self, personaje, self->personajes_bloqueados);
+		personaje->objetivo = NOT_A_POSITION;
 		logger_info(logger, "El recurso que solicito %s le fue otorgado", personaje->nombre);
 		list_add(self->personajes_listos, personaje);
 		socket_send_empty_package(personaje->socket, RECURSO_OTORGADO);
@@ -332,7 +348,7 @@ private void paquete_entrante_nivel(PACKED_ARGS){
 
 	}
 
-	package_dispose(paquete);
+	package_dispose_all(paquete);
 }
 
 
@@ -377,15 +393,18 @@ private void paquete_entrante_personaje(PACKED_ARGS){
 
 	//el personaje avisa que va a realizar un movimiento
 	}else if(tipo_mensaje == PERSONAJE_MOVIMIENTO){
-		vector2 direccion = package_get_vector2(paquete);
-		logger_info(logger, "%s se mueve a (%d,%d)", nombre, direccion.x, direccion.y);
-		tad_package* reenvio = package_create_char_and_vector2(PERSONAJE_MOVIMIENTO, simbolo, direccion);
+		vector2 pos = package_get_vector2(paquete);
+		logger_info(logger, "%s se mueve a (%d,%d)", nombre, pos.x, pos.y);
+		personaje->pos = pos;
+		tad_package* reenvio = package_create_char_and_vector2(PERSONAJE_MOVIMIENTO, simbolo, pos);
 		socket_send_package(socket_nivel, reenvio);
+		package_dispose_all(reenvio);
 		self->turnos_restantes--;
 		if(self->turnos_restantes)
 			socket_send_empty_package(socket, PLANIFICADOR_OTORGA_TURNO);
 		else
 			self->personaje_actual = null;
+		usleep(self->retardo * 1000);
 
 	//el personaje solicita una instancia de un recurso
 	}else if(tipo_mensaje == PERSONAJE_SOLICITUD_RECURSO){
@@ -394,6 +413,7 @@ private void paquete_entrante_personaje(PACKED_ARGS){
 		tad_package* reenvio = package_create_two_chars(PERSONAJE_SOLICITUD_RECURSO, simbolo, recurso);
 		mutex_close(s);
 		socket_send_package(socket_nivel, reenvio);
+		package_dispose_all(reenvio);
 		self->personaje_actual = null;
 		self->turnos_restantes = 0;
 		quitar_personaje(self, personaje, self->personajes_listos);
@@ -401,7 +421,7 @@ private void paquete_entrante_personaje(PACKED_ARGS){
 		mutex_open(s);
 	}
 
-	package_dispose(paquete);
+	package_dispose_all(paquete);
 }
 
 
@@ -431,12 +451,8 @@ private void otorgar_turno(tad_planificador* self){
 	if(!personaje) return;
 	if(personaje) logger_info(get_logger(self), "El siguiente en jugar sera %s (%c)", personaje->nombre, personaje->simbolo);
 
-	usleep(self->retardo * 1000);
-
 	socket_send_empty_package(personaje->socket, PLANIFICADOR_OTORGA_TURNO);
 }
-
-
 
 
 
@@ -455,12 +471,34 @@ private tad_personaje* algoritmo_rr(tad_planificador* self){
 	return list_get(personajes, 0);
 }
 
+private int algoritmo_srdf_distancia(tad_planificador* self, tad_personaje* personaje){
+	int distancia_profetizada = self->quantum;
+
+	if(vector2_equals(personaje->objetivo, NOT_A_POSITION))
+		return distancia_profetizada;
+	else
+		return vector2_distance_to(personaje->pos, personaje->objetivo);
+}
+
 private tad_personaje* algoritmo_srdf(tad_planificador* self){
-	//TODO logica de srdf (temporalmente es fifo)
-	self->turnos_restantes = self->quantum;
 	var(personajes, self->personajes_listos);
-	if(list_size(personajes) > 0) return list_get(personajes, 0);
-	else return null;
+
+	//verificamos que haya personajes
+	if(list_size(personajes) == 0) return null;
+
+	tad_personaje* sdr_pj = list_get(personajes, 0);
+	int sdr = algoritmo_srdf_distancia(self, sdr_pj);
+
+	foreach(personaje, personajes, tad_personaje*){
+		int distance = algoritmo_srdf_distancia(self, personaje);
+		if(distance < sdr){
+			sdr_pj = personaje;
+			sdr = distance;
+		}
+	}
+
+	self->turnos_restantes = sdr;
+	return sdr_pj;
 }
 
 

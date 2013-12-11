@@ -16,8 +16,8 @@ all:
 	@echo ""
 
 	@echo "   >>> COMPILANDO BIBLIOTECA COMMON"
-	@gcc -Wall -g -ggdb -c libs/common/*.c libs/common/collections/*.c libs/vector/vector2.c
-	@ar rcs libcommon.a bitarray.o  config.o  dictionary.o  error.o  list.o  log.o  process.o  queue.o  string.o  temporal.o  txt.o vector2.o
+	@gcc -Wall -g -ggdb -c libs/common/*.c libs/common/collections/*.c libs/vector/vector2.c libs/error/exception.c
+	@ar rcs libcommon.a bitarray.o  config.o  dictionary.o  error.o  list.o  log.o  process.o  queue.o  string.o  temporal.o  txt.o vector2.o exception.o
 	
 	@echo ""
 	@echo "   >>> COMPILANDO BIBLIOTECA LOG"
@@ -71,7 +71,7 @@ all:
 	@echo ""
 	
 	@echo "   >>> COMPILANDO PRUEBAS THREADS Y SEMAFOROS"
-	@gcc -Wall -g -ggdb pruebas/threads.c libth.a -o prueba_threads.pv -lpthread
+	@gcc -Wall -g -ggdb pruebas/threads.c libs/error/exception.c libth.a -o prueba_threads.pv -lpthread
 	@gcc -Wall -g -ggdb pruebas/semaforos.c libth.a -o prueba_semaforos.pv -lpthread
 	
 	@echo ""
@@ -88,7 +88,7 @@ all:
 	
 	@echo ""
 	@echo "   >>> COMPILANDO PRUEBA DE VARIABLES"
-	@gcc -Wall -g -ggdb pruebas/variables.c -o prueba_variables.pv
+	@gcc -Wall -g -ggdb pruebas/variables.c libs/error/exception.c -o prueba_variables.pv
 	
 	@echo ""
 	@echo "   >>> COMPILANDO PRUEBA X"
