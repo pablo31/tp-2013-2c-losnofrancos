@@ -171,10 +171,10 @@ void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 
 		free(nombre_caja);
 		nombre_caja = string_from_format("Caja%i", numero_caja);
+		liberar_valores_cajas(valores);
 	}
 	
 	free(nombre_caja);
-	liberar_valores_cajas(valores);
 
 	crear_enemigos(self,enemigos);
 
