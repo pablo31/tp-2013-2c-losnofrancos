@@ -12,7 +12,7 @@ echo "Koopa: $koopa"
 echo "Scripts: $scripts"
 
 #Modo texto
-$koopa $directorio_grasa $scripts --text
+#$koopa $directorio_grasa $scripts --text
 
 #Modo GUI
-#$koopa $directorio_grasa $scripts 
+$koopa $directorio_grasa $scripts 

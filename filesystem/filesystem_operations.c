@@ -93,10 +93,9 @@ int fs_mkdir(const char *path, mode_t mode) {
 		i++;
 	};
 	strcpy((char *) nodo.fname, directorio);
-	while (subpath[i] != NULL ) {
-		free(subpath[i]);
-	}
-	free(subpath);
+
+	liberar_subpath(subpath);
+	
 	if (ret)
 		return ret;
 	if (err == 0) { //Si la ultima busqueda no fallo significa que ya existe
