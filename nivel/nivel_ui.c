@@ -18,7 +18,7 @@ private WINDOW* mainwin;
 private int rows, cols;
 private tad_logger* logger;
 private tad_mutex* semaforo_dibujado;
-private int gui_inicializada = 0;
+private bool gui_inicializada = false;
 
 
 private void nivel_gui_get_term_size(int as_out rows, int as_out cols){
@@ -210,7 +210,7 @@ void nivel_gui_inicializar(){
 
 	semaforo_dibujado = mutex_create();
 
-	gui_inicializada = 1;
+	gui_inicializada = true;
 }
 
 private void nivel_gui_draw_char(char ch, vector2 pos, int color_pair){
@@ -271,6 +271,7 @@ void nivel_gui_dibujar(tad_nivel* nivel){
 
 void nivel_gui_terminar(){
 	if(!gui_inicializada) return;
+
 	delwin(mainwin);
 	delwin(secwin);
 	endwin();
@@ -278,4 +279,5 @@ void nivel_gui_terminar(){
 	mutex_dispose(semaforo_dibujado);
 	logger_info(logger, "Finalizada");
 	logger_dispose_instance(logger);
+	gui_inicializada = false;
 }
