@@ -49,6 +49,7 @@ struct s_planificador{
 
 	tad_personaje* personaje_actual;
 	int turnos_restantes;
+	int solicito_ubicacion_recurso; //bandera hirroble para el unico mensaje sincronico
 
 	t_list* personajes_listos; //list<tad_personaje>
 	t_list* personajes_bloqueados; //list<tad_personaje>
