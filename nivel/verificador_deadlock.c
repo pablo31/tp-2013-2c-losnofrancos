@@ -30,11 +30,13 @@ void resolver_deadlock(tad_nivel* nivel, t_list* personajes_deadlock){
 		logger_info(get_logger(nivel), "DEADLOCK: El recovery se encuentra activado");
 
 		//Se elige como victima al primer personaje de la lista
-		tad_personaje* personaje_victima = list_get(personajes_deadlock, 1);
+		t_personaje_bloqueado* personaje_victima = list_get(personajes_deadlock, 0);
 
 		//Se informa por archivo de log
 		logger_info(get_logger(nivel), "DEADLOCK: El personaje %s ha sido seleccionado como victima del deadlock", personaje_victima->nombre);
-		muerte_del_personaje(personaje_victima, nivel, DEADLOCK);
+
+		//aca muere el personaje seleccionado
+		//muerte_del_personaje(personaje_victima, nivel, DEADLOCK);
 		nivel_gui_dibujar(nivel);
 	}
 	else
@@ -52,17 +54,21 @@ t_list* cargar_lista_personajes(tad_nivel* nivel){
 		alloc(personaje, tad_personaje);
 		personaje->nombre = personaje_nivel->nombre;
 		personaje->pos = personaje_nivel->pos;
-		personaje->recurso_pedido = personaje_nivel->recurso_pedido;
+		alloc(recurso_pedido, tad_recurso);
+		recurso_pedido->simbolo = personaje_nivel->recurso_pedido->simbolo;
+		recurso_pedido->cantidad = personaje_nivel->recurso_pedido->cantidad;
+		personaje->recurso_pedido = recurso_pedido;
 		personaje->simbolo = personaje_nivel->simbolo;
 		personaje->recursos_asignados = list_create();
 		foreach(recurso_personaje, personaje_nivel->recursos_asignados, tad_recurso*){
 			alloc(recurso_asignado, tad_recurso);
 			recurso_asignado->simbolo = recurso_personaje->simbolo;
-			recurso_asignado->cantidad = recurso_personaje->simbolo;
+			recurso_asignado->cantidad = recurso_personaje->cantidad;
 			list_add(personaje->recursos_asignados, recurso_asignado);
 		}
 		list_add(lista_personajes, personaje);
 		//logger_info(get_logger(nivel),"DEADLOCK: Agrego personaje %s a lista auxiliar", personaje->nombre);
+		//logger_info(get_logger(nivel),"DEADLOCK: Recurso solicitado: %d", personaje->recurso_pedido->cantidad);
 		//logger_info(get_logger(nivel),"DEADLOCK: Total recursos asignados: %d", list_size(personaje->recursos_asignados));
 	}
 
@@ -121,6 +127,7 @@ void verificador_deadlock(PACKED_ARGS){
 	while(true){
 
 		usleep(nivel->tiempo_deadlock);
+		//sleep(1);
 
 		t_list* personajes_deadlock = list_create();
 		bool hay_bloqueados = false;
@@ -192,7 +199,7 @@ void verificador_deadlock(PACKED_ARGS){
 
 				char *str_personajes_deadlock = string_new();
 
-				logger_info(get_logger(nivel),"DEADLOCK: Controlo si hay deadlock");
+				//logger_info(get_logger(nivel),"DEADLOCK: Controlo si hay deadlock");
 
 				//Se dentifican los personajes en deadlock por tener recurso pedido (bloqueado) y recursos asignados y se cargan en una nueva lista
 
