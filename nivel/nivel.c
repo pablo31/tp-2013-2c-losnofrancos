@@ -559,6 +559,7 @@ void liberar_y_reasignar_recursos(tad_nivel* self, tad_personaje* personaje_muer
 		}
 	}
 
+	list_destroy(lista_bloqueados);
 	logger_info(get_logger(self), "Se liberaron todos los recursos del personaje %s", personaje_muerto->nombre);
 }
 
