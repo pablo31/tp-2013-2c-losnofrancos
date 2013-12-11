@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "../libs/common/collections/list.h"
 #include "../libs/common/config.h"
@@ -20,10 +21,6 @@
 
 #include "plataforma.h"
 
-
-
-
-
 private tad_logger* get_logger(tad_plataforma* self){
 	return self->logger;
 }
@@ -33,8 +30,6 @@ private void verificar_argumentos(int argc, char* argv[]) {
 	printf("Error: Debe ingresar el nombre del archivo de configuracion\n");
 	exit(EXIT_FAILURE);
 }
-
-
 
 int main(int argc, char **argv){
 
@@ -135,4 +130,17 @@ int plataforma_planificadores_vacios(tad_plataforma* self){
 	foreach(planificador, self->planificadores, tad_planificador*)
 		if(!planificador_esta_vacio(planificador)) return 0;
 	return 1;
+}
+
+/*
+ * Esta funcion es llamada desde orquestador cuando recibe el mensaje 
+ * de un personaje que termino
+ */
+void un_personaje_termino_de_jugar(tad_orquestador* self){
+	if (plataforma_planificadores_vacios(self->plataforma)){
+		int retorno = system(KOOPA_EXEC);
+		logger_info(get_logger(self->plataforma), "Koopa devolvio:%i", retorno);
+		plataforma_finalizar(self->plataforma);
+		exit(EXIT_SUCCESS);
+	}
 }

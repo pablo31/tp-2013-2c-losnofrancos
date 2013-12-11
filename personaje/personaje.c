@@ -89,15 +89,11 @@ int main(int argc, char* argv[]) {
 
 	logger_info(logger, "Personaje %s creado", get_nombre(self));
 
-
-
 	//declaramos las funciones manejadoras de senales
 	signal_dynamic_handler(SIGINT, personaje_finalizar(self));
 	signal_dynamic_handler(SIGTERM, morir(self, "Muerte por señal"));
 	signal_dynamic_handler(SIGUSR1, comer_honguito_verde(self));
 	logger_info(get_logger(self), "Senales establecidas");
-
-
 
 	var(niveles, get_niveles(self));
 	var(cantidad_de_niveles, list_size(niveles));
@@ -141,9 +137,6 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-
-
-
 	//nos conectamos al orquestador
 	tad_socket* socket = conectarse_al_orquestador(self, logger);
 
@@ -156,14 +149,6 @@ int main(int argc, char* argv[]) {
 	personaje_finalizar(self);
 	return EXIT_SUCCESS;
 }
-
-
-
-
-
-
-
-
 
 private tad_socket* conectarse_al_orquestador(t_personaje* self, tad_logger* logger){
 	var(ippuerto_orquestador, get_ippuerto_orquestador(self));
@@ -203,16 +188,6 @@ private tad_socket* conectarse_al_orquestador(t_personaje* self, tad_logger* log
 	return socket;
 }
 
-
-
-
-
-
-
-
-
-
-
 private void inicio_nuevo_hilo(PACKED_ARGS){
 	UNPACK_ARGS(t_personaje* self, t_nivel* nivel);
 
@@ -227,14 +202,10 @@ private void inicio_nuevo_hilo(PACKED_ARGS){
 }
 
 
-
-
 private void manejar_error_planificador(tad_socket* socket, tad_logger* logger){
 	if(socket_get_error(socket) != CUSTOM_ERROR) logger_error(logger, "Error en el envio o recepcion de datos del planificador");
 	socket_close(socket);
 }
-
-
 
 private int conectarse_al_nivel(t_personaje* self, t_nivel* nivel, tad_logger* logger_nivel){
 	tad_socket* socket = conectarse_al_orquestador(self, logger_nivel);
@@ -370,8 +341,6 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 
 }
 
-
-
 //La funcion morir solo aumenta o disminulle la cantidad de vidas, no sabe nada si se tiene que conectar
 //al orquestador para jugar un nivel o para reinicar todos los niveles
 private void morir(t_personaje* self, char* tipo_muerte){
@@ -428,8 +397,3 @@ private void personaje_finalizar(t_personaje* self){
 
 	exit(EXIT_SUCCESS);
 }
-
-
-
-
-

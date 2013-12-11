@@ -56,9 +56,6 @@ char* planificador_nombre_nivel(tad_planificador* self){
 	return get_nombre_nivel(self);
 }
 
-
-
-
 private tad_personaje* buscar_personaje(tad_planificador* self, char simbolo, t_list* lista){
 	foreach(pj, lista, tad_personaje*)
 		if(pj->simbolo == simbolo)
@@ -220,15 +217,9 @@ void planificador_finalizar(tad_planificador* self){
 	dealloc(self);
 }
 
-
-
-
-
 /***************************************
  * LOGICA ******************************
  ***************************************/
-
-
 void planificador_ejecutar(PACKED_ARGS){
 	UNPACK_ARG(tad_planificador* self);
 
@@ -260,14 +251,6 @@ void planificador_ejecutar(PACKED_ARGS){
 		if(!self->personaje_actual) otorgar_turno(self);
 	}
 }
-
-
-
-
-
-
-
-
 
 private void paquete_entrante_nivel(PACKED_ARGS){
 	UNPACK_ARG(tad_planificador* self);
@@ -351,8 +334,6 @@ private void paquete_entrante_nivel(PACKED_ARGS){
 	package_dispose_all(paquete);
 }
 
-
-
 private void paquete_entrante_personaje(PACKED_ARGS){
 	UNPACK_ARGS(tad_planificador* self, tad_personaje* personaje);
 	var(socket_nivel, self->nivel->socket);
@@ -424,12 +405,6 @@ private void paquete_entrante_personaje(PACKED_ARGS){
 	package_dispose_all(paquete);
 }
 
-
-
-
-
-
-
 private void otorgar_turno(tad_planificador* self){
 	//informamos el estado de las colas
 	var(listos, self->personajes_listos);
@@ -453,8 +428,6 @@ private void otorgar_turno(tad_planificador* self){
 
 	socket_send_empty_package(personaje->socket, PLANIFICADOR_OTORGA_TURNO);
 }
-
-
 
 private tad_personaje* algoritmo_rr(tad_planificador* self){
 	var(personajes, self->personajes_listos);
@@ -501,15 +474,6 @@ private tad_personaje* algoritmo_srdf(tad_planificador* self){
 	return sdr_pj;
 }
 
-
-
-
-
-
-
-
-
-
 private void mostrar_lista(tad_planificador* self, char* header, t_list* personajes){
 	char str[256];
 	int i = 0;
@@ -522,5 +486,3 @@ private void mostrar_lista(tad_planificador* self, char* header, t_list* persona
 
 	logger_info(get_logger(self), "%s: %s", header, str);
 }
-
-
