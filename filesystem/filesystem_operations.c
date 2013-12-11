@@ -474,7 +474,7 @@ int buscar_bloque_por_padre(char *fname, uint32_t bloque_padre,
 
 	while (!encontrado && i < (GFILEBYTABLE + 1)) {
 		sem_wait(&mutex_nodos);
-		if (es_nodo_por_nombre(nodos[i].fname, fname)
+		if (es_nodo_por_nombre((char*) nodos[i].fname, fname)
 				&& es_nodo_por_padre(nodos[i].parent_dir_block, bloque_padre) && nodos[i].state != 0) {
 			*bloque = i;
 			encontrado = true;
