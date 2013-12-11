@@ -211,7 +211,9 @@ void destruir_nivel(tad_nivel* self){
 
 	//liberamos semaforos
 	mutex_dispose(self->semaforo_personajes);
-
+	mutex_dispose(self->semaforo_cajas);
+	mutex_dispose(self->semaforo_enemigos);
+	
 	//liberamos el socket (si esta abierto)
 	var(socket, self->socket);
 	if(socket != null) socket_close(socket);
