@@ -91,6 +91,7 @@ tad_planificador* planificador_crear(char* nombre_nivel, tad_socket* socket_nive
 	self->personajes_bloqueados = list_create();
 	self->personaje_actual = null;
 	self->turnos_restantes = 0;
+	self->solicito_ubicacion_recurso = 0;
 	//inicializamos el multiplexor y le bindeamos el socket del nivel
 	var(multiplexor, multiplexor_create());
 	multiplexor_bind_socket(multiplexor, socket_nivel, paquete_entrante_nivel, self);
@@ -292,11 +293,13 @@ private void paquete_entrante_nivel(PACKED_ARGS){
 
 	}else if(tipo == UBICACION_RECURSO){
 		var(personaje, self->personaje_actual);
-		var(socket, personaje->socket);
-		vector2 objetivo = package_get_vector2(paquete);
-		personaje->objetivo = objetivo;
-		socket_send_package(socket, paquete);
-		socket_send_empty_package(socket, PLANIFICADOR_OTORGA_TURNO);
+		if(personaje != null && self->solicito_ubicacion_recurso){
+			var(socket, personaje->socket);
+			vector2 objetivo = package_get_vector2(paquete);
+			personaje->objetivo = objetivo;
+			socket_send_package(socket, paquete);
+			socket_send_empty_package(socket, PLANIFICADOR_OTORGA_TURNO);
+		}
 
 	}else if(tipo == RECURSO_OTORGADO){
 		mutex_close(s);
@@ -370,6 +373,7 @@ private void paquete_entrante_personaje(PACKED_ARGS){
 	if(tipo_mensaje == SOLICITUD_UBICACION_RECURSO){
 		char recurso = package_get_char(paquete);
 		logger_info(logger, "%s solicito la ubicacion del recurso %c", nombre, recurso);
+		self->solicito_ubicacion_recurso = 1;
 		socket_send_package(socket_nivel, paquete);
 
 	//el personaje avisa que va a realizar un movimiento
@@ -420,6 +424,7 @@ private void otorgar_turno(tad_planificador* self){
 	//obtenemos el siguiente personaje al que le toca jugar
 	var(personaje, self->algoritmo(self));
 	self->personaje_actual = personaje;
+	self->solicito_ubicacion_recurso = 0;
 
 	mutex_open(s);
 
