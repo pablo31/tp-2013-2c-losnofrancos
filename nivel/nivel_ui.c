@@ -222,7 +222,14 @@ void nivel_gui_dibujar(tad_nivel* nivel){
 	int i = 0;
 	vector2 offset = vector2_new(1, 1);
 
+	var(semaforo_cajas, nivel->semaforo_cajas);
+	var(semaforo_enemigos, nivel->semaforo_enemigos);
+	var(semaforo_personajes, nivel->semaforo_personajes);
+
 	mutex_close(semaforo_dibujado);
+	mutex_close(semaforo_enemigos);
+	mutex_close(semaforo_personajes);
+	mutex_close(semaforo_cajas);
 
 	//limpiamos la pantalla
 	werase(secwin);
@@ -236,36 +243,30 @@ void nivel_gui_dibujar(tad_nivel* nivel){
 	var(personajes, nivel->personajes);
 	var(enemigos, nivel->enemigos);
 
-	var(semaforo_cajas, nivel->semaforo_cajas);
-	var(semaforo_enemigos, nivel->semaforo_enemigos);
-	var(semaforo_personajes, nivel->semaforo_personajes);
 
 	//dibujamos a los enemigos
-	mutex_close(semaforo_enemigos);
 	foreach(enemigo, enemigos, tad_enemigo*)
 		nivel_gui_draw_char('*', vector2_add(offset, enemigo->pos), 2);
-	mutex_open(semaforo_enemigos);
 
 	//dibujamos a los personajes
-	mutex_close(semaforo_personajes);
 	foreach(personaje, personajes, tad_personaje*)
 		nivel_gui_draw_char(personaje->simbolo, vector2_add(offset, personaje->pos), 2);
-	mutex_open(semaforo_personajes);
 
 	//dibujamos las cajas
-	mutex_close(semaforo_cajas);
 	foreach(caja, cajas, tad_caja*){
 		nivel_gui_draw_char(caja->simbolo, vector2_add(offset, caja->pos), 3);
 		move(rows - 2, 7 * i + 3 + 9); //TODO algo mas lindo??
 		printw("%c: %d - ", caja->simbolo, caja->instancias);
 		i++;
 	}
-	mutex_open(semaforo_cajas);
 
 	//actualizamos la pantalla
 	wrefresh(secwin);
 	wrefresh(mainwin);
 
+	mutex_open(semaforo_enemigos);
+	mutex_open(semaforo_personajes);
+	mutex_open(semaforo_cajas);
 	mutex_open(semaforo_dibujado);
 }
 

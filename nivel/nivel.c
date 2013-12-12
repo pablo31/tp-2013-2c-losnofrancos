@@ -186,7 +186,7 @@ void nivel_crear_hilos_enemigos(tad_nivel* self){
 		foreach(enemigo, self->enemigos, tad_enemigo*){
 			i++;
 			logger_info(get_logger(self), "Posicion enemigo %d: en (%d:%d)", i, enemigo->pos.x,enemigo->pos.y);
-			thread_free_begin(movimiento_permitido_enemigo, 2, self, enemigo);
+			thread_free_begin(enemigo_ia, 2, self, enemigo);
 
 		}
 }
@@ -302,8 +302,10 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		}
 		tad_personaje* personaje_en_movimiento = list_find(self->personajes, (void*)personaje_buscado);
 
-		personaje_en_movimiento->pos = pos;
-		logger_info(get_logger(self), "Personaje %s se mueve a (%d,%d)", personaje_en_movimiento->nombre, pos.x, pos.y);
+		if(personaje_en_movimiento != null){
+			personaje_en_movimiento->pos = pos;
+			logger_info(get_logger(self), "Personaje %s se mueve a (%d,%d)", personaje_en_movimiento->nombre, pos.x, pos.y);
+		}
 
 
 	}else if(tipo == PERSONAJE_SOLICITUD_RECURSO){
@@ -311,7 +313,13 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		char simbolo_recurso;
 		package_get_two_chars(paquete, out simbolo_personaje, out simbolo_recurso);
 
-		evaluar_solicitud_recurso(self, simbolo_personaje, simbolo_recurso);
+		//Se busca personaje
+		bool personaje_buscado(tad_personaje* ptr){
+			return ptr->simbolo == simbolo_personaje;
+		}
+		tad_personaje* personaje_solicitud = list_find(self->personajes, (void*)personaje_buscado);
+
+		if(personaje_solicitud != null) evaluar_solicitud_recurso(self, personaje_solicitud, simbolo_recurso);
 
 
 	}else if(tipo == PERSONAJE_DESCONEXION){
@@ -323,9 +331,10 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		}
 		tad_personaje* personaje_fin = list_find(self->personajes, (void*)personaje_buscado);
 
-		logger_info(get_logger(self), "Se informa desconexion del personaje %s", personaje_fin->nombre);
-
-		muerte_del_personaje(simbolo, self, FIN);
+		if(personaje_fin != null){
+			logger_info(get_logger(self), "Se informa desconexion del personaje %s", personaje_fin->nombre);
+			muerte_del_personaje(simbolo, self, FIN);
+		}
 
 	}
 
@@ -402,14 +411,7 @@ private void nivel_finalizar_cerrar_multiplexor(tad_nivel* self, tad_multiplexor
 }
 
 
-void evaluar_solicitud_recurso(tad_nivel* self, char simbolo_personaje, char simbolo_recurso){
-
-	//Se busca personaje
-	bool personaje_buscado(tad_personaje* ptr){
-		return ptr->simbolo == simbolo_personaje;
-	}
-	tad_personaje* personaje_solicitud = list_find(self->personajes, (void*)personaje_buscado);
-
+void evaluar_solicitud_recurso(tad_nivel* self, tad_personaje* personaje_solicitud, char simbolo_recurso){
 
 	logger_info(get_logger(self), "El personaje %s solicita recurso %c ", personaje_solicitud->nombre, simbolo_recurso);
 	logger_info(get_logger(self), "Cantidad de recursos asignados al momento: %d", list_size(personaje_solicitud->recursos_asignados));
@@ -438,7 +440,7 @@ void evaluar_solicitud_recurso(tad_nivel* self, char simbolo_personaje, char sim
 		recurso_caja->instancias --;
 
 		logger_info(get_logger(self), "Se puede otorgar el recurso %c", recurso_caja->simbolo);
-		otorgar_recurso(self, simbolo_personaje, simbolo_recurso);
+		otorgar_recurso(self, personaje_solicitud->simbolo, simbolo_recurso);
 	}
 	else logger_info(get_logger(self), "No se puede otorgar el recurso %c", recurso_caja->simbolo);
 	mutex_open(self->semaforo_cajas);

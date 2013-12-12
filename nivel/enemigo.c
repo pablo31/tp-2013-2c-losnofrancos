@@ -6,7 +6,7 @@
 
 
 
-void movimiento_permitido_enemigo(PACKED_ARGS){
+void enemigo_ia(PACKED_ARGS){
 	UNPACK_ARGS(tad_nivel* nivel, tad_enemigo* self);
 	var(logger, self->logger);
 
@@ -16,102 +16,91 @@ void movimiento_permitido_enemigo(PACKED_ARGS){
 
 	int eje_prox_mov = 1;
 	int cantidad_personajes;
+
 	while(true){
 		mutex_close(nivel->semaforo_personajes);
+		mutex_close(nivel->semaforo_enemigos);
+
+
 		cantidad_personajes = list_size(nivel->personajes);
-		mutex_open(nivel->semaforo_personajes);
 
 		logger_info(logger, "Cantidad de personajes en el nivel: %d.", cantidad_personajes);
 
 		if(cantidad_personajes > 0){
 			atacar_al_personaje(nivel, self, &eje_prox_mov);
+			mutex_open(nivel->semaforo_enemigos);
+			mutex_open(nivel->semaforo_personajes);
+			nivel_gui_dibujar(nivel);
 		}else{
+			mutex_open(nivel->semaforo_enemigos);
+			mutex_open(nivel->semaforo_personajes);
 			moverse_sin_personajes(nivel, self);
 		}
+
+
+
+
+		usleep(nivel->sleep_enemigos * 1000);
 	}
 }
 
 
 void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self, int *eje_prox_mov){
-	vector2 posicion_actual;
-	vector2 posicion_personaje;
+	logger_info(self->logger, "Posicion actual: (%d,%d)", self->pos.x, self->pos.y);
 
-	mutex_close(nivel->semaforo_enemigos);
-	posicion_actual = self->pos;
-	mutex_open(nivel->semaforo_enemigos);
-	logger_info(self->logger, "Posicion actual: (%d,%d)", posicion_actual.x, posicion_actual.y);
-
-	//se carga la posicion del personaje que esta mas cerca.
-	posicion_personaje = buscar_personaje_mas_cercano(nivel, self, posicion_actual);
+	//se carga la posicion del personaje que esta mas cerca
+	tad_personaje* blanco = buscar_personaje_mas_cercano(nivel, self);
+	logger_info(self->logger, "Voy a por %s", blanco->nombre);
 
 	//controla si el personaje no está en la misma posicion que el enemigo
-	int atrapado_por_enemigo = (vector2_equals(posicion_actual, posicion_personaje));
-
-	if(!atrapado_por_enemigo){
+	if(!vector2_equals(self->pos, blanco->pos)){
 		//se calcula la proxima posicion intentando moverse alternadamente por los ejes
-		vector2 nueva_posicion = vector2_move_alternately(posicion_actual, posicion_personaje, eje_prox_mov);
+		vector2 nueva_posicion = vector2_move_alternately(self->pos, blanco->pos, eje_prox_mov);
 
 		//si hay una caja se busca un movimiento alternativo para esquivarla
 		if(!posicion_valida(nivel, nueva_posicion))
-			nueva_posicion = esquivar_posicion(posicion_actual, nueva_posicion, posicion_personaje);
+			nueva_posicion = esquivar_posicion(self->pos, nueva_posicion, blanco->pos);
 		//solo movemos al enemigo si la posicion es valida
 		if(posicion_valida(nivel, nueva_posicion))
 			self->pos = nueva_posicion;
 
-		//controla si la posicion nueva del enemigo coincide con la del personaje
-		if (vector2_equals(self->pos, posicion_personaje))
-			muerte_del_personaje(self->blanco->simbolo, nivel, ENEMIGO);
+		logger_info(self->logger, "Me movi a (%d,%d)", nueva_posicion.x, nueva_posicion.y);
 	}
-	else
-		muerte_del_personaje(self->blanco->simbolo, nivel, ENEMIGO);
 
-	sleep(1);
-	nivel_gui_dibujar(nivel);
+	//controla si la posicion nueva del enemigo coincide con la del personaje
+	if (vector2_equals(self->pos, blanco->pos)){
+		muerte_del_personaje(blanco->simbolo, nivel, ENEMIGO);
+		logger_info(self->logger, "Mate a %s", blanco->nombre);
+	}
 }
 
 
-int calcular_distancia (vector2 posicion_a, vector2 posicion_b){
-	int distancia;
-	vector2 vector_distancia;
-	vector_distancia = vector2_subtract(posicion_a, posicion_b);
-	distancia = vector_distancia.x + vector_distancia.y;
-	return distancia;
-}
 
 
-vector2 buscar_personaje_mas_cercano(tad_nivel* nivel, tad_enemigo* self, vector2 pos_enemigo){
+
+tad_personaje* buscar_personaje_mas_cercano(tad_nivel* nivel, tad_enemigo* self){
+	tad_personaje* blanco;
 	int distancia_del_enemigo;
 	int distancia_aux;
     bool sin_objetivo = true;
 
-    mutex_close(nivel->semaforo_personajes);
     foreach(personaje, nivel->personajes, tad_personaje*){
-    	var(pos_personaje, personaje->pos);
+    	logger_info(self->logger, "Entre el foreach! El primero en ser iterado es %s", personaje->nombre);
     	if (sin_objetivo){
-    		distancia_del_enemigo = calcular_distancia(pos_enemigo, pos_personaje);
-			mutex_close(nivel->semaforo_enemigos);
-			self->blanco = personaje;
-			mutex_open(nivel->semaforo_enemigos);
+    		distancia_del_enemigo = vector2_distance_to(self->pos, personaje->pos);
+			blanco = personaje;
 			sin_objetivo = false;
 	   }else{
-		   distancia_aux = calcular_distancia(pos_enemigo, pos_personaje);
+		   distancia_aux = vector2_distance_to(self->pos, personaje->pos);
 		   if (distancia_aux < distancia_del_enemigo){
 			   distancia_del_enemigo = distancia_aux;
-			   mutex_close(nivel->semaforo_enemigos);
-			   self->blanco = personaje;
-			   mutex_open(nivel->semaforo_enemigos);
+			   blanco = personaje;
 		   }
 	   }
     }
-    mutex_open(nivel->semaforo_personajes);
+	logger_info(self->logger, "Sali el foreach! El blanco es %s", blanco->nombre);
 
-    mutex_close(nivel->semaforo_enemigos);
-    var(blanco_pos, self->blanco->pos);
-    var(blanco_simbolo, self->blanco->simbolo);
-    mutex_open(nivel->semaforo_enemigos);
-    logger_info(self->logger, "Personaje a atrapar: %c. Posicion: (%d,%d)", blanco_simbolo, blanco_pos.x, blanco_pos.y);
-
-    return blanco_pos;
+    return blanco;
 }
 
 
@@ -125,7 +114,7 @@ void moverse_sin_personajes(tad_nivel* nivel, tad_enemigo* self){
 	int random = rand()%8; //random 0,7
 
 	int movimientos_faltantes = 3;
-	
+
 	mutex_close(nivel->semaforo_personajes);
 	int cantidad_personajes_local = list_size(nivel->personajes);
 	mutex_open(nivel->semaforo_personajes);
@@ -134,7 +123,6 @@ void moverse_sin_personajes(tad_nivel* nivel, tad_enemigo* self){
 
 		mutex_close(nivel->semaforo_enemigos);
 		nueva_pos = movimiento_random(self->pos, random, movimientos_faltantes);
-		mutex_open(nivel->semaforo_enemigos);
 
 		//si la posicion esta dentro del mapa se grafica
 		if(vector2_within_map(nueva_pos, limite_mapa)){
@@ -145,13 +133,8 @@ void moverse_sin_personajes(tad_nivel* nivel, tad_enemigo* self){
 				movimientos_faltantes --;
 				self->pos = nueva_pos;
 				logger_info(self->logger, "Moviendose en L a (%d,%d)", self->pos.x,self->pos.y);
-				//usleep(nivel->sleep_enemigos * 600); //TODO esto es lo que va
-				mutex_open(nivel->semaforo_enemigos);
-				sleep(1);
-				nivel_gui_dibujar(nivel);
 			}
 			else{
-				mutex_open(nivel->semaforo_enemigos);
 				//si no completo la L por esquivar una caja tiene que empezar de nuevo y buscar otra L al azar
 				movimientos_faltantes = 0;
 			}
@@ -161,6 +144,13 @@ void moverse_sin_personajes(tad_nivel* nivel, tad_enemigo* self){
 			movimientos_faltantes = 0;
 			logger_info(self->logger, "Esquiva borde en (%d,%d)", nueva_pos.x, nueva_pos.y);
 		}
+		mutex_open(nivel->semaforo_enemigos);
+
+
+//		usleep(nivel->sleep_enemigos * 1000);
+		nivel_gui_dibujar(nivel);
+
+
 		mutex_close(nivel->semaforo_personajes);
 		cantidad_personajes_local = list_size(nivel->personajes);
 		mutex_open(nivel->semaforo_personajes);
