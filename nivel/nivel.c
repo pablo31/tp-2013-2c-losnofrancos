@@ -621,10 +621,8 @@ void muerte_del_personaje(char personaje_simbolo, tad_nivel* self, int motivo){
        	liberar_y_reasignar_recursos(self, personaje_muerto);
 
         if(motivo == ENEMIGO)
-        	logger_info(get_logger(self),"Se envia mensaje MUERTE_POR_ENEMIGO");
              socket_send_char(self->socket, MUERTE_POR_ENEMIGO, personaje_simbolo);
         if(motivo == DEADLOCK)
-        	logger_info(get_logger(self),"Se envia mensaje MUERTE_POR_DEADLOCK");
             socket_send_char(self->socket, MUERTE_POR_DEADLOCK, personaje_simbolo);
 
         eliminar_personaje(personaje_muerto);
