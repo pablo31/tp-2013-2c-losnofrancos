@@ -71,6 +71,7 @@ private void inicio_nuevo_hilo(PACKED_ARGS);
 private int conectarse_al_nivel(t_personaje* self, t_nivel* nivel, tad_logger* logger_nivel);
 private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, tad_logger* logger);
 
+private int solicitar_continue(t_personaje* self);
 
 private void manejar_error_planificador(tad_socket* socket, tad_logger* logger);
 private tad_socket* conectarse_al_orquestador(t_personaje* self, tad_logger* logger);
@@ -118,22 +119,16 @@ int main(int argc, char* argv[]) {
 		//si todavia tiene vidas, significa que gano todos los niveles
 		gano_todos_los_niveles = get_vidas(self);
 		if(!gano_todos_los_niveles){
-			int flag = 0;
-			do{
-				printf("El personaje se quedo sin vidas. Desea reiniciar el plan de niveles? (y/n) ");
-				char input = getchar();
-				if(input == 'y' || input == 'Y'){
-					cantidad_de_reiniciadas++;
-					logger_info(get_logger(self), "Se reiniciara el plan de niveles (reintento numero %d)", cantidad_de_reiniciadas);
-					self->vidas = self->vidas_iniciales;
-					flag = 1;
-				}else if(input == 'n' || input == 'N'){
-					personaje_finalizar(self);
-					return EXIT_SUCCESS;
-				}else{
-					printf("\nEl caracter ingresado no es valido.\n");
-				}
-			}while(!flag);
+			if(solicitar_continue(self)){
+				//reiniciamos el plan de nieveles
+				cantidad_de_reiniciadas++;
+				logger_info(get_logger(self), "Se reiniciara el plan de niveles (reintento numero %d)", cantidad_de_reiniciadas);
+				self->vidas = self->vidas_iniciales;
+			}else{
+				//finalizamos personaje
+				personaje_finalizar(self);
+				return EXIT_SUCCESS;
+			}
 		}
 	}
 
@@ -149,6 +144,26 @@ int main(int argc, char* argv[]) {
 	personaje_finalizar(self);
 	return EXIT_SUCCESS;
 }
+
+
+private int solicitar_continue(t_personaje* self){
+	if(self->auto_continue) return 1;
+
+	int flag = -1;
+	do{
+		printf("El personaje se quedo sin vidas. Desea reiniciar el plan de niveles? (y/n) ");
+		char input = getchar();
+		if(input == 'y' || input == 'Y'){
+			flag = 1;
+		}else if(input == 'n' || input == 'N'){
+			flag = 0;
+		}else{
+			printf("\nEl caracter ingresado no es valido.\n");
+		}
+	}while(flag < 0);
+	return flag;
+}
+
 
 private tad_socket* conectarse_al_orquestador(t_personaje* self, tad_logger* logger){
 	var(ippuerto_orquestador, get_ippuerto_orquestador(self));

@@ -41,14 +41,18 @@ t_personaje* personaje_crear(char* config_path){
 	self->vidas_iniciales = vidas;
 	self->vidas = vidas;
 
+	//misc
+	if(config_has_property(global_config, "AutoContinue")) self->auto_continue = config_get_int_value(global_config, "AutoContinue");
+	else self->auto_continue = 0;
+
 	//datos del logger
 	char* log_file;
 	if(config_has_property(config,"LogFile")) log_file = string_duplicate(config_get_string_value(config, "LogFile"));
 	else log_file = string_from_format("%s.log", self->nombre);
 
 	char* log_level; 
-	if(config_has_property(global_config,"LogLevel")) log_level = config_get_string_value(global_config, "LogLevel");
-	else if(config_has_property(config,"LogLevel")) log_level = config_get_string_value(config, "LogLevel");
+	if(config_has_property(global_config, "LogLevel")) log_level = config_get_string_value(global_config, "LogLevel");
+	else if(config_has_property(config, "LogLevel")) log_level = config_get_string_value(config, "LogLevel");
 	else log_level = "INFO";
 
 	//inicializamos el logger

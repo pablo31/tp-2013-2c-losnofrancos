@@ -29,6 +29,7 @@ typedef struct {
 	char* ippuerto_orquestador;
 	tad_logger* logger;
 
+	int auto_continue;
 } t_personaje;
 
 
