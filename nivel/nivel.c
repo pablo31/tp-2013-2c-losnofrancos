@@ -619,6 +619,8 @@ void muerte_del_personaje(char personaje_simbolo, tad_nivel* self, int motivo){
     	if(personaje_desbloqueado != NULL)
     		free(personaje_desbloqueado);
 
+    	if(personaje_muerto == null) return;
+
        	//Se liberan recursos asignados y se reasignan a los personajes bloqueados
        	liberar_y_reasignar_recursos(self, personaje_muerto);
 
