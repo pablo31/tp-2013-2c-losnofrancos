@@ -65,7 +65,7 @@ void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self, int *eje_prox_mov)
 	else
 		muerte_del_personaje(self->blanco->simbolo, nivel, ENEMIGO);
 
-	usleep(nivel->sleep_enemigos);
+	usleep(nivel->sleep_enemigos * 1000);
 	nivel_gui_dibujar(nivel);
 }
 
@@ -146,7 +146,7 @@ void moverse_sin_personajes(tad_nivel* nivel, tad_enemigo* self){
 				self->pos = nueva_pos;
 				logger_info(self->logger, "Moviendose en L a (%d,%d)", self->pos.x,self->pos.y);
 				mutex_open(nivel->semaforo_enemigos);
-				usleep(nivel->sleep_enemigos);
+				usleep(nivel->sleep_enemigos * 1000);
 				nivel_gui_dibujar(nivel);
 			}
 			else{
