@@ -85,7 +85,7 @@ tad_plataforma* plataforma_crear(char* config_file){
 	return self;
 }
 
-void plataforma_finalizar(tad_plataforma* self){
+void plataforma_liberar(tad_plataforma* self){
 	//liberamos los recursos de los planificadores
 	void liberar_planificador(void* planificador){
 		planificador_finalizar(planificador);
@@ -96,13 +96,15 @@ void plataforma_finalizar(tad_plataforma* self){
 	//liberamos los recursos propios de plataforma
 	logger_info(get_logger(self), "Finalizando");
 	logger_dispose_instance(self->logger);
-	if(self->koopa_cmd != null) free(self->koopa_cmd);
 	dealloc(self);
 	//libero los recursos del singleton logger
 	logger_dispose();
 	//libero los recursos de las senales
 	signal_dispose_all();
+}
 
+void plataforma_finalizar(tad_plataforma* self){
+	plataforma_liberar(self);
 	exit(EXIT_SUCCESS);
 }
 
@@ -147,9 +149,14 @@ void un_personaje_termino_de_jugar(tad_plataforma* self){
 	//verificamos que todos los personajes hayan terminado de jugar
 	if(!plataforma_planificadores_vacios(self)) return;
 
+	//liberamos los recursos de plataforma
+	plataforma_liberar(self);
+
 	//ejecutamos koopa
-	int retorno = system(self->koopa_cmd);
-	logger_info(get_logger(self), "Koopa devolvio: %i", retorno);
-	plataforma_finalizar(self);
+	var(cmd, self->koopa_cmd);
+	int retorno = system(cmd);
+	free(cmd);
+	printf("Koopa devolvio: %i\n", retorno);
+
 	exit(EXIT_SUCCESS);
 }

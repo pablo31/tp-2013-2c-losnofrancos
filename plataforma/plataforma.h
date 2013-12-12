@@ -31,6 +31,7 @@ struct s_plataforma{
  * METHODS ******************
  ****************************/
 tad_plataforma* plataforma_crear();
+void plataforma_liberar(tad_plataforma* self);
 void plataforma_finalizar(tad_plataforma* plataforma);
 
 tad_planificador* plataforma_planificador_iniciado(tad_plataforma* plataforma, char* nombre_nivel);
