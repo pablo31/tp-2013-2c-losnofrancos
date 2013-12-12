@@ -57,7 +57,6 @@ t_personaje* personaje_crear(char* config_path){
 
 	//inicializamos el logger
 	logger_initialize(log_file, "personaje", log_level, 1);
-	free(log_file);
 	self->logger = logger_new_instance();
 	var(logger, self->logger);
 
@@ -102,6 +101,7 @@ t_personaje* personaje_crear(char* config_path){
 	self->niveles = niveles;
 
 	logger_info(logger, "Log File:%s", log_file);
+	free(log_file);
 	logger_info(logger, "Log Level:%s", log_level);
 
 	//liberamos recursos

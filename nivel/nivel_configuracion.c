@@ -99,7 +99,6 @@ void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 	else log_level = "INFO";
 
 	logger_initialize(log_file, "nivel", log_level, 0); //el 0 es para que no logee en consola
-	free(log_file);
 	var(logger, logger_new_instance());
 	self->logger = logger;
 
@@ -135,6 +134,7 @@ void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 	logger_info(logger, "Quantum/Distancia estimada:%i", self->quantum);
 	logger_info(logger, "Retardo:%i", self->retardo);
 	logger_info(logger, "Log File:%s", log_file);
+	free(log_file);
 	logger_info(logger, "Log Level:%s", log_level);
 	
 
