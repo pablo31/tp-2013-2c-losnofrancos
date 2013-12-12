@@ -184,17 +184,12 @@ void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 
 
 void destruir_caja(void* ptr_caja){
-	if(ptr_caja == NULL) return;
-
 	tad_caja* self = ptr_caja;
-	if(self->nombre != NULL)
-		dealloc(self->nombre);
+	dealloc(self->nombre);
 	dealloc(self);
 }
 
 void destruir_personaje(void* ptr_pj){
-	if(ptr_pj == NULL) return;
-
 	tad_personaje* pj = ptr_pj;
 	if(pj->recursos_asignados != NULL)
 		list_destroy(pj->recursos_asignados);
@@ -204,14 +199,7 @@ void destruir_personaje(void* ptr_pj){
 	dealloc(pj);
 }
 void destruir_enemigo(void* ptr_enemigo){
-	if(ptr_enemigo == NULL) return;
-
 	tad_enemigo* self = ptr_enemigo;
-	if (self->blanco != NULL)
-		destruir_personaje(self->blanco);
-	if (self->logger != NULL)
-		logger_dispose_instance(self->logger);
-
 	dealloc(self);
 }
 
