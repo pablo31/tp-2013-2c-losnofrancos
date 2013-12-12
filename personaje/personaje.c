@@ -64,7 +64,7 @@ private char* get_ippuerto_orquestador(t_personaje* self){
 extern t_personaje* personaje_crear(char* config_path);
 private void personaje_finalizar(t_personaje* self);
 //logica y ejecucion
-private void morir(t_personaje* self, char * tipo_muerte);
+private void morir(t_personaje* self, char* tipo_muerte, tad_logger* logger);
 private void comer_honguito_verde(t_personaje* self);
 
 private void inicio_nuevo_hilo(PACKED_ARGS);
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
 
 	//declaramos las funciones manejadoras de senales
 	signal_dynamic_handler(SIGINT, personaje_finalizar(self));
-	signal_dynamic_handler(SIGTERM, morir(self, "Muerte por señal"));
+	signal_dynamic_handler(SIGTERM, morir(self, "Muerte por señal", logger));
 	signal_dynamic_handler(SIGUSR1, comer_honguito_verde(self));
 	logger_info(get_logger(self), "Senales establecidas");
 
@@ -238,8 +238,8 @@ private tad_package* esperar_paquete_del_planificador(t_personaje* self, byte ti
 	if(tipo == tipo_esperado) return paquete;
 
 	//informamos el motivo de la muerte
-	if(tipo == MUERTE_POR_DEADLOCK)  morir(self,"Muerte por deadlock");
-	else morir(self,"Muerte por enemigo");
+	if(tipo == MUERTE_POR_DEADLOCK)  morir(self, "Muerte por deadlock", logger);
+	else morir(self, "Muerte por enemigo", logger);
 
 	//liberamos recursos
 	package_dispose(paquete);
@@ -341,31 +341,26 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 
 }
 
-//La funcion morir solo aumenta o disminulle la cantidad de vidas, no sabe nada si se tiene que conectar
-//al orquestador para jugar un nivel o para reinicar todos los niveles
-private void morir(t_personaje* self, char* tipo_muerte){
-	logger_info(get_logger(self), "El personaje muere por:  %s", tipo_muerte);
+
+
+private void morir(t_personaje* self, char* tipo_muerte, tad_logger* logger){
+	logger_info(logger, "El personaje muere por:  %s", tipo_muerte);
 	var(vidas, get_vidas(self));
-	var(vidas_iniciales, get_vidas_iniciales(self));
-
-
 
 	if(vidas > 0){
-		logger_info(get_logger(self), "Llego una vida ahora va a tener  %d -1 ", get_vidas(self));
 		vidas--;
-		logger_info(get_logger(self), "El personaje perdio una vida, le quedan %d", vidas);
+		logger_info(logger, "El personaje perdio una vida, le quedan %d", vidas);
 	}else{
-		vidas = vidas_iniciales;
-		logger_info(get_logger(self), "El personaje perdio su ultima vida");
+		vidas = get_vidas_iniciales(self);
+		logger_info(logger, "El personaje perdio su ultima vida");
 	}
 
 	set_vidas(self, vidas);
 }
 
 private void comer_honguito_verde(t_personaje* self){
-	logger_info(get_logger(self), "Llego una vida ahora va a tener  %d +1 ", get_vidas(self));
 	self->vidas++;
-	logger_info(get_logger(self), "El personaje gano una vida, %d", get_vidas(self));
+	logger_info(get_logger(self), "El personaje gano una vida, ahora tiene %d", get_vidas(self));
 }
 
 private void personaje_finalizar(t_personaje* self){
