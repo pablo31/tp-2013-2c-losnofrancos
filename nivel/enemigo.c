@@ -60,10 +60,10 @@ void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self, int *eje_prox_mov)
 
 		//controla si la posicion nueva del enemigo coincide con la del personaje
 		if (vector2_equals(self->pos, posicion_personaje))
-			muerte_del_personaje(self->blanco, nivel, ENEMIGO);
+			muerte_del_personaje(self->blanco->simbolo, nivel, ENEMIGO);
 	}
 	else
-		muerte_del_personaje(self->blanco, nivel, ENEMIGO);
+		muerte_del_personaje(self->blanco->simbolo, nivel, ENEMIGO);
 
 	sleep(1);
 	nivel_gui_dibujar(nivel);

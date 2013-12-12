@@ -7,6 +7,7 @@
 #include "../libs/logger/logger.h"
 #include "../libs/thread/thread.h"
 
+
 class (t_personaje_bloqueado){
 	char simbolo;
 	char* nombre;
@@ -20,3 +21,4 @@ t_list* cargar_lista_personajes(tad_nivel* nivel);
 t_list* cargar_lista_recursos(tad_nivel* nivel);
 
 #endif
+

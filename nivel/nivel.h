@@ -52,6 +52,11 @@ class(tad_enemigo){
 };
 
 
+class (tad_bloqueado){
+	char simbolo;
+	char recurso;
+};
+
 class(tad_nivel){
 	char* nombre;
 	tad_socket* socket;
@@ -65,6 +70,9 @@ class(tad_nivel){
 
 	tad_mutex* semaforo_enemigos;
 	t_list* enemigos;
+
+	tad_mutex* semaforo_bloqueados;
+	t_list* bloqueados;
 
 	char* algoritmo;
 	int retardo;
@@ -80,9 +88,8 @@ class(tad_nivel){
 tad_logger* get_logger(tad_nivel* self);
 char* get_config_path(tad_nivel* self);
 void evaluar_solicitud_recurso(tad_nivel* self, char simbolo_personaje, char simbolo_recurso);
-void otorgar_recurso(tad_nivel* self, tad_personaje* personaje_solicitud, char simbolo_recurso);
+void otorgar_recurso(tad_nivel* self, char simbolo_personaje, char simbolo_recurso);
 void liberar_y_reasignar_recursos(tad_nivel* self, tad_personaje* personaje_muerto);
-void muerte_del_personaje(tad_personaje* personaje, tad_nivel* self, int motivo);
+void muerte_del_personaje(char personaje_simbolo, tad_nivel* self, int motivo);
 
 #endif
- 
