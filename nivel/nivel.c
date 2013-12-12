@@ -230,6 +230,8 @@ private void nivel_finalizar(tad_nivel* self){
 
 	logger_dispose();
 
+	signal_dispose_all();
+
 	exit(EXIT_SUCCESS);
 }
 

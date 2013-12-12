@@ -90,7 +90,7 @@ void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 
 	self->nombre = string_duplicate(config_get_string_value(config, "Nombre"));
 	char* log_file;
-	if(config_has_property(config,"LogFile")) log_file = config_get_string_value(config, "LogFile");
+	if(config_has_property(config,"LogFile")) log_file = string_duplicate(config_get_string_value(config, "LogFile"));
 	else log_file = string_from_format("%s.log", self->nombre);
 
 	char* log_level;
@@ -99,6 +99,7 @@ void cargar_configuracion_nivel(tad_nivel* self, char* as_out ippuerto){
 	else log_level = "INFO";
 
 	logger_initialize(log_file, "nivel", log_level, 0); //el 0 es para que no logee en consola
+	free(log_file);
 	var(logger, logger_new_instance());
 	self->logger = logger;
 

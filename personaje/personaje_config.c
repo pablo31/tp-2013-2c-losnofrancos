@@ -43,7 +43,7 @@ t_personaje* personaje_crear(char* config_path){
 
 	//datos del logger
 	char* log_file;
-	if(config_has_property(config,"LogFile")) log_file = config_get_string_value(config, "LogFile");
+	if(config_has_property(config,"LogFile")) log_file = string_duplicate(config_get_string_value(config, "LogFile"));
 	else log_file = string_from_format("%s.log", self->nombre);
 
 	char* log_level; 
@@ -53,6 +53,7 @@ t_personaje* personaje_crear(char* config_path){
 
 	//inicializamos el logger
 	logger_initialize(log_file, "personaje", log_level, 1);
+	free(log_file);
 	self->logger = logger_new_instance();
 	var(logger, self->logger);
 
