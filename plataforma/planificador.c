@@ -309,7 +309,16 @@ private void paquete_entrante_nivel(PACKED_ARGS){
 		personaje->objetivo = NOT_A_POSITION;
 		logger_info(logger, "El recurso que solicito %s le fue otorgado", personaje->nombre);
 		list_add(self->personajes_listos, personaje);
-		socket_send_empty_package(personaje->socket, RECURSO_OTORGADO);
+		var(socket, personaje->socket);
+		SOCKET_ERROR_MANAGER(socket){
+			//choripaneada
+			logger_info(logger, "El personaje %s se desconecto de manera inesperada", personaje->nombre);
+			planificador_liberar_personaje(self, personaje);
+			mutex_open(s);
+			package_dispose_all(paquete);
+			return;
+		}
+		socket_send_empty_package(socket, RECURSO_OTORGADO);
 		mutex_open(s);
 
 	}else if(tipo == MUERTE_POR_ENEMIGO){
@@ -317,7 +326,17 @@ private void paquete_entrante_nivel(PACKED_ARGS){
 		var(simbolo, package_get_char(paquete));
 		var(personaje, buscar_personaje(self, simbolo, self->personajes_listos));
 		logger_info(logger, "El personaje %s muere por un enemigo", personaje->nombre);
-		socket_send_empty_package(personaje->socket, MUERTE_POR_ENEMIGO);
+		var(socket, personaje->socket);
+		SOCKET_ERROR_MANAGER(socket){
+			//choripaneada
+			logger_info(logger, "El personaje %s se desconecto de manera inesperada", personaje->nombre);
+			multiplexor_stop_io_handling(self->multiplexor);
+			planificador_liberar_personaje(self, personaje);
+			mutex_open(s);
+			package_dispose_all(paquete);
+			return;
+		}
+		socket_send_empty_package(socket, MUERTE_POR_ENEMIGO);
 		multiplexor_stop_io_handling(self->multiplexor);
 		planificador_liberar_personaje(self, personaje);
 		mutex_open(s);
@@ -327,7 +346,17 @@ private void paquete_entrante_nivel(PACKED_ARGS){
 		var(simbolo, package_get_char(paquete));
 		var(personaje, buscar_personaje(self, simbolo, self->personajes_bloqueados));
 		logger_info(logger, "El personaje %s muere por algoritmo deadlock", personaje->nombre);
-		socket_send_empty_package(personaje->socket, MUERTE_POR_DEADLOCK);
+		var(socket, personaje->socket);
+		SOCKET_ERROR_MANAGER(socket){
+			//choripaneada
+			logger_info(logger, "El personaje %s se desconecto de manera inesperada", personaje->nombre);
+			multiplexor_stop_io_handling(self->multiplexor);
+			planificador_liberar_personaje(self, personaje);
+			mutex_open(s);
+			package_dispose_all(paquete);
+			return;
+		}
+		socket_send_empty_package(socket, MUERTE_POR_DEADLOCK);
 		multiplexor_stop_io_handling(self->multiplexor);
 		planificador_liberar_personaje(self, personaje);
 		mutex_open(s);
