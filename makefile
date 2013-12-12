@@ -133,5 +133,5 @@ clean:
 
 # make install
 # Esta opcion va a instalar el programa en el linux de testeo. Basicamente va a copiar todo lo necesario a /usr/bin
-install:
+#install:
 #TODO:hacerlo
