@@ -6,6 +6,8 @@
 #include "../libs/protocol/protocol.h"
 #include "verificador_deadlock.h"
 
+private void liberar_lista_personajes(t_list* lista);
+private void liberar_lista_recursos(t_list* lista);
 
 void liberar_recursos_del_personaje(tad_personaje* personaje, t_list* recursos_disponibles) {
 
@@ -124,19 +126,22 @@ void verificador_deadlock(PACKED_ARGS){
 		"DEADLOCK: Verificador de Deadlock creado, tiempo de checkeo: %.2f segundos",
 		nivel->tiempo_deadlock / 10000.0);
 
+	t_list* personajes_deadlock = NULL;
+	t_list* lista_personajes = NULL;
+	t_list* recursos_disponibles = NULL;
 	while(true){
 
 		usleep(nivel->tiempo_deadlock);
 		//sleep(1);
 
-		t_list* personajes_deadlock = list_create();
+		personajes_deadlock = list_create();
 		bool hay_bloqueados = false;
 
-		t_list* lista_personajes = cargar_lista_personajes(nivel);
+		lista_personajes = cargar_lista_personajes(nivel);
 
 		if(!(list_is_empty(lista_personajes))){
 
-			t_list* recursos_disponibles = cargar_lista_recursos(nivel);
+			recursos_disponibles = cargar_lista_recursos(nivel);
 
 			//Se liberan recursos de los personajes que no estan bloqueados
 			foreach(personaje, lista_personajes, tad_personaje*){
@@ -229,14 +234,40 @@ void verificador_deadlock(PACKED_ARGS){
 				}
 				free(str_personajes_deadlock);
 			}
-			list_destroy(personajes_deadlock);
-			list_destroy(recursos_disponibles);
+
+			liberar_lista_personajes(personajes_deadlock);
+			//list_destroy(personajes_deadlock);
+			liberar_lista_recursos(recursos_disponibles);
+			//list_destroy(recursos_disponibles);
 		}
+		/*
 		foreach(personaje, lista_personajes, tad_personaje*){
 			list_destroy(personaje->recursos_asignados);
-		}
-		list_destroy(lista_personajes);
+		}*/
+
+		liberar_lista_personajes(lista_personajes);
+		//list_destroy(lista_personajes);
 	}
 }
 
+private void liberar_personaje(void* ptr_pj){
+	if (ptr_pj == NULL) return;
+	tad_personaje* pj = (tad_personaje*) ptr_pj;
 
+	if(pj->recursos_asignados != NULL)
+		list_destroy(pj->recursos_asignados);
+	if(pj->recurso_pedido != NULL)
+		dealloc(pj->recurso_pedido);
+
+	dealloc(pj);
+}
+
+private void liberar_lista_personajes(t_list* lista){
+	if (lista == NULL) return;
+	list_destroy_and_destroy_elements(lista, liberar_personaje);
+}
+
+private void liberar_lista_recursos(t_list* lista){
+	if (lista == NULL) return;
+	list_destroy_and_destroy_elements(lista,free);
+}
