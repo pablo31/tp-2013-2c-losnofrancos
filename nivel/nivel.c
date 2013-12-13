@@ -549,12 +549,11 @@ void liberar_y_reasignar_recursos(tad_nivel* self, tad_personaje* personaje_muer
 void muerte_del_personaje(char personaje_simbolo, tad_nivel* self, int motivo){
 
         //Se elimina personaje de la lista
-        bool personaje_buscado(void* ptr){
-                return ((tad_personaje*)ptr)->simbolo == personaje_simbolo;
+        bool personaje_buscado(tad_personaje* ptr){
+                return ptr->simbolo == personaje_simbolo;
         }
-
-    	bool bloqueado_buscado(void* ptr){
-    		return ((tad_bloqueado*)ptr)->simbolo == personaje_simbolo;
+    	bool bloqueado_buscado(tad_bloqueado* ptr){
+    		return ptr->simbolo == personaje_simbolo;
     	}
 
     	void eliminar_personaje(tad_personaje* personaje){
@@ -564,14 +563,11 @@ void muerte_del_personaje(char personaje_simbolo, tad_nivel* self, int motivo){
     	    free(personaje);
     	}
 
-    	tad_personaje* personaje_muerto = list_remove_by_condition(self->personajes, personaje_buscado);
+    	tad_personaje* personaje_muerto = list_remove_by_condition(self->personajes, (void*)personaje_buscado);
 
     	logger_info(get_logger(self), "Se elimino al personaje %s de la lista del nivel", personaje_muerto->nombre);
 
     	//lo elimino de la lista de bloqueados
-    	bool bloqueado_buscado(tad_bloqueado* ptr){
-    		return ptr->simbolo == personaje_simbolo;
-    	}
 
     	mutex_close(self->semaforo_bloqueados);
     	tad_bloqueado* personaje_desbloqueado = list_remove_by_condition(self->bloqueados, (void*)bloqueado_buscado);
