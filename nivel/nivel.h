@@ -48,6 +48,9 @@ class(tad_enemigo){
 	char simbolo;
 	vector2 pos;
 	tad_logger* logger;
+
+	int movimiento_random;
+	int movimientos_restantes; //del movmiento random
 };
 
 
