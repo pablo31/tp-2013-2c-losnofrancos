@@ -258,7 +258,7 @@ private void liberar_personaje(void* ptr_pj){
 
 
 private void liberar_bloqueado(t_personaje_bloqueado* personaje){
-	free(personaje->nombre);
+	//free(personaje->nombre);
 	free(personaje);
 }
 

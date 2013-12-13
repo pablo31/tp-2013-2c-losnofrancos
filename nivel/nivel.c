@@ -501,20 +501,22 @@ void otorgar_recurso(tad_nivel* self, char simbolo_personaje, char simbolo_recur
 		if(recurso_personaje->simbolo == simbolo_recurso){
 			recurso_personaje->cantidad ++;
 			encontre_recurso = true;
-			logger_info(get_logger(self), "El personaje %s ya tenia el recurso %c, se incrementa cantidad", personaje_solicitud->nombre, simbolo_recurso);
 		}
 	}
+
 	mutex_open(self->semaforo_personajes);
+	if(encontre_recurso == true){
+			logger_info(get_logger(self), "El personaje %c ya tenia el recurso %c, se incrementa cantidad", simbolo_personaje, simbolo_recurso);
+		}
 
 	//si no lo encontro lo agrega a la lista de recursos asignados
 	if(!encontre_recurso){
-		logger_info(get_logger(self), "El personaje %s no tenia el recurso %c, se agrega", personaje_solicitud->nombre, simbolo_recurso);
+		logger_info(get_logger(self), "El personaje %c no tenia el recurso %c, se agrega", simbolo_personaje, simbolo_recurso);
 		alloc(nuevo_recurso, tad_recurso);
 		nuevo_recurso->simbolo = simbolo_recurso;
 		nuevo_recurso->cantidad = 1;
 		mutex_close(self->semaforo_personajes);
 		list_add(personaje_solicitud->recursos_asignados, nuevo_recurso);
-		logger_info(get_logger(self), "Cantidad total de recursos asignados: %d", list_size(personaje_solicitud->recursos_asignados));
 		mutex_open(self->semaforo_personajes);
 	}
 
@@ -594,6 +596,10 @@ void muerte_del_personaje(char personaje_simbolo, tad_nivel* self, int motivo){
                 return ((tad_personaje*)ptr)->simbolo == personaje_simbolo;
         }
 
+    	bool bloqueado_buscado(void* ptr){
+    		return ((tad_bloqueado*)ptr)->simbolo == personaje_simbolo;
+    	}
+
     	void eliminar_personaje(tad_personaje* personaje){
     	    free(personaje->nombre);
     	    free(personaje->recurso_pedido);
@@ -601,25 +607,25 @@ void muerte_del_personaje(char personaje_simbolo, tad_nivel* self, int motivo){
     	    free(personaje);
     	}
 
+    	tad_bloqueado* personaje_desbloqueado = NULL;
+    	tad_personaje* personaje_muerto = NULL;
+
     	mutex_close(self->semaforo_personajes);
-    	tad_personaje* personaje_muerto = list_remove_by_condition(self->personajes, personaje_buscado);
+    	personaje_muerto = list_remove_by_condition(self->personajes, personaje_buscado);
     	mutex_open(self->semaforo_personajes);
 
-    	logger_info(get_logger(self), "Se elimino el personaje de la lista del nivel");
 
     	//lo elimino de la lista de bloqueados
-    	tad_bloqueado* personaje_desbloqueado = NULL;
-
-    	bool bloqueado_buscado(void* ptr){
-    		return ((tad_bloqueado*)ptr)->simbolo == personaje_simbolo;
-    	}
     	mutex_close(self->semaforo_bloqueados);
     	personaje_desbloqueado = list_remove_by_condition(self->bloqueados, bloqueado_buscado);
     	mutex_open(self->semaforo_bloqueados);
     	if(personaje_desbloqueado != NULL)
     		free(personaje_desbloqueado);
-
-    	if(personaje_muerto == null) return;
+    	if(personaje_muerto == NULL){
+    		logger_info(get_logger(self), "No se encontro personaje: %c",personaje_simbolo);
+    		return;
+    	}
+    	logger_info(get_logger(self), "Se elimino el personaje de la lista del nivel: %c",personaje_simbolo);
 
        	//Se liberan recursos asignados y se reasignan a los personajes bloqueados
        	liberar_y_reasignar_recursos(self, personaje_muerto);
