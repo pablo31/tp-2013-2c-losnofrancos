@@ -403,7 +403,9 @@ private void paquete_entrante_personaje(PACKED_ARGS){
 		char recurso = package_get_char(paquete);
 		logger_info(logger, "%s solicito la ubicacion del recurso %c", nombre, recurso);
 		self->solicito_ubicacion_recurso = 1;
+		mutex_close(s);
 		socket_send_package(socket_nivel, paquete);
+		mutex_open(s);
 
 	//el personaje avisa que va a realizar un movimiento
 	}else if(tipo_mensaje == PERSONAJE_MOVIMIENTO){
@@ -411,7 +413,9 @@ private void paquete_entrante_personaje(PACKED_ARGS){
 		logger_info(logger, "%s se mueve a (%d,%d)", nombre, pos.x, pos.y);
 		personaje->pos = pos;
 		tad_package* reenvio = package_create_char_and_vector2(PERSONAJE_MOVIMIENTO, simbolo, pos);
+		mutex_close(s);
 		socket_send_package(socket_nivel, reenvio);
+		mutex_open(s);
 		package_dispose_all(reenvio);
 		self->turnos_restantes--;
 		if(self->turnos_restantes)

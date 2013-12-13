@@ -126,7 +126,7 @@ void verificador_deadlock(PACKED_ARGS){
 
 	logger_info(get_logger(nivel),
 		"DEADLOCK: Verificador de Deadlock creado, tiempo de checkeo: %.2f segundos",
-		nivel->tiempo_deadlock / 10000.0);
+		nivel->tiempo_deadlock / 1000.0);
 
 	 t_list* personajes_deadlock = NULL;
      t_list* lista_personajes = NULL;
@@ -134,8 +134,7 @@ void verificador_deadlock(PACKED_ARGS){
 
 	while(true){
 
-		usleep(nivel->tiempo_deadlock);
-		//sleep(1);
+		usleep(nivel->tiempo_deadlock * 1000);
 
 		personajes_deadlock = list_create();
 		bool hay_bloqueados = false;
