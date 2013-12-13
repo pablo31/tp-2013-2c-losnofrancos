@@ -305,16 +305,17 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 		if(personaje_en_movimiento != null){
 			personaje_en_movimiento->pos = pos;
 			logger_info(get_logger(self), "Personaje %s se mueve a (%d,%d)", personaje_en_movimiento->nombre, pos.x, pos.y);
+
+			mutex_close(self->semaforo_enemigos);
+			foreach(enemigo, self->enemigos, tad_enemigo*){
+				if(vector2_equals(enemigo->pos, personaje_en_movimiento->pos)){
+					muerte_del_personaje(personaje_en_movimiento->simbolo, self, ENEMIGO);
+					logger_info(enemigo->logger, "Mate a %s", personaje_en_movimiento->nombre);
+				}
+			}
+			mutex_open(self->semaforo_enemigos);
 		}
 
-		mutex_close(self->semaforo_enemigos);
-		foreach(enemigo, self->enemigos, tad_enemigo*){
-			if(vector2_equals(enemigo->pos, personaje_en_movimiento->pos)){
-				muerte_del_personaje(personaje_en_movimiento->simbolo, self, ENEMIGO);
-				logger_info(enemigo->logger, "Mate a %s", personaje_en_movimiento->nombre);
-			}
-		}
-		mutex_open(self->semaforo_enemigos);
 
 
 	}else if(tipo == PERSONAJE_SOLICITUD_RECURSO){
