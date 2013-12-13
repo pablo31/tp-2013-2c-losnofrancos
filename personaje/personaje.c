@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
 	signal_dynamic_handler(SIGINT, personaje_finalizar(self));
 	signal_dynamic_handler(SIGTERM, morir(self, "Muerte por señal", logger));
 	signal_dynamic_handler(SIGUSR1, comer_honguito_verde(self));
-	logger_info(get_logger(self), "Senales establecidas");
+	logger_info(logger, "Senales establecidas");
 
 	var(niveles, self->niveles);
 	var(cantidad_de_niveles, list_size(niveles));
@@ -97,12 +97,12 @@ int main(int argc, char* argv[]) {
 		}
 
 		//si todavia tiene vidas, significa que gano todos los niveles
-		gano_todos_los_niveles = self->vidas;
+		gano_todos_los_niveles = (self->vidas > 0);
 		if(!gano_todos_los_niveles){
 			if(solicitar_continue(self)){
 				//reiniciamos el plan de nieveles
 				cantidad_de_reiniciadas++;
-				logger_info(get_logger(self), "Se reiniciara el plan de niveles (reintento numero %d)", cantidad_de_reiniciadas);
+				logger_info(logger, "Se reiniciara el plan de niveles (reintento numero %d)", cantidad_de_reiniciadas);
 				self->vidas = self->vidas_iniciales;
 			}else{
 				//finalizamos personaje
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
 	tad_socket* socket = conectarse_al_orquestador(self, logger);
 
 	//informamos que ganamos
-	logger_info(get_logger(self), "Objetivos completados");
+	logger_info(logger, "Objetivos completados");
 	socket_send_empty_package(socket, PERSONAJE_OBJETIVOS_COMPLETADOS);
 
 	socket_close(socket);
@@ -239,16 +239,8 @@ private tad_package* esperar_paquete_del_planificador(t_personaje* self, byte ti
 	//liberamos recursos
 	package_dispose(paquete);
 
-	//if(self->vidas>0){
-		//se tiene 	que conectar al orquestador pasando un nivel al que quiere jugar
-	//	logger_info(get_logger(self), "El personaje muere por que lindooo:");
-	//}else{
-		//se tiene 	que conectar al orquestador pasando todo el plan de niveles
-	//}
-
 	//hacemos saltar el socket con un error fantasma
-	socket_set_error(socket, CUSTOM_ERROR);   // no se pero me hace ruido
-
+	socket_set_error(socket, CUSTOM_ERROR);
 
 	return null;
 }
@@ -343,9 +335,10 @@ private void morir(t_personaje* self, char* tipo_muerte, tad_logger* logger){
 
 	if(self->vidas > 0){
 		self->vidas--;
-		logger_info(logger, "El personaje perdio una vida, le quedan %d", self->vidas);
+		if(self->vidas > 0) logger_info(logger, "El personaje perdio una vida, le quedan %d", self->vidas);
+		else logger_info(logger, "El personaje perdio su ultima vida");
 	}else{
-		logger_info(logger, "El personaje perdio su ultima vida");
+		logger_info(logger, "El personaje no tiene mas vidas");
 	}
 }
 
