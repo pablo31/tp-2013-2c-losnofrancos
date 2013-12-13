@@ -52,7 +52,7 @@ void enemigo_ia(PACKED_ARGS){
 
 
 private void enemigo_mover_a(tad_nivel* nivel, tad_enemigo* self, vector2 pos){
-	if(posicion_ocupada_por_enemigo(nivel, pos)) return;
+	//if(posicion_ocupada_por_enemigo(nivel, pos)) return;
 	if(vector2_equals(vector2_new(0,0), pos)) return;
 	self->pos = pos;
 }
