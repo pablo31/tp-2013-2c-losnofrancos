@@ -205,11 +205,9 @@ private void inicio_nuevo_hilo(PACKED_ARGS){
 
 
 private void manejar_error_planificador(t_hilo* hilo){
-//	if(hilo->bloqueado) return;
 	var(socket, hilo->socket);
 	if(socket_get_error(socket) != CUSTOM_ERROR) logger_error(hilo->logger, "Error en el envio o recepcion de datos del planificador");
 	socket_close(socket);
-//	hilo->bloqueado = 0;
 }
 
 private int conectarse_al_nivel(t_hilo* hilo){
@@ -360,17 +358,18 @@ private int jugar_nivel(t_hilo* hilo){
 
 
 private void morir_por_senal(t_personaje* self, t_hilo hilos[], int cantidad_hilos){
-	int i;
-
 	//morimos
 	morir(self, "Muerte por senal", get_logger(self));
 
-	//desbloqueamos los hilos que estaban en un recv
+	if(self->vidas > 0) return;
+	int i;
+
+	//desbloqueamos los hilos que estaban en un recv, MATANDOLOS
 	for(i = 0; i < cantidad_hilos; i++)
 		if(hilos[i].bloqueado){
 			socket_close(hilos[i].socket);
 			logger_dispose_instance(hilos[i].logger);
-			pthread_kill(hilos[i].thread, SIGKILL);
+			thread_kill(hilos[i].thread);
 		}
 }
 

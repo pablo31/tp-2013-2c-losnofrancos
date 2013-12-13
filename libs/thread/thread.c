@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <signal.h>
 
 #include "../command/command.h"
 #include "../common.h"
@@ -41,6 +42,10 @@ void thread_free_begin(void* function, int numargs, ...){
 void thread_join(tad_thread thread){
 	pthread_join(thread, null);
 	pthread_detach(thread);
+}
+
+void thread_kill(tad_thread thread){
+	pthread_kill(thread, SIGKILL);
 }
 
 tad_thread thread_self(){

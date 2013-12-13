@@ -26,6 +26,9 @@ void thread_free_begin(void* function, int numargs, ...);
 //Bloquea el programa hasta que el thread finalize
 void thread_join(tad_thread thread);
 
+//Mata al thread
+void thread_kill(tad_thread thread);
+
 //Devuelve el thread
 tad_thread thread_self();
 //Indica si dos threads son en realidad el mismo
