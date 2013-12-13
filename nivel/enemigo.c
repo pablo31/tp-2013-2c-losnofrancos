@@ -28,8 +28,8 @@ void enemigo_ia(PACKED_ARGS){
 
 		if(cantidad_personajes > 0){
 			atacar_al_personaje(nivel, self, &eje_prox_mov); }
-			mutex_open(nivel->semaforo_enemigos);
-			mutex_open(nivel->semaforo_personajes);
+		mutex_open(nivel->semaforo_enemigos);
+		mutex_open(nivel->semaforo_personajes);
 			nivel_gui_dibujar(nivel);
 //		}else{
 //			mutex_open(nivel->semaforo_enemigos);

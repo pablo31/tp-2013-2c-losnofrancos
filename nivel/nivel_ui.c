@@ -240,8 +240,8 @@ void nivel_gui_dibujar(tad_nivel* nivel){
 	var(personajes, nivel->personajes);
 	var(enemigos, nivel->enemigos);
 
-	mutex_close(semaforo_enemigos);
 	mutex_close(semaforo_personajes);
+	mutex_close(semaforo_enemigos);
 	mutex_close(semaforo_cajas);
 
 
@@ -261,8 +261,8 @@ void nivel_gui_dibujar(tad_nivel* nivel){
 		i++;
 	}
 
-	mutex_open(semaforo_enemigos);
 	mutex_open(semaforo_personajes);
+	mutex_open(semaforo_enemigos);
 	mutex_open(semaforo_cajas);
 
 	//actualizamos la pantalla
