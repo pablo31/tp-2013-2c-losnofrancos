@@ -115,7 +115,7 @@ t_list* cargar_lista_recursos(tad_nivel* nivel){
  * y se liberan los recursos asignados, por lo que se recorre nuevamente la lista de personajes
  * para controlar si se puede desbloquear alguno a partir de los recursos liberados en la anterior vuelta.
  * Si hay almenos dos personajes que tienen recurso pedido (estan bloqueados) y a la vez recursos asignados,
- * entonces significa que hay deadlock.
+ * y si al menos un recurso es requerido por otro personaje bloqueado entonces significa que hay deadlock.
  * Si el nivel tiene el recovery activado se elige como victima al personaje que haya ingresado primero al nivel
  */
 
@@ -123,21 +123,22 @@ void verificador_deadlock(PACKED_ARGS){
 	UNPACK_ARGS(tad_nivel* nivel);
 
 	int flag_cambios = 0;
+	bool hay_bloqueados = false;
+	bool personaje_deadlock = false;
 
 	logger_info(get_logger(nivel),
 		"DEADLOCK: Verificador de Deadlock creado, tiempo de checkeo: %.2f segundos",
 		nivel->tiempo_deadlock / 1000.0);
 
-	 t_list* personajes_deadlock = NULL;
-     t_list* lista_personajes = NULL;
-     t_list* recursos_disponibles = NULL;
+	t_list* personajes_deadlock = NULL;
+    t_list* lista_personajes = NULL;
+    t_list* recursos_disponibles = NULL;
 
 	while(true){
 
 		usleep(nivel->tiempo_deadlock * 1000);
 
 		personajes_deadlock = list_create();
-		bool hay_bloqueados = false;
 
 		lista_personajes = cargar_lista_personajes(nivel);
 
@@ -205,19 +206,38 @@ void verificador_deadlock(PACKED_ARGS){
 
 				//logger_info(get_logger(nivel),"DEADLOCK: Controlo si hay deadlock");
 
-				//Se dentifican los personajes en deadlock por tener recurso pedido (bloqueado) y recursos asignados y se cargan en una nueva lista
+				//Se dentifican los personajes con recurso pedido (bloqueado) y recursos asignados
 				foreach(personaje, lista_personajes, tad_personaje*){
 					var(cant_recurso, personaje->recurso_pedido->cantidad);
+					personaje_deadlock = false;
 
 					//logger_info(get_logger(nivel),"DEADLOCK: cant recursos asignados del personaje %c: %d", personaje->simbolo, list_size(personaje->recursos_asignados));
 					if((cant_recurso == 1) && ((list_size(personaje->recursos_asignados)) > 0)){
-						alloc(personaje_bloqueado, t_personaje_bloqueado);
-						personaje_bloqueado->simbolo = personaje->simbolo;
-						personaje_bloqueado->nombre = personaje->nombre;
-						list_add(personajes_deadlock, personaje_bloqueado);
-						string_append_with_format(&str_personajes_deadlock, "%s.", personaje_bloqueado->nombre);
+						//se identifican aquellos que tienen un recurso asignado que fue solicitado por otro personaje
+						foreach(recurso_otorgado, personaje->recursos_asignados, tad_recurso*){
+							//logger_info(get_logger(nivel),"DEADLOCK: Personaje %c, recurso asignado: %c", personaje->simbolo, recurso_otorgado->simbolo);
+							mutex_close(nivel->semaforo_bloqueados);
+							foreach(p_bloqueado, nivel->bloqueados, tad_bloqueado*){
+								if(personaje->simbolo != p_bloqueado->simbolo){
+									if(recurso_otorgado->simbolo == p_bloqueado->recurso){
+										//logger_info(get_logger(nivel),"DEADLOCK: Personaje bloqueado %c, recurso solicitado: %c", p_bloqueado->simbolo, recurso_otorgado->simbolo);
+										personaje_deadlock = true;
+									}
+								}
+							}
+							mutex_open(nivel->semaforo_bloqueados);
+						}
 
-						logger_info(get_logger(nivel),"DEADLOCK: Personaje bloqueado con recursos asignados: %s", personaje->nombre);
+						if(personaje_deadlock){
+							alloc(personaje_bloqueado, t_personaje_bloqueado);
+							personaje_bloqueado->simbolo = personaje->simbolo;
+							personaje_bloqueado->nombre = personaje->nombre;
+							list_add(personajes_deadlock, personaje_bloqueado);
+							string_append_with_format(&str_personajes_deadlock, "%s.", personaje_bloqueado->nombre);
+							logger_info(get_logger(nivel),"DEADLOCK: Personaje bloqueado %s tiene recurso requerido por otro personaje", personaje_bloqueado->nombre);
+						}
+
+						//logger_info(get_logger(nivel),"DEADLOCK: Personaje bloqueado con recursos asignados: %s", personaje->nombre);
 					}
 				}
 
