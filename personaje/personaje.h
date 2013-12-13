@@ -13,6 +13,7 @@
 #include "../libs/vector/vector2.h"
 #include "../libs/common/string.h"
 #include "../libs/socket/socket.h"
+#include "../libs/thread/thread.h"
 
 
 class(t_nivel){
@@ -39,9 +40,12 @@ class(t_personaje){
 class(t_hilo){
 	t_personaje* personaje;
 	t_nivel* nivel;
-	tad_socket* socket;
+
+	tad_thread thread;
 	tad_logger* logger;
-	int connected;
+
+	tad_socket* socket;
+	int bloqueado;
 };
 
 

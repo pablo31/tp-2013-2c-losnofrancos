@@ -44,6 +44,7 @@ private char get_simbolo(t_personaje* self){
 extern t_personaje* personaje_crear(char* config_path);
 private void personaje_finalizar(t_personaje* self);
 //logica y ejecucion
+private void morir_por_senal(t_personaje* self, t_hilo hilos[], int cantidad_hilos);
 private void morir(t_personaje* self, char* tipo_muerte, tad_logger* logger);
 private void comer_honguito_verde(t_personaje* self);
 
@@ -70,33 +71,31 @@ int main(int argc, char* argv[]) {
 
 	logger_info(logger, "Personaje %s creado", get_nombre(self));
 
+	var(niveles, self->niveles);
+	var(cantidad_de_niveles, list_size(niveles));
+	t_hilo hilos[cantidad_de_niveles];
+
 	//declaramos las funciones manejadoras de senales
 	signal_dynamic_handler(SIGINT, personaje_finalizar(self));
-	signal_dynamic_handler(SIGTERM, morir(self, "Muerte por señal", logger));
+	signal_dynamic_handler(SIGTERM, morir_por_senal(self, hilos, cantidad_de_niveles));
 	signal_dynamic_handler(SIGUSR1, comer_honguito_verde(self));
 	logger_info(logger, "Senales establecidas");
 
-	var(niveles, self->niveles);
-	var(cantidad_de_niveles, list_size(niveles));
-	tad_thread thread[cantidad_de_niveles];
 
 	int gano_todos_los_niveles = 0;
 	int cantidad_de_reiniciadas = 0;
+	int i;
 
 	while(!gano_todos_los_niveles){
-		int i;
-
-		t_hilo hilos[cantidad_de_niveles];
-
 		//se inicia un nuevo hilo por cada nivel que tiene jugar
 		for(i = 0; i < cantidad_de_niveles; i++){
 			t_nivel* nivel = list_get(niveles, i);
-			thread[i] = thread_begin(inicio_nuevo_hilo, 3, self, nivel, &hilos[i]);
+			hilos[i].thread = thread_begin(inicio_nuevo_hilo, 3, self, nivel, &hilos[i]);
 		}
 
 		//esperamos a que todos los hilos terminen de juegar
 		for(i = 0; i < cantidad_de_niveles; i++){
-			thread_join(thread[i]);
+			thread_join(hilos[i].thread);
 		}
 
 		//si todavia tiene vidas, significa que gano todos los niveles
@@ -192,7 +191,7 @@ private void inicio_nuevo_hilo(PACKED_ARGS){
 	//seteamos los datos del hilo
 	hilo->personaje = self;
 	hilo->nivel = nivel;
-	hilo->connected = 0;
+	hilo->bloqueado = 0;
 	hilo->logger = logger_new_instance("Thread %s", nivel->nombre);
 
 	int status = 0;
@@ -204,11 +203,11 @@ private void inicio_nuevo_hilo(PACKED_ARGS){
 
 
 private void manejar_error_planificador(t_hilo* hilo){
-	if(!hilo->connected) return;
+	if(hilo->bloqueado) return;
 	var(socket, hilo->socket);
 	if(socket_get_error(socket) != CUSTOM_ERROR) logger_error(hilo->logger, "Error en el envio o recepcion de datos del planificador");
 	socket_close(socket);
-	hilo->connected = 0;
+	hilo->bloqueado = 0;
 }
 
 private int conectarse_al_nivel(t_hilo* hilo){
@@ -218,12 +217,10 @@ private int conectarse_al_nivel(t_hilo* hilo){
 
 	tad_socket* socket = conectarse_al_orquestador(self, logger_nivel);
 	hilo->socket = socket;
-	hilo->connected = 1;
 
 	SOCKET_ERROR_MANAGER(socket){
 		logger_info(logger_nivel, "Error en el envio o recepcion de datos del orquestador");
 		socket_close(socket);
-		hilo->connected = 0;
 		return 0;
 	}
 
@@ -244,10 +241,15 @@ private tad_package* esperar_paquete_del_planificador(t_hilo* hilo, byte tipo_es
 	var(self, hilo->personaje);
 	var(logger, hilo->logger);
 
+	hilo->bloqueado = 1;
+
 	tad_package* paquete = socket_receive_one_of_this_packages(socket, 3,
 			tipo_esperado,
 			MUERTE_POR_DEADLOCK,
 			MUERTE_POR_ENEMIGO);
+
+	hilo->bloqueado = 0;
+
 	var(tipo, package_get_data_type(paquete));
 
 	if(tipo == tipo_esperado) return paquete;
@@ -295,7 +297,6 @@ private int jugar_nivel(t_hilo* hilo){
 		//si no tenemos mas vidas, nos desconectamos y matamos el hilo
 		if(!self->vidas){
 			socket_close(socket);
-			hilo->connected = 0;
 			logger_info(logger_nivel, "Nivel finalizado sin exito por falta de vidas");
 			return 0;
 		}
@@ -348,7 +349,6 @@ private int jugar_nivel(t_hilo* hilo){
 	}
 
 	socket_close(socket);
-	hilo->connected = 0;
 	logger_info(logger_nivel, "Nivel completado con exito");
 
 	return 1;
@@ -356,6 +356,18 @@ private int jugar_nivel(t_hilo* hilo){
 }
 
 
+
+private void morir_por_senal(t_personaje* self, t_hilo hilos[], int cantidad_hilos){
+	int i;
+
+	//morimos
+	morir(self, "Muerte por senal", get_logger(self));
+
+	//desbloqueamos los hilos que estaban en un recv
+	for(i = 0; i < cantidad_hilos; i++)
+		if(hilos[i].bloqueado)
+			socket_close(hilos[i].socket);
+}
 
 private void morir(t_personaje* self, char* tipo_muerte, tad_logger* logger){
 	logger_info(logger, "El personaje muere por:  %s", tipo_muerte);
