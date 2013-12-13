@@ -575,6 +575,8 @@ void muerte_del_personaje(char personaje_simbolo, tad_nivel* self, int motivo){
 
     	tad_personaje* personaje_muerto = list_remove_by_condition(self->personajes, (void*)personaje_buscado);
 
+    	if(personaje_muerto == null) return;
+
     	if(motivo == ENEMIGO)
     		logger_info(get_logger(self), "Muerte por enemigo del personaje %s, se elimina de la lista del nivel", personaje_muerto->nombre);
     	if(motivo == DEADLOCK)
