@@ -93,13 +93,15 @@ int main(int argc, char* argv[]) {
 			hilos[i].thread = thread_begin(inicio_nuevo_hilo, 3, self, nivel, &hilos[i]);
 		}
 
+		int todos_los_hilos_terminaron_bien = 1;
+
 		//esperamos a que todos los hilos terminen de juegar
 		for(i = 0; i < cantidad_de_niveles; i++){
 			thread_join(hilos[i].thread);
+			if(hilos[i].bloqueado != 0) todos_los_hilos_terminaron_bien = 0;
 		}
 
-		//si todavia tiene vidas, significa que gano todos los niveles
-		gano_todos_los_niveles = (self->vidas > 0);
+		gano_todos_los_niveles = (self->vidas > 0) && todos_los_hilos_terminaron_bien;
 		if(!gano_todos_los_niveles){
 			if(solicitar_continue(self)){
 				//reiniciamos el plan de nieveles
@@ -203,11 +205,11 @@ private void inicio_nuevo_hilo(PACKED_ARGS){
 
 
 private void manejar_error_planificador(t_hilo* hilo){
-	if(hilo->bloqueado) return;
+//	if(hilo->bloqueado) return;
 	var(socket, hilo->socket);
 	if(socket_get_error(socket) != CUSTOM_ERROR) logger_error(hilo->logger, "Error en el envio o recepcion de datos del planificador");
 	socket_close(socket);
-	hilo->bloqueado = 0;
+//	hilo->bloqueado = 0;
 }
 
 private int conectarse_al_nivel(t_hilo* hilo){
@@ -365,8 +367,11 @@ private void morir_por_senal(t_personaje* self, t_hilo hilos[], int cantidad_hil
 
 	//desbloqueamos los hilos que estaban en un recv
 	for(i = 0; i < cantidad_hilos; i++)
-		if(hilos[i].bloqueado)
+		if(hilos[i].bloqueado){
 			socket_close(hilos[i].socket);
+			logger_dispose_instance(hilos[i].logger);
+			pthread_kill(hilos[i].thread, SIGKILL);
+		}
 }
 
 private void morir(t_personaje* self, char* tipo_muerte, tad_logger* logger){
