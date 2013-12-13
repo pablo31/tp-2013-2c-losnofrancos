@@ -24,7 +24,7 @@ void enemigo_ia(PACKED_ARGS){
 
 		cantidad_personajes = list_size(nivel->personajes);
 
-		logger_info(logger, "Cantidad de personajes en el nivel: %d.", cantidad_personajes);
+		//logger_info(logger, "Cantidad de personajes en el nivel: %d.", cantidad_personajes);
 
 		if(cantidad_personajes > 0){
 			atacar_al_personaje(nivel, self, &eje_prox_mov);
@@ -63,7 +63,9 @@ void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self, int *eje_prox_mov)
 
 	//se carga la posicion del personaje que esta mas cerca
 	tad_personaje* blanco = buscar_personaje_mas_cercano(nivel, self);
-	logger_info(self->logger, "Voy a por %s", blanco->nombre);
+	//logger_info(self->logger, "Voy a por %s", blanco->nombre);
+
+    logger_info(self->logger, "Personaje a atrapar %s, posicion del personaje: (%d,%d)", blanco->nombre, blanco->pos.x, blanco->pos.y);
 
 	//controla si el personaje no está en la misma posicion que el enemigo
 	if(!vector2_equals(self->pos, blanco->pos)){
@@ -78,11 +80,9 @@ void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self, int *eje_prox_mov)
 	//controla si la posicion nueva del enemigo coincide con la del personaje
 	if (vector2_equals(self->pos, blanco->pos)){
 		muerte_del_personaje(blanco->simbolo, nivel, ENEMIGO);
-		logger_info(self->logger, "Mate a %s", blanco->nombre);
+		logger_info(self->logger, "El personaje %s fue atrapado por un enemigo", blanco->nombre);
 	}
 }
-
-
 
 
 
@@ -93,7 +93,7 @@ tad_personaje* buscar_personaje_mas_cercano(tad_nivel* nivel, tad_enemigo* self)
     bool sin_objetivo = true;
 
     foreach(personaje, nivel->personajes, tad_personaje*){
-    	logger_info(self->logger, "Entre el foreach! El primero en ser iterado es %s", personaje->nombre);
+    	//logger_info(self->logger, "Entre el foreach! El primero en ser iterado es %s", personaje->nombre);
     	if (sin_objetivo){
     		distancia_del_enemigo = vector2_distance_to(self->pos, personaje->pos);
 			blanco = personaje;
@@ -106,7 +106,8 @@ tad_personaje* buscar_personaje_mas_cercano(tad_nivel* nivel, tad_enemigo* self)
 		   }
 	   }
     }
-	logger_info(self->logger, "Sali el foreach! El blanco es %s", blanco->nombre);
+    //logger_info(self->logger, "Sali el foreach! El blanco es %s", blanco->nombre);
+    logger_info(self->logger, "Personaje mas cercano: %s", blanco->nombre);
 
     return blanco;
 }
@@ -129,11 +130,12 @@ void moverse_sin_personajes(tad_nivel* nivel, tad_enemigo* self){
 		}else{
 			//si no completo la L por esquivar una caja tiene que empezar de nuevo y buscar otra L al azar
 			self->movimientos_restantes = 0;
+			logger_info(self->logger, "Se esquiva caja en (%d,%d)", nueva_pos.x, nueva_pos.y);
 		}
 	}else{
 		//sino completo la L porque se iba fuera del mapa tiene que empezar de nuevo y buscar otra L al azar
 		self->movimientos_restantes = 0;
-		logger_info(self->logger, "Esquiva borde en (%d,%d)", nueva_pos.x, nueva_pos.y);
+		logger_info(self->logger, "Se esquiva borde en (%d,%d)", nueva_pos.x, nueva_pos.y);
 	}
 }
 

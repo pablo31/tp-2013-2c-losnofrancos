@@ -38,7 +38,7 @@ void resolver_deadlock(tad_nivel* nivel, t_list* personajes_deadlock){
 		t_personaje_bloqueado* personaje_victima = list_get(personajes_deadlock, 0);
 
 		//Se informa por archivo de log
-		logger_info(get_logger(nivel), "DEADLOCK: El personaje %s ha sido seleccionado como victima del deadlock", personaje_victima->nombre);
+		logger_info(get_logger(nivel), "DEADLOCK: El personaje %s ha sido seleccionado como victima de deadlock", personaje_victima->nombre);
 
 		//aca muere el personaje seleccionado
 		muerte_del_personaje(personaje_victima->simbolo, nivel, DEADLOCK);
@@ -193,9 +193,6 @@ void verificador_deadlock(PACKED_ARGS){
 								personaje->recurso_pedido->simbolo = '\0';
 								flag_cambios = 1;
 							}
-							else{
-								//logger_info(get_logger(nivel),"DEADLOCK: No se puede otorgar instancia del recurso", caja_recurso->simbolo);
-							}
 						}
 					}
 					//Si se liberaron recursos se vuelve a recorrer la lista para ver si se puede desbloquear algun personaje
@@ -234,7 +231,7 @@ void verificador_deadlock(PACKED_ARGS){
 							personaje_bloqueado->nombre = personaje->nombre;
 							list_add(personajes_deadlock, personaje_bloqueado);
 							string_append_with_format(&str_personajes_deadlock, "%s.", personaje_bloqueado->nombre);
-							logger_info(get_logger(nivel),"DEADLOCK: Personaje bloqueado %s tiene recurso requerido por otro personaje", personaje_bloqueado->nombre);
+							//logger_info(get_logger(nivel),"DEADLOCK: Personaje bloqueado %s tiene recurso requerido por otro personaje", personaje_bloqueado->nombre);
 						}
 
 						//logger_info(get_logger(nivel),"DEADLOCK: Personaje bloqueado con recursos asignados: %s", personaje->nombre);
@@ -253,9 +250,8 @@ void verificador_deadlock(PACKED_ARGS){
 			}
 
 			  list_destroy_and_destroy_elements(personajes_deadlock, (void*) liberar_bloqueado);
-			//list_destroy(personajes_deadlock);
 			liberar_lista_recursos(recursos_disponibles);
-			//list_destroy(recursos_disponibles);
+
 		}
 		liberar_lista_personajes(lista_personajes);
 	}

@@ -309,8 +309,8 @@ private void manejar_paquete_planificador(PACKED_ARGS){
 			mutex_close(self->semaforo_enemigos);
 			foreach(enemigo, self->enemigos, tad_enemigo*){
 				if(vector2_equals(enemigo->pos, personaje_en_movimiento->pos)){
+					logger_info(enemigo->logger, "El personaje %s fue atrapado por un enemigo", personaje_en_movimiento->nombre);
 					muerte_del_personaje(personaje_en_movimiento->simbolo, self, ENEMIGO);
-					logger_info(enemigo->logger, "Mate a %s", personaje_en_movimiento->nombre);
 				}
 			}
 			mutex_open(self->semaforo_enemigos);
@@ -423,8 +423,8 @@ private void nivel_finalizar_cerrar_multiplexor(tad_nivel* self, tad_multiplexor
 
 void evaluar_solicitud_recurso(tad_nivel* self, tad_personaje* personaje_solicitud, char simbolo_recurso){
 
-	logger_info(get_logger(self), "El personaje %s solicita recurso %c ", personaje_solicitud->nombre, simbolo_recurso);
-	logger_info(get_logger(self), "Cantidad de recursos asignados al momento: %d", list_size(personaje_solicitud->recursos_asignados));
+	logger_info(get_logger(self), "El personaje %s solicita recurso %c. Cantidad de recursos asignados al momento: %d ", personaje_solicitud->nombre, simbolo_recurso, list_size(personaje_solicitud->recursos_asignados));
+	//logger_info(get_logger(self), "Cantidad de recursos asignados al momento: %d", list_size(personaje_solicitud->recursos_asignados));
 	alloc(recurso_pedid, tad_recurso);
 	recurso_pedid->simbolo = simbolo_recurso;
 	recurso_pedid->cantidad = 1;
@@ -449,10 +449,10 @@ void evaluar_solicitud_recurso(tad_nivel* self, tad_personaje* personaje_solicit
 	if (instancias_caja > 0){
 		recurso_caja->instancias --;
 
-		logger_info(get_logger(self), "Se puede otorgar el recurso %c", recurso_caja->simbolo);
+		//logger_info(get_logger(self), "Se puede otorgar el recurso %c", recurso_caja->simbolo);
 		otorgar_recurso(self, personaje_solicitud->simbolo, simbolo_recurso);
 	}
-	else logger_info(get_logger(self), "No se puede otorgar el recurso %c", recurso_caja->simbolo);
+	else logger_info(get_logger(self), "No se puede otorgar el recurso %c al personaje %s", recurso_caja->simbolo, personaje_solicitud->nombre);
 	mutex_open(self->semaforo_cajas);
 }
 
@@ -477,12 +477,12 @@ void otorgar_recurso(tad_nivel* self, char simbolo_personaje, char simbolo_recur
 		}
 	}
 
-	if(encontre_recurso == true)
-		logger_info(get_logger(self), "El personaje %c ya tenia el recurso %c, se incrementa cantidad", simbolo_personaje, simbolo_recurso);
+	//if(encontre_recurso == true)
+		//logger_info(get_logger(self), "El personaje %c ya tenia el recurso %c, se incrementa cantidad", simbolo_personaje, simbolo_recurso);
 
 	//si no lo encontro lo agrega a la lista de recursos asignados
 	if(!encontre_recurso){
-		logger_info(get_logger(self), "El personaje %c no tenia el recurso %c, se agrega", simbolo_personaje, simbolo_recurso);
+		//logger_info(get_logger(self), "El personaje %c no tenia el recurso %c, se agrega", simbolo_personaje, simbolo_recurso);
 		alloc(nuevo_recurso, tad_recurso);
 		nuevo_recurso->simbolo = simbolo_recurso;
 		nuevo_recurso->cantidad = 1;
@@ -502,7 +502,7 @@ void otorgar_recurso(tad_nivel* self, char simbolo_personaje, char simbolo_recur
 	mutex_open(self->semaforo_bloqueados);
 	free(personaje_desbloqueado);
 
-	//logger_info(get_logger(self), "Se otorga el recurso %c al personaje %s", simbolo_recurso, personaje_solicitud->nombre);
+	logger_info(get_logger(self), "Se otorga el recurso %c al personaje %s", simbolo_recurso, personaje_solicitud->nombre);
 	socket_send_char(self->socket, RECURSO_OTORGADO, personaje_simbolo);
 }
 
@@ -526,10 +526,10 @@ void liberar_y_reasignar_recursos(tad_nivel* self, tad_personaje* personaje_muer
 				var(recurso_liberado, recurso_a_liberar->simbolo);
 
 				if(recurso_solicitado == recurso_liberado){
-					logger_info(get_logger(self), "recurso solicitado por un personaje bloqueado");
+					//logger_info(get_logger(self), "recurso solicitado por un personaje bloqueado");
 					otorgar_recurso(self, simbolo_bloqueado, recurso_solicitado);
 					recurso_a_liberar->cantidad --;
-					logger_info(get_logger(self), "Se desbloquea el personaje %c. Se le otorga el recurso %c", personaje_muerto->simbolo, recurso_solicitado);
+					//logger_info(get_logger(self), "Se desbloquea el personaje %c. Se le otorga el recurso %c", personaje_muerto->simbolo, recurso_solicitado);
 				}
 			}
 		}
@@ -575,7 +575,11 @@ void muerte_del_personaje(char personaje_simbolo, tad_nivel* self, int motivo){
 
     	tad_personaje* personaje_muerto = list_remove_by_condition(self->personajes, (void*)personaje_buscado);
 
-    	logger_info(get_logger(self), "Se elimino al personaje %s de la lista del nivel", personaje_muerto->nombre);
+    	if(motivo == ENEMIGO)
+    		logger_info(get_logger(self), "Muerte por enemigo del personaje %s, se elimina de la lista del nivel", personaje_muerto->nombre);
+    	if(motivo == DEADLOCK)
+    	    logger_info(get_logger(self), "Muerte por deadlock del personaje %s, se elimina de la lista del nivel", personaje_muerto->nombre);
+
 
     	//lo elimino de la lista de bloqueados
 
