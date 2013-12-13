@@ -325,44 +325,40 @@ private void paquete_entrante_nivel(PACKED_ARGS){
 		mutex_close(s);
 		var(simbolo, package_get_char(paquete));
 		var(personaje, buscar_personaje(self, simbolo, self->personajes_listos));
-		if(personaje != null){
-			logger_info(logger, "El personaje %s muere por un enemigo", personaje->nombre);
-			var(socket, personaje->socket);
-			SOCKET_ERROR_MANAGER(socket){
-				//choripaneada
-				logger_info(logger, "El personaje %s se desconecto de manera inesperada", personaje->nombre);
-				multiplexor_stop_io_handling(self->multiplexor);
-				planificador_liberar_personaje(self, personaje);
-				mutex_open(s);
-				package_dispose_all(paquete);
-				return;
-			}
-			socket_send_empty_package(socket, MUERTE_POR_ENEMIGO);
+		logger_info(logger, "El personaje %s muere por un enemigo", personaje->nombre);
+		var(socket, personaje->socket);
+		SOCKET_ERROR_MANAGER(socket){
+			//choripaneada
+			logger_info(logger, "El personaje %s se desconecto de manera inesperada", personaje->nombre);
 			multiplexor_stop_io_handling(self->multiplexor);
 			planificador_liberar_personaje(self, personaje);
+			mutex_open(s);
+			package_dispose_all(paquete);
+			return;
 		}
+		socket_send_empty_package(socket, MUERTE_POR_ENEMIGO);
+		multiplexor_stop_io_handling(self->multiplexor);
+		planificador_liberar_personaje(self, personaje);
 		mutex_open(s);
 
 	}else if(tipo == MUERTE_POR_DEADLOCK){
 		mutex_close(s);
 		var(simbolo, package_get_char(paquete));
 		var(personaje, buscar_personaje(self, simbolo, self->personajes_bloqueados));
-		if(personaje != null){
-			logger_info(logger, "El personaje %s muere por algoritmo deadlock", personaje->nombre);
-			var(socket, personaje->socket);
-			SOCKET_ERROR_MANAGER(socket){
-				//choripaneada
-				logger_info(logger, "El personaje %s se desconecto de manera inesperada", personaje->nombre);
-				multiplexor_stop_io_handling(self->multiplexor);
-				planificador_liberar_personaje(self, personaje);
-				mutex_open(s);
-				package_dispose_all(paquete);
-				return;
-			}
-			socket_send_empty_package(socket, MUERTE_POR_DEADLOCK);
+		logger_info(logger, "El personaje %s muere por algoritmo deadlock", personaje->nombre);
+		var(socket, personaje->socket);
+		SOCKET_ERROR_MANAGER(socket){
+			//choripaneada
+			logger_info(logger, "El personaje %s se desconecto de manera inesperada", personaje->nombre);
 			multiplexor_stop_io_handling(self->multiplexor);
 			planificador_liberar_personaje(self, personaje);
+			mutex_open(s);
+			package_dispose_all(paquete);
+			return;
 		}
+		socket_send_empty_package(socket, MUERTE_POR_DEADLOCK);
+		multiplexor_stop_io_handling(self->multiplexor);
+		planificador_liberar_personaje(self, personaje);
 		mutex_open(s);
 
 	}
