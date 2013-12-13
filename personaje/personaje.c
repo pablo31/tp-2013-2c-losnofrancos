@@ -116,6 +116,8 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
+	sleep(5);
+
 	//nos conectamos al orquestador
 	tad_socket* socket = conectarse_al_orquestador(self, logger);
 
