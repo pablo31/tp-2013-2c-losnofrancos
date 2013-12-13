@@ -621,11 +621,6 @@ void muerte_del_personaje(char personaje_simbolo, tad_nivel* self, int motivo){
     	mutex_open(self->semaforo_bloqueados);
     	if(personaje_desbloqueado != NULL)
     		free(personaje_desbloqueado);
-    	if(personaje_muerto == NULL){
-    		logger_info(get_logger(self), "No se encontro personaje: %c",personaje_simbolo);
-    		return;
-    	}
-    	logger_info(get_logger(self), "Se elimino el personaje de la lista del nivel: %c",personaje_simbolo);
 
        	//Se liberan recursos asignados y se reasignan a los personajes bloqueados
        	liberar_y_reasignar_recursos(self, personaje_muerto);
