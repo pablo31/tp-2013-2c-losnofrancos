@@ -39,26 +39,6 @@ private char get_simbolo(t_personaje* self){
 	return self->simbolo;
 }
 
-private t_list* get_niveles(t_personaje* self){
-	return self->niveles;
-}
-
-private int get_vidas_iniciales(t_personaje* self){
-	return self->vidas_iniciales;
-}
-
-private int get_vidas(t_personaje* self){
-	return self->vidas;
-}
-
-private void set_vidas(t_personaje* self, int value){
-	self->vidas = value;
-}
-
-private char* get_ippuerto_orquestador(t_personaje* self){
-	return self->ippuerto_orquestador;
-}
-
 
 //inicializacion y destruccion
 extern t_personaje* personaje_crear(char* config_path);
@@ -94,9 +74,9 @@ int main(int argc, char* argv[]) {
 	signal_dynamic_handler(SIGINT, personaje_finalizar(self));
 	signal_dynamic_handler(SIGTERM, morir(self, "Muerte por señal", logger));
 	signal_dynamic_handler(SIGUSR1, comer_honguito_verde(self));
-	logger_info(get_logger(self), "Senales establecidas");
+	logger_info(logger, "Senales establecidas");
 
-	var(niveles, get_niveles(self));
+	var(niveles, self->niveles);
 	var(cantidad_de_niveles, list_size(niveles));
 	tad_thread thread[cantidad_de_niveles];
 
@@ -117,12 +97,12 @@ int main(int argc, char* argv[]) {
 		}
 
 		//si todavia tiene vidas, significa que gano todos los niveles
-		gano_todos_los_niveles = get_vidas(self);
+		gano_todos_los_niveles = (self->vidas > 0);
 		if(!gano_todos_los_niveles){
 			if(solicitar_continue(self)){
 				//reiniciamos el plan de nieveles
 				cantidad_de_reiniciadas++;
-				logger_info(get_logger(self), "Se reiniciara el plan de niveles (reintento numero %d)", cantidad_de_reiniciadas);
+				logger_info(logger, "Se reiniciara el plan de niveles (reintento numero %d)", cantidad_de_reiniciadas);
 				self->vidas = self->vidas_iniciales;
 			}else{
 				//finalizamos personaje
@@ -136,7 +116,7 @@ int main(int argc, char* argv[]) {
 	tad_socket* socket = conectarse_al_orquestador(self, logger);
 
 	//informamos que ganamos
-	logger_info(get_logger(self), "Objetivos completados");
+	logger_info(logger, "Objetivos completados");
 	socket_send_empty_package(socket, PERSONAJE_OBJETIVOS_COMPLETADOS);
 
 	socket_close(socket);
@@ -166,7 +146,7 @@ private int solicitar_continue(t_personaje* self){
 
 
 private tad_socket* conectarse_al_orquestador(t_personaje* self, tad_logger* logger){
-	var(ippuerto_orquestador, get_ippuerto_orquestador(self));
+	var(ippuerto_orquestador, self->ippuerto_orquestador);
 	var(ip, string_get_ip(ippuerto_orquestador));
 	var(puerto, string_get_port(ippuerto_orquestador));
 
@@ -259,16 +239,8 @@ private tad_package* esperar_paquete_del_planificador(t_personaje* self, byte ti
 	//liberamos recursos
 	package_dispose(paquete);
 
-	//if(self->vidas>0){
-		//se tiene 	que conectar al orquestador pasando un nivel al que quiere jugar
-	//	logger_info(get_logger(self), "El personaje muere por que lindooo:");
-	//}else{
-		//se tiene 	que conectar al orquestador pasando todo el plan de niveles
-	//}
-
 	//hacemos saltar el socket con un error fantasma
-	socket_set_error(socket, CUSTOM_ERROR);   // no se pero me hace ruido
-
+	socket_set_error(socket, CUSTOM_ERROR);
 
 	return null;
 }
@@ -296,7 +268,7 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 	while(objetivosConseguidos < objetivosAconseguir){
 
 		//si no tenemos mas vidas, nos desconectamos y matamos el hilo
-		if(!get_vidas(self)){
+		if(!self->vidas){
 			socket_close(socket);
 			logger_info(logger_nivel, "Nivel finalizado sin exito por falta de vidas");
 			return 0;
@@ -360,22 +332,19 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 
 private void morir(t_personaje* self, char* tipo_muerte, tad_logger* logger){
 	logger_info(logger, "El personaje muere por:  %s", tipo_muerte);
-	var(vidas, get_vidas(self));
 
-	if(vidas > 0){
-		vidas--;
-		logger_info(logger, "El personaje perdio una vida, le quedan %d", vidas);
+	if(self->vidas > 0){
+		self->vidas--;
+		if(self->vidas > 0) logger_info(logger, "El personaje perdio una vida, le quedan %d", self->vidas);
+		else logger_info(logger, "El personaje perdio su ultima vida");
 	}else{
-		vidas = get_vidas_iniciales(self);
-		logger_info(logger, "El personaje perdio su ultima vida");
+		logger_info(logger, "El personaje no tiene mas vidas");
 	}
-
-	set_vidas(self, vidas);
 }
 
 private void comer_honguito_verde(t_personaje* self){
 	self->vidas++;
-	logger_info(get_logger(self), "El personaje gano una vida, ahora tiene %d", get_vidas(self));
+	logger_info(get_logger(self), "El personaje gano una vida, ahora tiene %d", self->vidas);
 }
 
 private void personaje_finalizar(t_personaje* self){
