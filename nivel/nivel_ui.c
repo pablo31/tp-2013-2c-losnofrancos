@@ -227,9 +227,6 @@ void nivel_gui_dibujar(tad_nivel* nivel){
 	var(semaforo_personajes, nivel->semaforo_personajes);
 
 	mutex_close(semaforo_dibujado);
-	mutex_close(semaforo_enemigos);
-	mutex_close(semaforo_personajes);
-	mutex_close(semaforo_cajas);
 
 	//limpiamos la pantalla
 	werase(secwin);
@@ -242,6 +239,10 @@ void nivel_gui_dibujar(tad_nivel* nivel){
 	var(cajas, nivel->cajas);
 	var(personajes, nivel->personajes);
 	var(enemigos, nivel->enemigos);
+
+	mutex_close(semaforo_enemigos);
+	mutex_close(semaforo_personajes);
+	mutex_close(semaforo_cajas);
 
 
 	//dibujamos a los enemigos
@@ -260,13 +261,14 @@ void nivel_gui_dibujar(tad_nivel* nivel){
 		i++;
 	}
 
+	mutex_open(semaforo_enemigos);
+	mutex_open(semaforo_personajes);
+	mutex_open(semaforo_cajas);
+
 	//actualizamos la pantalla
 	wrefresh(secwin);
 	wrefresh(mainwin);
 
-	mutex_open(semaforo_enemigos);
-	mutex_open(semaforo_personajes);
-	mutex_open(semaforo_cajas);
 	mutex_open(semaforo_dibujado);
 }
 

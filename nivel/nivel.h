@@ -47,8 +47,7 @@ class(tad_personaje){
 class(tad_enemigo){
 	char simbolo;
 	vector2 pos;
-	tad_personaje* blanco;
-	tad_logger* logger; //instancia del logger propia de cada enemigo
+	tad_logger* logger;
 };
 
 

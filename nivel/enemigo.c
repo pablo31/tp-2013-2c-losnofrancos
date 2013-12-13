@@ -27,21 +27,30 @@ void enemigo_ia(PACKED_ARGS){
 		logger_info(logger, "Cantidad de personajes en el nivel: %d.", cantidad_personajes);
 
 		if(cantidad_personajes > 0){
-			atacar_al_personaje(nivel, self, &eje_prox_mov);
+			atacar_al_personaje(nivel, self, &eje_prox_mov); }
 			mutex_open(nivel->semaforo_enemigos);
 			mutex_open(nivel->semaforo_personajes);
 			nivel_gui_dibujar(nivel);
-		}else{
-			mutex_open(nivel->semaforo_enemigos);
-			mutex_open(nivel->semaforo_personajes);
-			moverse_sin_personajes(nivel, self);
-		}
+//		}else{
+//			mutex_open(nivel->semaforo_enemigos);
+//			mutex_open(nivel->semaforo_personajes);
+//			moverse_sin_personajes(nivel, self);
+//		}
 
 
 
 
 		usleep(nivel->sleep_enemigos * 1000);
 	}
+}
+
+
+
+
+private void enemigo_mover_a(tad_nivel* nivel, tad_enemigo* self, vector2 pos){
+	if(posicion_ocupada_por_enemigo(nivel, pos)) return;
+	if(vector2_equals(vector2_new(0,0), pos)) return;
+	self->pos = pos;
 }
 
 
@@ -54,17 +63,12 @@ void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self, int *eje_prox_mov)
 
 	//controla si el personaje no está en la misma posicion que el enemigo
 	if(!vector2_equals(self->pos, blanco->pos)){
-		//se calcula la proxima posicion intentando moverse alternadamente por los ejes
 		vector2 nueva_posicion = vector2_move_alternately(self->pos, blanco->pos, eje_prox_mov);
 
-		//si hay una caja se busca un movimiento alternativo para esquivarla
-		if(!posicion_valida(nivel, nueva_posicion))
+		if(posicion_ocupada_por_caja(nivel, nueva_posicion))
 			nueva_posicion = esquivar_posicion(self->pos, nueva_posicion, blanco->pos);
-		//solo movemos al enemigo si la posicion es valida
-		if(posicion_valida(nivel, nueva_posicion))
-			self->pos = nueva_posicion;
 
-		logger_info(self->logger, "Me movi a (%d,%d)", nueva_posicion.x, nueva_posicion.y);
+		enemigo_mover_a(nivel, self, nueva_posicion);
 	}
 
 	//controla si la posicion nueva del enemigo coincide con la del personaje
@@ -129,7 +133,7 @@ void moverse_sin_personajes(tad_nivel* nivel, tad_enemigo* self){
 			mutex_close(nivel->semaforo_enemigos);
 
 			//se controla si en la posicion a moverse se encuentra una caja
-			if (posicion_valida(nivel,nueva_pos)){
+			if (!posicion_ocupada_por_caja(nivel,nueva_pos)){
 				movimientos_faltantes --;
 				self->pos = nueva_pos;
 				logger_info(self->logger, "Moviendose en L a (%d,%d)", self->pos.x,self->pos.y);
@@ -163,21 +167,19 @@ void moverse_sin_personajes(tad_nivel* nivel, tad_enemigo* self){
 
 
 
-
-
-bool posicion_valida(tad_nivel* nivel, vector2 pos){
-	//buscamos enemigos en la misma posicion
-	foreach(enemigo, nivel->enemigos, tad_enemigo*)
-		if(vector2_equals(pos, enemigo->pos))
-			return false;
-
+bool posicion_ocupada_por_caja(tad_nivel* nivel, vector2 pos){
 	//buscamos cajas en la misma posicion
 	foreach(caja, nivel->cajas, tad_caja*)
 		if(vector2_equals(pos, caja->pos))
-			return false;
-
-	//si no hay enemigos ni cajas, es una posicion valida
-	return true;
+			return true;
+	return false;
+}
+bool posicion_ocupada_por_enemigo(tad_nivel* nivel, vector2 pos){
+	//buscamos enemigos en la misma posicion
+	foreach(enemigo, nivel->enemigos, tad_enemigo*)
+		if(vector2_equals(pos, enemigo->pos))
+			return true;
+	return false;
 }
 
 

@@ -26,7 +26,10 @@
 void enemigo_ia(PACKED_ARGS);
 void moverse_sin_personajes(tad_nivel* nivel, tad_enemigo* self);
 void atacar_al_personaje(tad_nivel* nivel, tad_enemigo* self, int *eje_prox_mov);
-bool posicion_valida(tad_nivel* nivel, vector2 pos);
+
+bool posicion_ocupada_por_caja(tad_nivel* nivel, vector2 pos);
+bool posicion_ocupada_por_enemigo(tad_nivel* nivel, vector2 pos);
+
 vector2 esquivar_posicion(vector2 posicion_actual, vector2 nueva_posicion, vector2 posicion_personaje);
 int calcular_direccion_movimiento(vector2 pos1, vector2 pos2);
 int calcular_distancia(vector2 posicion_a, vector2 posicion_b);

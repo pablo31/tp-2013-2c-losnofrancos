@@ -193,7 +193,7 @@ void nivel_crear_hilos_enemigos(tad_nivel* self){
 
 private void nivel_crear_hilo_deadlock(tad_nivel* self){
 	logger_info(get_logger(self), "Se inicia el verificador de deadlocks");
-	thread_free_begin(verificador_deadlock, 1, self);
+	//thread_free_begin(verificador_deadlock, 1, self);
 }
 
 
