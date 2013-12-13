@@ -12,6 +12,7 @@
 #include "../libs/common/collections/list.h"
 #include "../libs/vector/vector2.h"
 #include "../libs/common/string.h"
+#include "../libs/thread/mutex.h"
 
 typedef struct {
 	char* nombre;
@@ -30,6 +31,9 @@ typedef struct {
 	tad_logger* logger;
 
 	int auto_continue;
+
+	tad_mutex* semaforo_sockets;
+	t_list* sockets_bloqueados;
 } t_personaje;
 
 

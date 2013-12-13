@@ -109,5 +109,8 @@ t_personaje* personaje_crear(char* config_path){
 	config_destroy(global_config);
 	liberar_niveles(nombres_niveles);
 
+	self->semaforo_sockets = mutex_create();
+	self->sockets_bloqueados = list_create();
+
 	return self;
 }

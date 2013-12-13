@@ -44,6 +44,7 @@ private char get_simbolo(t_personaje* self){
 extern t_personaje* personaje_crear(char* config_path);
 private void personaje_finalizar(t_personaje* self);
 //logica y ejecucion
+private void morir_por_senal(t_personaje* self);
 private void morir(t_personaje* self, char* tipo_muerte, tad_logger* logger);
 private void comer_honguito_verde(t_personaje* self);
 
@@ -53,7 +54,7 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 
 private int solicitar_continue(t_personaje* self);
 
-private void manejar_error_planificador(tad_socket* socket, tad_logger* logger);
+private void manejar_error_planificador(t_personaje* self, tad_socket* socket, tad_logger* logger);
 private tad_socket* conectarse_al_orquestador(t_personaje* self, tad_logger* logger);
 
 
@@ -72,7 +73,8 @@ int main(int argc, char* argv[]) {
 
 	//declaramos las funciones manejadoras de senales
 	signal_dynamic_handler(SIGINT, personaje_finalizar(self));
-	signal_dynamic_handler(SIGTERM, morir(self, "Muerte por señal", logger));
+	signal_dynamic_handler(SIGTERM, morir_por_senal(self));
+//	signal_dynamic_handler(SIGTERM, morir(self, "Muerte por señal", logger));
 	signal_dynamic_handler(SIGUSR1, comer_honguito_verde(self));
 	logger_info(logger, "Senales establecidas");
 
@@ -197,7 +199,15 @@ private void inicio_nuevo_hilo(PACKED_ARGS){
 }
 
 
-private void manejar_error_planificador(tad_socket* socket, tad_logger* logger){
+private void manejar_error_planificador(t_personaje* self, tad_socket* socket, tad_logger* logger){
+	bool socket_buscado(tad_socket* s){
+		return s == socket;
+	}
+	mutex_close(self->semaforo_sockets);
+	tad_socket* socket_cerrado = list_remove_by_condition(self->sockets_bloqueados, (void*)socket_buscado);
+	mutex_open(self->semaforo_sockets);
+	if(socket_cerrado != null) return;
+
 	if(socket_get_error(socket) != CUSTOM_ERROR) logger_error(logger, "Error en el envio o recepcion de datos del planificador");
 	socket_close(socket);
 }
@@ -224,12 +234,23 @@ private int conectarse_al_nivel(t_personaje* self, t_nivel* nivel, tad_logger* l
 }
 
 private tad_package* esperar_paquete_del_planificador(t_personaje* self, byte tipo_esperado, tad_socket* socket, tad_logger* logger){
+	mutex_close(self->semaforo_sockets);
+	list_add(self->sockets_bloqueados, socket);
+	mutex_open(self->semaforo_sockets);
+
 	tad_package* paquete = socket_receive_one_of_this_packages(socket, 3,
 			tipo_esperado,
 			MUERTE_POR_DEADLOCK,
 			MUERTE_POR_ENEMIGO);
-	var(tipo, package_get_data_type(paquete));
 
+	bool socket_buscado(tad_socket* s){
+		return s == socket;
+	}
+	mutex_close(self->semaforo_sockets);
+	list_remove_by_condition(self->sockets_bloqueados, (void*)socket_buscado);
+	mutex_open(self->semaforo_sockets);
+
+	var(tipo, package_get_data_type(paquete));
 	if(tipo == tipo_esperado) return paquete;
 
 	//informamos el motivo de la muerte
@@ -247,7 +268,7 @@ private tad_package* esperar_paquete_del_planificador(t_personaje* self, byte ti
 
 private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, tad_logger* logger_nivel){
 	SOCKET_ERROR_MANAGER(socket){
-		manejar_error_planificador(socket, logger_nivel);
+		manejar_error_planificador(self, socket, logger_nivel);
 		return 0;
 	}
 
@@ -330,6 +351,15 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 
 
 
+private void morir_por_senal(t_personaje* self){
+	morir(self, "Muerte por señal", get_logger(self));
+
+	mutex_close(self->semaforo_sockets);
+	foreach(socket, self->sockets_bloqueados, tad_socket*)
+		socket_close(socket);
+	mutex_open(self->semaforo_sockets);
+}
+
 private void morir(t_personaje* self, char* tipo_muerte, tad_logger* logger){
 	logger_info(logger, "El personaje muere por:  %s", tipo_muerte);
 
@@ -364,6 +394,9 @@ private void personaje_finalizar(t_personaje* self){
 		dealloc(nivel);
 	}
 	list_destroy(niveles);
+
+	mutex_dispose(self->semaforo_sockets);
+	list_destroy(self->sockets_bloqueados);
 
 	free(self->nombre);
 	free(self->ippuerto_orquestador);
