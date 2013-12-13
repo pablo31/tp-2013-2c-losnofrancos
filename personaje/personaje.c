@@ -48,12 +48,12 @@ private void morir(t_personaje* self, char* tipo_muerte, tad_logger* logger);
 private void comer_honguito_verde(t_personaje* self);
 
 private void inicio_nuevo_hilo(PACKED_ARGS);
-private int conectarse_al_nivel(t_personaje* self, t_nivel* nivel, tad_logger* logger_nivel);
-private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, tad_logger* logger);
+private int conectarse_al_nivel(t_hilo* hilo);
+private int jugar_nivel(t_hilo* hilo);
 
 private int solicitar_continue(t_personaje* self);
 
-private void manejar_error_planificador(tad_socket* socket, tad_logger* logger);
+private void manejar_error_planificador(t_hilo* hilo);
 private tad_socket* conectarse_al_orquestador(t_personaje* self, tad_logger* logger);
 
 
@@ -85,10 +85,13 @@ int main(int argc, char* argv[]) {
 
 	while(!gano_todos_los_niveles){
 		int i;
+
+		t_hilo hilos[cantidad_de_niveles];
+
 		//se inicia un nuevo hilo por cada nivel que tiene jugar
 		for(i = 0; i < cantidad_de_niveles; i++){
 			t_nivel* nivel = list_get(niveles, i);
-			thread[i] = thread_begin(inicio_nuevo_hilo, 2, self, nivel);
+			thread[i] = thread_begin(inicio_nuevo_hilo, 3, self, nivel, &hilos[i]);
 		}
 
 		//esperamos a que todos los hilos terminen de juegar
@@ -184,30 +187,43 @@ private tad_socket* conectarse_al_orquestador(t_personaje* self, tad_logger* log
 }
 
 private void inicio_nuevo_hilo(PACKED_ARGS){
-	UNPACK_ARGS(t_personaje* self, t_nivel* nivel);
+	UNPACK_ARGS(t_personaje* self, t_nivel* nivel, t_hilo* hilo);
 
-	//obtenemos una instancia del logger para el nivel
-	tad_logger* logger_nivel = logger_new_instance("Thread %s", nivel->nombre);
+	//seteamos los datos del hilo
+	hilo->personaje = self;
+	hilo->nivel = nivel;
+	hilo->connected = 0;
+	hilo->logger = logger_new_instance("Thread %s", nivel->nombre);
 
 	int status = 0;
 	while(!status && self->vidas)
-		status = conectarse_al_nivel(self, nivel, logger_nivel);
+		status = conectarse_al_nivel(hilo);
 
-	logger_dispose_instance(logger_nivel);
+	logger_dispose_instance(hilo->logger);
 }
 
 
-private void manejar_error_planificador(tad_socket* socket, tad_logger* logger){
-	if(socket_get_error(socket) != CUSTOM_ERROR) logger_error(logger, "Error en el envio o recepcion de datos del planificador");
+private void manejar_error_planificador(t_hilo* hilo){
+	if(!hilo->connected) return;
+	var(socket, hilo->socket);
+	if(socket_get_error(socket) != CUSTOM_ERROR) logger_error(hilo->logger, "Error en el envio o recepcion de datos del planificador");
 	socket_close(socket);
+	hilo->connected = 0;
 }
 
-private int conectarse_al_nivel(t_personaje* self, t_nivel* nivel, tad_logger* logger_nivel){
+private int conectarse_al_nivel(t_hilo* hilo){
+	var(self, hilo->personaje);
+	var(nivel, hilo->nivel);
+	var(logger_nivel, hilo->logger);
+
 	tad_socket* socket = conectarse_al_orquestador(self, logger_nivel);
+	hilo->socket = socket;
+	hilo->connected = 1;
 
 	SOCKET_ERROR_MANAGER(socket){
 		logger_info(logger_nivel, "Error en el envio o recepcion de datos del orquestador");
 		socket_close(socket);
+		hilo->connected = 0;
 		return 0;
 	}
 
@@ -220,10 +236,14 @@ private int conectarse_al_nivel(t_personaje* self, t_nivel* nivel, tad_logger* l
 	logger_info(logger_nivel, "Conectado con el planificador");
 
 	//jugamos el nivel
-	return jugar_nivel(self, nivel, socket, logger_nivel);
+	return jugar_nivel(hilo);
 }
 
-private tad_package* esperar_paquete_del_planificador(t_personaje* self, byte tipo_esperado, tad_socket* socket, tad_logger* logger){
+private tad_package* esperar_paquete_del_planificador(t_hilo* hilo, byte tipo_esperado){
+	var(socket, hilo->socket);
+	var(self, hilo->personaje);
+	var(logger, hilo->logger);
+
 	tad_package* paquete = socket_receive_one_of_this_packages(socket, 3,
 			tipo_esperado,
 			MUERTE_POR_DEADLOCK,
@@ -245,9 +265,14 @@ private tad_package* esperar_paquete_del_planificador(t_personaje* self, byte ti
 	return null;
 }
 
-private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, tad_logger* logger_nivel){
+private int jugar_nivel(t_hilo* hilo){
+	var(socket, hilo->socket);
+	var(self, hilo->personaje);
+	var(nivel, hilo->nivel);
+	var(logger_nivel, hilo->logger);
+
 	SOCKET_ERROR_MANAGER(socket){
-		manejar_error_planificador(socket, logger_nivel);
+		manejar_error_planificador(hilo);
 		return 0;
 	}
 
@@ -270,12 +295,13 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 		//si no tenemos mas vidas, nos desconectamos y matamos el hilo
 		if(!self->vidas){
 			socket_close(socket);
+			hilo->connected = 0;
 			logger_info(logger_nivel, "Nivel finalizado sin exito por falta de vidas");
 			return 0;
 		}
 
 		//esperamos que el planificador nos otorgue un turno
-		tad_package* paquete = esperar_paquete_del_planificador(self, PLANIFICADOR_OTORGA_TURNO, socket, logger_nivel);
+		tad_package* paquete = esperar_paquete_del_planificador(hilo, PLANIFICADOR_OTORGA_TURNO);
 		package_dispose(paquete);
 		logger_info(logger_nivel, "Turno otorgado");
 
@@ -287,7 +313,7 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 			//se solicita la ubicacion de la caja de recursos proxima a obtener, no consume quamtum
 			socket_send_char(socket, SOLICITUD_UBICACION_RECURSO, objetivoActual);
 
-			tad_package* respuesta = esperar_paquete_del_planificador(self, UBICACION_RECURSO, socket, logger_nivel);
+			tad_package* respuesta = esperar_paquete_del_planificador(hilo, UBICACION_RECURSO);
 			posicionDelProximoRecurso = package_get_vector2(respuesta);
 			package_dispose_all(respuesta);
 			logger_info(logger_nivel, "La ubicacion del recurso es (%d,%d)", posicionDelProximoRecurso.x, posicionDelProximoRecurso.y);
@@ -309,7 +335,7 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 			socket_send_char(socket, PERSONAJE_SOLICITUD_RECURSO, objetivoActual);
 
 			//se queda esperando a que le otorguen el recurso
-			tad_package* respuesta = esperar_paquete_del_planificador(self, RECURSO_OTORGADO, socket, logger_nivel);
+			tad_package* respuesta = esperar_paquete_del_planificador(hilo, RECURSO_OTORGADO);
 			package_dispose(respuesta);
 
 			//recibio el recurso!
@@ -322,6 +348,7 @@ private int jugar_nivel(t_personaje* self, t_nivel* nivel, tad_socket* socket, t
 	}
 
 	socket_close(socket);
+	hilo->connected = 0;
 	logger_info(logger_nivel, "Nivel completado con exito");
 
 	return 1;
