@@ -7,3 +7,11 @@ all:
 	@ar rcs liblog.a logger.o string.o log.o error.o temporal.o  txt.o process.o
 	@gcc -Wall -g -ggdb filesystem.c filesystem_operations.c  -D_FILE_OFFSET_BITS=64 -DFUSE_USE_VERSION=27 liblog.a libcommon.a -o filesystem -lpthread -lfuse -lm
 	@rm *.a *.o
+	#@echo "   >>> COMPILANDO PROCESO Koopa"
+	#@cd koopa-2c2013/Release/
+	#@make all 
+	#@cd ../..
+	#@echo "   >>> COMPILANDO PROCESO Massive File Creator"
+	#@cd sisoputnfrba-massive-file-creator-3c89d14
+	#@gcc massive-file-creator.c -o mfc -lcrypto -lpthread
+	#@cd ..
